@@ -1,0 +1,19 @@
+#!/usr/bin/env zsh
+
+source_DIR=${0:a:h}
+
+function push_pythonpath() {
+	pth=$1:A
+	echo "+ ${pth}"
+	export PATH=${pth}/script:$PATH
+	export PYTHONPATH=${pth}/package:$PYTHONPATH
+}
+
+push_pythonpath ${source_DIR}
+
+typeset -T PYTHONPATH pythonpath
+
+typeset -U pythonpath
+typeset -U path
+
+export STRUCTARRAY_build_DIR=${source_DIR}/build

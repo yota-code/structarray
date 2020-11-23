@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+
+import argparse
+
+from cc_pathlib import Path
+
+import structarray
+
+parser = argparse.ArgumentParser(description='Convert a meta (*.sam.tsv) and data (*.sad.bin) file into a tsv file')
+
+parser.add_argument('meta', metavar='META', type=Path, help='the meta (*.sam.tsv) file')
+parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.sad.bin) file')
+
+parser.add_argument('--filter', metavar='FILTER', type=Path, help='the filter (*.tsv) file')
+
+p = parser.parse_args()
+
+u = structarray.StructArray(p.meta, p.data)
+
+print(p.filter)
