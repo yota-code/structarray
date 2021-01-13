@@ -21,6 +21,7 @@ class StructInfo() :
 		self.info = dict()
 		self.addr = dict()
 		self._to_be_parsed_set = set()
+		
 		self.ctype_map = (self.elf_pth.parent / "structarray_type.json").load()
 
 	def _gdb(self, * cmd_lst, chunk_size=1024) :

@@ -54,8 +54,10 @@ class StructArray() :
 		self.var_lst = list()
 
 		obj = pth.load()
-
-		self.struct_name, self.block_size = obj.pop(0)
+		
+		first_line = obj.pop(0)
+		self.struct_name = first_line[0]
+		self.block_size = int(first_line[1])
 		for name, ctype, offset in obj :
 			if ctype == 'P4' :
 				continue
@@ -95,12 +97,14 @@ class StructArray() :
 		return self.extract_map
 
 	def get_stack(self) :
-		extract_map = self.extract_all()
-		data_lst = [extract_map[k] for k in self.var_lst]
+		data_lst = [self.extract_map[k] for k in self.var_lst]
 		stack = [ self.var_lst, ] + [line for line in zip(* data_lst)]
 		return stack
 
 	def to_tsv(self, pth) :
+		if not self.extract_map :
+			self.filter_all()
+		self.extract()
 		pth.save(self.get_stack())
 
 	def debug_nan(self) :
@@ -115,8 +119,6 @@ class StructArray() :
 				print(line)
 
 if __name__ == '__main__' :
-
-
 
 	import matplotlib.pyplot as plt
 
