@@ -7,7 +7,7 @@ import structarray
 
 from cc_pathlib import Path
 
-cwd = Path(sys.argv[1])
+cwd = Path(sys.argv[1]).resolve()
 
 rise_data_pth = cwd / "Data"
 rise_meta_pth = cwd / "libModelUPMV.txt"
@@ -58,6 +58,6 @@ if __name__ == '__main__' :
 	u = structarray.StructArray(structarray_meta_pth, structarray_data_pth)
 	u.to_tsv(cwd / "data.tsv")
 	
-	current_pth = (cwd / '../_last_').resolve()
-	if not current_pth.is_symlink() :
-		current_pth.symlink_to(cwd)
+	last_pth = (cwd / '../_last_')
+	if not last_pth.is_symlink() :
+		last_pth.symlink_to(cwd)
