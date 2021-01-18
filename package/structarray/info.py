@@ -22,7 +22,7 @@ class StructInfo() :
 		self.addr = dict()
 		self._to_be_parsed_set = set()
 		
-		self.ctype_map = (self.elf_pth.parent / "structarray_type.json").load()
+		self.ctype_map = (self.elf_pth.parent / "structarray_ctype.json").load()
 
 	def _gdb(self, * cmd_lst, chunk_size=1024) :
 
@@ -96,7 +96,13 @@ class StructInfo() :
 		left, sep, right = line.partition('=')
 		return int(right.strip())
 
-	def parse(self, ctype, varname) :
+	def parse(self, varname, save_as=None) :
+		line = self._gdb(f'whatis {varname}')
+		if line.startswith('type =') :
+			ctype = line.partition('=')[-1].strip()
+		else :
+			raise ValueError(f"this var is not known: {varname}")
+
 		ssize = self.get_sizeof(ctype)
 
 		stack = list()
@@ -117,7 +123,6 @@ class StructInfo() :
 			path_map[var] = typ
 			path_lst.append(var)
 
-
 		addr_lst = self.get_addr(* path_lst)
 
 		j = len(varname)
@@ -125,12 +130,30 @@ class StructInfo() :
 			stack.append([var.replace('->', '.')[j+1:], self.ctype_map[path_map[var]], addr])
 
 		src_pth = self.elf_pth.parent / f"{ctype}.tsv"
+		try :
+			src_pth.unlink()
+		except FileNotFoundError :
+			pass
 		src_pth.save(stack)
 
 		hash = hashlib.blake2b(src_pth.read_bytes()).hexdigest()[:12]
 		dst_pth = self.elf_pth.parent / f"{ctype}.{hash}.sam.tsv"
+		try :
+			dst_pth.unlink()
+		except FileNotFoundError :
+			pass
 
 		src_pth.rename(dst_pth)
+
+		if save_as is not None :
+			src_pth = self.elf_pth.parent / save_as
+			
+		try :
+			src_pth.unlink()
+		except FileNotFoundError :
+			pass
+
+		src_pth.symlink_to(dst_pth)
 
 		print('\n---', dst_pth)
 

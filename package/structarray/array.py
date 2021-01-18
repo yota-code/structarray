@@ -59,9 +59,9 @@ class StructArray() :
 		self.struct_name = first_line[0]
 		self.block_size = int(first_line[1])
 		for name, ctype, offset in obj :
+			self.meta[name] = (ctype, offset)
 			if ctype == 'P4' :
 				continue
-			self.meta[name] = (ctype, offset)
 			self.var_lst.append(name)
 
 	def load_data(self, pth) :
