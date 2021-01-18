@@ -15,11 +15,12 @@ ctype_map = {
 	'R4' : "f"
 }
 
-ntype_map = {
-	'N1' : 'uint8',
-	'Z4' : 'int32',
-	'N4' : 'uint32',
-	'R4' : 'float32',
+ntype_map = { # types numpy
+	'N1' : "uint8",
+	'Z4' : "int32",
+	'N4' : "uint32",
+	'R4' : "float32",
+	'R8' : "double",
 }
 
 sizeof_map = {
@@ -32,7 +33,7 @@ sizeof_map = {
 def glob_to_regex(s) :
 	s = re.escape(s)
 	s = s.replace('\\*', '.*?')
-	return re.compile('(^' + s + '$)', re.IGNORECASE)
+	return '(' + s + ')'
 
 class StructArray() :
 
@@ -60,7 +61,7 @@ class StructArray() :
 		self.block_size = int(first_line[1])
 		for name, ctype, offset in obj :
 			self.meta[name] = (ctype, offset)
-			if ctype == 'P4' :
+			if ctype in ['P4', 'P8'] :
 				continue
 			self.var_lst.append(name)
 
@@ -69,7 +70,10 @@ class StructArray() :
 
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
-		arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
+		try :
+			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
+		except KeyError :
+			return None
 		width = len(self.data) // self.block_size
 		height = len(self.data) // ( width * sizeof_map[ctype] )
 		arr.shape = (width, height)
@@ -80,7 +84,7 @@ class StructArray() :
 		filter_rec = re.compile('|'.join(filter_lst))
 
 		for var in self.var_lst :
-			if filter_rec.match(var) :
+			if filter_rec.search(var) :
 				self.extract_lst.append(var)
 
 	def filter_all(self) :
