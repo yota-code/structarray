@@ -62,8 +62,9 @@ class StructArray() :
 		for name, ctype, offset in obj :
 			self.meta[name] = (ctype, offset)
 			if ctype in ['P4', 'P8'] :
-				continue
-			self.var_lst.append(name)
+				pass
+			else :
+				self.var_lst.append(name)
 
 	def load_data(self, pth) :
 		self.data = pth.read_bytes()

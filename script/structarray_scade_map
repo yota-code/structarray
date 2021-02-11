@@ -8,6 +8,8 @@ from cc_pathlib import Path
 
 import structarray
 
+DISABLED !!!!
+
 main_template = '''#include <stdlib.h>
 #include <stdio.h>
 
@@ -69,6 +71,7 @@ def build_scade_map(name) :
 
 	u = structarray.StructInfo(model_dir / 'structarray_main.exe')
 	u.parse(f'_C_{name}', 'context')
+	u.save(model_dir)
 
 if __name__ == '__main__' :
 	build_scade_map(sys.argv[1])

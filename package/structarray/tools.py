@@ -71,4 +71,7 @@ def scade_map_context(cwd, name, include_lst) :
 	(cwd / "structarray_ctype.json").write_text(txt.replace(',\n}', '\n}'))
 
 	u = structarray.StructInfo(cwd / 'structarray_context.exe')
-	u.parse('context', "context.tsv")
+	u.parse('context')
+	u.save(cwd)
+
+	return u

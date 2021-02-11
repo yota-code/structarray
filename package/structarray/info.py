@@ -13,13 +13,22 @@ addr_rec = re.compile(r'''\$[0-9]+ = 0x[0-9a-f]+ <.*?(\+(?P<addr>[0-9]+))?>''')
 def unp(s) :
 	return s.replace('.*' , '->')
 
+def split_cpm(item) :
+	if '*' in item :
+		left, null, right = item.partition('*')
+		return [left.strip(), True, right.strip()]
+	else :
+		left, right = item.split()
+		return [left.strip(), False, right.strip()]
+
 class StructInfo() :
 	def __init__(self, elf_pth) :
 
 		self.elf_pth = elf_pth.resolve()
 
-		self.info = dict()
-		self.addr = dict()
+		self.addr = list()
+		self.tree = dict()
+
 		self._to_be_parsed_set = set()
 		
 		self.ctype_map = (self.elf_pth.parent / "structarray_ctype.json").load()
@@ -44,23 +53,36 @@ class StructInfo() :
 
 		return ''.join(stack)
 
-	def walk(self, ctype, path_lst=None, depth=0) :
+	def path_walk(self, pname, ctype=None, follow_pointers=False) :
+		pass
+
+	def walk(self, ctype=None, path_lst=None, follow_pointers=False, depth=0) :
+
+		if ctype is None :
+			ctype = self.var_type
+		if ctype not in self.tree :
+			raise ValueError(f"StructInfo.walk() unknown ctype: {ctype}")
+
 		if path_lst is None :
 			path_lst = list()
-		if isinstance(self.info[ctype], list) :
-			for c, p, m in self.info[ctype] :
+			
+		if isinstance(self.tree[ctype], list) :
+			for c, p, m in self.tree[ctype] :
 				if depth == 0 :
 					# print(c, p, m)
 					pass
 				if p :
-					yield path_lst + ['*' + m, 'void*']
+					if follow_pointers :
+						yield from self.walk(c, path_lst + [m + '*',], follow_pointers, depth+1)
+					else :
+						yield path_lst + [m, 'void*']
 				else :
-					yield from self.walk(c, path_lst + [m,], depth+1)
+					yield from self.walk(c, path_lst + [m,], follow_pointers, depth+1)
 		else :
-			yield  path_lst + [self.info[ctype],]
+			yield path_lst + [self.tree[ctype],]
 
 	def get_addr(self, * path_lst) :
-		print(f" >> StructInfo.get_addr( {len(path_lst)} )")
+		print(f">>> StructInfo.get_addr( {len(path_lst)} )")
 		line_lst = self._gdb(* [f'p/a &({unp(path)})' for path in path_lst]).splitlines()
 		addr_lst = list()
 		for line in line_lst :
@@ -68,15 +90,10 @@ class StructInfo() :
 			addr_lst.append(int(addr_res.group('addr')) if addr_res.group('addr') is not None else 0)
 		return addr_lst
 
-	def get_type(self, * ctype_lst) :
-		print(f" >> StructInfo.get_type( {len(ctype_lst)} )")
-		def split_cpm(item) :
-			if '*' in item :
-				left, null, right = item.partition('*')
-				return [left.strip(), True, right.strip()]
-			else :
-				left, right = item.split()
-				return [left.strip(), False, right.strip()]
+	def get_tree(self, * ctype_lst) :
+		print(f">>> StructInfo.get_tree( {len(ctype_lst)} )")
+
+		new_set = set()
 
 		line = self._gdb(* [f'ptype {ctype}' for ctype in ctype_lst])
 		ptype_lst = [item.strip() for item in line.split('type =') if item.strip()]
@@ -86,75 +103,97 @@ class StructInfo() :
 			if struct_res is not None :
 				member = struct_res.group('member')
 				struct = [split_cpm(item.strip().strip(';').strip()) for item in member.splitlines()[1:]]
-				self.info[ctype] = struct
-				self._to_be_parsed_set |= set(c for c, p, m in struct)
+				self.tree[ctype] = struct
+
+				new_set |= set(c for c, p, m in struct)
 			else :
-				self.info[ctype] = ptype
+				if ptype not in self.ctype_map :
+					raise ValueError(f"unknown ctype: {ptype}")
+				self.tree[ctype] = ptype
+
+		return new_set
 
 	def get_sizeof(self, ctype) :
 		line = self._gdb(f'print sizeof({ctype})')
 		left, sep, right = line.partition('=')
 		return int(right.strip())
 
-	def parse(self, varname, save_as=None) :
-		line = self._gdb(f'whatis {varname}')
+	def parse(self, var_name) :
+
+		line = self._gdb(f'whatis {var_name}')
 		if line.startswith('type =') :
-			ctype = line.partition('=')[-1].strip()
+			var_type = line.partition('=')[-1].strip()
 		else :
-			raise ValueError(f"this var is not known: {varname}")
+			raise ValueError(f"this var is not known: {var_name}")
 
-		ssize = self.get_sizeof(ctype)
+		var_size = self.get_sizeof(var_type)
 
-		stack = list()
-		stack.append([ctype, ssize,])
+		self.parse_tree(var_name, var_type)
+		self.parse_addr(var_name, var_type)
 
-		self.get_type(ctype)
-		to_be_parsed_set = self._to_be_parsed_set - self.info.keys()
-		while to_be_parsed_set :
-			# print(', '.join(to_be_parsed_set))
-			self.get_type(* to_be_parsed_set)
-			to_be_parsed_set = self._to_be_parsed_set - self.info.keys()
+		self.var_name = var_name
+		self.var_type = var_type
+		self.var_size = var_size
 
-		path_lst = list()
-		path_map = dict()
-		for line in self.walk(ctype) :
-			var = unp(f'{varname}.' + '.'.join(line[:-1]))
-			typ = line[-1]
-			path_map[var] = typ
-			path_lst.append(var)
+	def save(self, dst_dir) :
+		(dst_dir / "structarray_info.json").save(self.tree)
 
-		addr_lst = self.get_addr(* path_lst)
+		src_pth = dst_dir / f"{self.var_type}.sam.tsv"
 
-		j = len(varname)
-		for var, addr in zip(path_lst, addr_lst) :
-			stack.append([var.replace('->', '.')[j+1:], self.ctype_map[path_map[var]], addr])
+		# tambouille pour avec le hash dans le nom du fichier, môche
 
-		src_pth = self.elf_pth.parent / f"{ctype}.tsv"
 		try :
 			src_pth.unlink()
 		except FileNotFoundError :
 			pass
-		src_pth.save(stack)
 
-		hash = hashlib.blake2b(src_pth.read_bytes()).hexdigest()[:12]
-		dst_pth = self.elf_pth.parent / f"{ctype}.{hash}.sam.tsv"
+		src_pth.save([[self.var_type, self.var_size],] + self.addr)
+		h = hashlib.blake2b(src_pth.read_bytes()).hexdigest()[:12]
+
+		dst_pth = dst_dir / f"{self.var_type}.{h}.sam.tsv"
 		try :
 			dst_pth.unlink()
 		except FileNotFoundError :
 			pass
 
 		src_pth.rename(dst_pth)
-
-		if save_as is not None :
-			src_pth = self.elf_pth.parent / save_as
 			
 		try :
 			src_pth.unlink()
 		except FileNotFoundError :
 			pass
-
 		src_pth.symlink_to(dst_pth)
 
+		ctx_pth = dst_dir / f"context.tsv"
+		try :
+			ctx_pth.unlink()
+		except FileNotFoundError :
+			pass
+		ctx_pth.hardlink_to(dst_pth)
+
+
 		print('\n---', dst_pth)
+		print('---', src_pth)
 
 
+	def parse_tree(self, vname, ctype) :
+		# fill self.tree with the detail of all types found below the ctype given
+		self.tree = dict()
+
+		todo_set = set()
+		todo_set = ( todo_set | self.get_tree(ctype) ) - self.tree.keys()
+		while todo_set :
+			todo_set = ( todo_set | self.get_tree(* sorted(todo_set)) ) - self.tree.keys()
+
+	def parse_addr(self, vname, ctype) :
+
+		line_lst = list( self.walk(ctype) )
+		name_lst = [ unp('.'.join(line[:-1])) for line in line_lst ]
+		path_lst = [ unp(f'{vname}.' + '.'.join(line[:-1])) for line in line_lst ]
+		type_lst = [ line[-1] for line in line_lst ]
+		addr_lst = self.get_addr(* path_lst)
+
+		self.addr = [
+			[ name, self.ctype_map[ptype], addr ]
+			for name, ptype, addr in zip(name_lst, type_lst, addr_lst)
+		]
