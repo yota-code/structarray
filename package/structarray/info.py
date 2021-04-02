@@ -171,7 +171,6 @@ class StructInfo() :
 			pass
 		ctx_pth.hardlink_to(dst_pth)
 
-
 		print('\n---', dst_pth)
 		print('---', src_pth)
 

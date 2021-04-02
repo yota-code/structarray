@@ -10,9 +10,10 @@ from cc_pathlib import Path
 
 ctype_map = {
 	'N1' : "B",
+	'Z1' : "b",
 	'Z4' : "i",
 	'N4' : "I",
-	'R4' : "f"
+	'R4' : "f",
 }
 
 ntype_map = { # types numpy
@@ -21,6 +22,7 @@ ntype_map = { # types numpy
 	'N4' : "uint32",
 	'R4' : "float32",
 	'R8' : "double",
+	'Z1' : "int8",
 }
 
 sizeof_map = {
@@ -28,6 +30,7 @@ sizeof_map = {
 	'Z4' : 4,
 	'N4' : 4,
 	'R4' : 4,
+	'Z1' : 1,
 }
 
 def glob_to_regex(s) :
@@ -95,7 +98,6 @@ class StructArray() :
 		self.extract_lst = list()
 		
 	def extract(self) :
-		self.extract_map = dict()
 		for k in self.meta :
 			if k not in self.extract_map :
 				self.extract_map[k] = self[k]
@@ -103,7 +105,7 @@ class StructArray() :
 
 	def get_stack(self) :
 		data_lst = [self.extract_map[k] for k in self.var_lst]
-		stack = [ self.var_lst, ] + [line for line in zip(* data_lst)]
+		stack = [self.var_lst,] + [line for line in zip(* data_lst)]
 		return stack
 
 	def to_tsv(self, pth) :
