@@ -8,7 +8,7 @@ import hashlib
 from cc_pathlib import Path
 
 struct_rec = re.compile(r'''struct\s*\{(?P<member>.*?)\}''', re.MULTILINE | re.DOTALL)
-addr_rec = re.compile(r'''\$[0-9]+ = 0x[0-9a-f]+ <.*?(\+(?P<addr>[0-9]+))?>''')
+addr_rec = re.compile(r'''\$[0-9]+ = (?P<addr>0x[0-9a-f]+)''')
 
 def unp(s) :
 	return s.replace('.*' , '->')
@@ -81,13 +81,13 @@ class StructInfo() :
 		else :
 			yield path_lst + [self.tree[ctype],]
 
-	def get_addr(self, * path_lst) :
+	def get_addr(self, * path_lst, relative_to=0) :
 		print(f">>> StructInfo.get_addr( {len(path_lst)} )")
 		line_lst = self._gdb(* [f'p/a &({unp(path)})' for path in path_lst]).splitlines()
 		addr_lst = list()
 		for line in line_lst :
-			addr_res = addr_rec.match(line)
-			addr_lst.append(int(addr_res.group('addr')) if addr_res.group('addr') is not None else 0)
+			addr_res = addr_rec.search(line)
+			addr_lst.append(int(addr_res.group('addr'), 16) - relative_to)
 		return addr_lst
 
 	def get_tree(self, * ctype_lst) :
@@ -128,8 +128,10 @@ class StructInfo() :
 
 		var_size = self.get_sizeof(var_type)
 
+		origin = self.get_addr(var_name).pop()
+
 		self.parse_tree(var_name, var_type)
-		self.parse_addr(var_name, var_type)
+		self.parse_addr(var_name, var_type, origin)
 
 		self.var_name = var_name
 		self.var_type = var_type
@@ -184,13 +186,13 @@ class StructInfo() :
 		while todo_set :
 			todo_set = ( todo_set | self.get_tree(* sorted(todo_set)) ) - self.tree.keys()
 
-	def parse_addr(self, vname, ctype) :
+	def parse_addr(self, vname, ctype, origin=0) :
 
 		line_lst = list( self.walk(ctype) )
 		name_lst = [ unp('.'.join(line[:-1])) for line in line_lst ]
 		path_lst = [ unp(f'{vname}.' + '.'.join(line[:-1])) for line in line_lst ]
 		type_lst = [ line[-1] for line in line_lst ]
-		addr_lst = self.get_addr(* path_lst)
+		addr_lst = self.get_addr(* path_lst, relative_to=origin)
 
 		self.addr = [
 			[ name, self.ctype_map[ptype], addr ]
