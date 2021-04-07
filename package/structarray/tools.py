@@ -37,6 +37,7 @@ int main(int argc, char * argv[]) {{
 	inttype_info(int);
 	inttype_info(long);
 	inttype_info(long long);
+	inttype_info(unsigned long);
 
 	realtype_info(float);
 	realtype_info(double);
