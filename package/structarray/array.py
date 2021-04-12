@@ -74,10 +74,10 @@ class StructArray() :
 
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
-		try :
-			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
-		except KeyError :
-			return None
+		#try :
+		arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
+		#except KeyError :
+		#	return None
 		width = len(self.data) // self.block_size
 		height = len(self.data) // ( width * sizeof_map[ctype] )
 		arr.shape = (width, height)
