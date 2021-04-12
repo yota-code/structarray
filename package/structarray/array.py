@@ -23,6 +23,7 @@ ntype_map = { # types numpy
 	'R4' : "float32",
 	'R8' : "double",
 	'Z1' : "int8",
+	'N8' : "uint64",
 }
 
 sizeof_map = {
@@ -31,6 +32,7 @@ sizeof_map = {
 	'N4' : 4,
 	'R4' : 4,
 	'Z1' : 1,
+	'N8' : 8,
 }
 
 def glob_to_regex(s) :
@@ -47,6 +49,7 @@ class StructArray() :
 
 		if meta is not None and meta.is_file() :
 			self.load_meta(meta)
+
 		if data is not None and data.is_file() :
 			self.load_data(data)
 
@@ -63,11 +66,10 @@ class StructArray() :
 		self.struct_name = first_line[0]
 		self.block_size = int(first_line[1])
 		for name, ctype, offset in obj :
-			self.meta[name] = (ctype, offset)
 			if ctype in ['P4', 'P8'] :
-				pass
-			else :
-				self.var_lst.append(name)
+				continue
+			self.meta[name] = (ctype, offset)
+			self.var_lst.append(name)
 
 	def load_data(self, pth) :
 		self.data = pth.read_bytes()
@@ -75,9 +77,12 @@ class StructArray() :
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
 		#try :
+		# print(name, ctype, offset)
 		arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
 		#except KeyError :
-		#	return None
+		#	print("RAAAh", name)
+		#	raise
+			# return None
 		width = len(self.data) // self.block_size
 		height = len(self.data) // ( width * sizeof_map[ctype] )
 		arr.shape = (width, height)

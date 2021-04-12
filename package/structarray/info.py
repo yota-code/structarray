@@ -9,6 +9,7 @@ from cc_pathlib import Path
 
 struct_rec = re.compile(r'''struct\s*\{(?P<member>.*?)\}''', re.MULTILINE | re.DOTALL)
 addr_rec = re.compile(r'''\$[0-9]+ = (?P<addr>0x[0-9a-f]+)''')
+member_rec = re.compile(r'''\s*(?P<ctype>.*?)\b\s*(?P<pointer>\*)?\s*\b(?P<name>[a-zA-Z_][a-zA-Z0-9_]*)(\[(?P<array>\d+)\])?\s*;''')
 
 def unp(s) :
 	return s.replace('.*' , '->')
@@ -83,6 +84,7 @@ class StructInfo() :
 
 	def get_addr(self, * path_lst, relative_to=0) :
 		print(f">>> StructInfo.get_addr( {len(path_lst)} )")
+
 		line_lst = self._gdb(* [f'p/a &({unp(path)})' for path in path_lst]).splitlines()
 		addr_lst = list()
 		for line in line_lst :
@@ -101,11 +103,18 @@ class StructInfo() :
 		for ctype, ptype in zip(ctype_lst, ptype_lst) :
 			struct_res = struct_rec.match(ptype)
 			if struct_res is not None :
+				struct_lst = list()
 				member = struct_res.group('member')
-				struct = [split_cpm(item.strip().strip(';').strip()) for item in member.splitlines()[1:]]
-				self.tree[ctype] = struct
+				for member_res in member_rec.finditer(struct_res.group('member')) :
+					if member_res.group('array') is None :
+						struct_lst.append([member_res.group('ctype').strip(), (member_res.group('pointer') is not None), member_res.group('name')])
+					else :
+						for i in range(int(member_res.group('array'))) :
+							struct_lst.append([member_res.group('ctype').strip(), (member_res.group('pointer') is not None), member_res.group('name') + f'[{i}]'])
 
-				new_set |= set(c for c, p, m in struct)
+				self.tree[ctype] = struct_lst
+
+				new_set |= set(c for c, p, m in struct_lst)
 			else :
 				if ptype not in self.ctype_map :
 					raise ValueError(f"unknown ctype: {ptype}")
@@ -136,6 +145,8 @@ class StructInfo() :
 		self.var_name = var_name
 		self.var_type = var_type
 		self.var_size = var_size
+
+		return var_size
 
 	def save(self, dst_dir) :
 		(dst_dir / "structarray_info.json").save(self.tree)
