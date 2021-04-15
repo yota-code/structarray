@@ -46,7 +46,8 @@ int main(int argc, char * argv[]) {{
 
 	memset(& context, 0, sizeof(_C_{name}));
 
-	return sizeof(_C_{name});
+	return EXIT_SUCCESS; 
+	//sizeof(_C_{name});
 
 }}
 '''

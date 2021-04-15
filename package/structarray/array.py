@@ -119,24 +119,27 @@ class StructArray() :
 		self.extract()
 		pth.save(self.get_stack())
 
-	def debug_nan(self) :
+	def debug_nan(self, max_iter=4) :
+		self.extract()
 		stack = self.get_stack()
 		header = stack[0]
-		for line in stack[1:] :
-			print(f"{line[0]} ------")
+		for n, line in enumerate(stack[1:]) :
+			print(f"{n} ------")
 			for i, item in enumerate(line) :
 				if math.isnan(item) :
 					print(header[i])
 			if float("nan") in line :
 				print(line)
+			if n >= max_iter :
+				break
 
 if __name__ == '__main__' :
 
 	import matplotlib.pyplot as plt
 
 	u = StructArray(
-		Path("/mnt/workbench/source/cc-autopilot-gazebo/unrecord/mapping/scademapping.tsv"),
-		Path("/mnt/workbench/source/cc-autopilot-gazebo/unrecord/replay/_active_/output.reb")
+		Path("/C/autools/source/a876969/vertex/unitest/build/EagleStateEstimator/mapping/context.tsv"),
+		Path("/C/autools/source/a876969/vertex/unitest/build/EagleStateEstimator/replay/test01/context.reb")
 	)
-	u.debug_nan()
-	# u.to_tsv(Path("/tmp/test.tsv"))
+	u.to_tsv(Path("debug.tsv"))
+	u.debug_nan(4)
