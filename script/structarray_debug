@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import sys
+
+from cc_pathlib import Path
+
+import structarray
+
+meta = Path(sys.argv[1])
+data = Path(sys.argv[2])
+
+u = structarray.StructArray(meta, data)
+u.debug()

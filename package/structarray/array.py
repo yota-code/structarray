@@ -8,12 +8,13 @@ import numpy as np
 
 from cc_pathlib import Path
 
-ctype_map = {
+ctype_map = { # types of struct
 	'N1' : "B",
 	'Z1' : "b",
 	'Z4' : "i",
 	'N4' : "I",
 	'R4' : "f",
+	'R8' : "d"
 }
 
 ntype_map = { # types numpy
@@ -26,13 +27,14 @@ ntype_map = { # types numpy
 	'N8' : "uint64",
 }
 
-sizeof_map = {
+sizeof_map = { # size of types
 	'N1' : 1,
 	'Z4' : 4,
 	'N4' : 4,
 	'R4' : 4,
 	'Z1' : 1,
 	'N8' : 8,
+	'R8' : 8,
 }
 
 def glob_to_regex(s) :
@@ -119,23 +121,33 @@ class StructArray() :
 		self.extract()
 		pth.save(self.get_stack())
 
-	def debug_nan(self, max_iter=4) :
+	def to_listing(self, pth, line=8) :
+		if not self.extract_lst :
+			self.filter_all()
+
+		stack = [[k,] + list(self[k][0:10]) for k in self.extract_lst]
+		pth.save(stack)
+
+	def debug(self) :
 		self.extract()
 		stack = self.get_stack()
 		header = stack[0]
+		has_error = False
+		print("\x1b[31mNan\x1b[0m")
+		print("\x1b[32mInf\x1b[0m")
 		for n, line in enumerate(stack[1:]) :
-			print(f"{n} ------")
+			print(f"---  {n}")
 			for i, item in enumerate(line) :
 				if math.isnan(item) :
-					print(header[i])
-			if float("nan") in line :
-				print(line)
-			if n >= max_iter :
+					print(f"\x1b[31m{header[i]}\x1b[0m")
+					has_error = True
+				if math.isinf(item) :
+					print(f"\x1b[32m{header[i]}\x1b[0m")
+					has_error = True
+			if has_error :
 				break
 
 if __name__ == '__main__' :
-
-	import matplotlib.pyplot as plt
 
 	u = StructArray(
 		Path("/C/autools/source/a876969/vertex/unitest/build/EagleStateEstimator/mapping/context.tsv"),
