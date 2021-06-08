@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import os
 import re
 import struct
 
@@ -70,7 +71,7 @@ class StructArray() :
 		for name, ctype, offset in obj :
 			if ctype in ['P4', 'P8'] :
 				continue
-			self.meta[name] = (ctype, offset)
+			self.meta[name] = (ctype, int(offset))
 			self.var_lst.append(name)
 
 	def load_data(self, pth) :
@@ -121,11 +122,16 @@ class StructArray() :
 		self.extract()
 		pth.save(self.get_stack())
 
-	def to_listing(self, pth, line=8) :
+	def to_listing(self, pth) :
 		if not self.extract_lst :
 			self.filter_all()
 
-		stack = [[k,] + list(self[k][0:10]) for k in self.extract_lst]
+		if 'STRUCTARRAY_listing_SLICE' in os.environ :
+			s = slice(* [int(i) for i in os.environ['STRUCTARRAY_listing_SLICE'].split(':')])
+		else :
+			s = slice(0, 10)
+
+		stack = [[k,] + list(self[k][s]) for k in self.extract_lst]
 		pth.save(stack)
 
 	def debug(self) :

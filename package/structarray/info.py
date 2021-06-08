@@ -148,7 +148,8 @@ class StructInfo() :
 
 		return var_size
 
-	def save(self, dst_dir) :
+
+	def save__disabled__(self, dst_dir) :
 		(dst_dir / "structarray_info.json").save(self.tree)
 
 		src_pth = dst_dir / f"{self.var_type}.sam.tsv"
@@ -187,6 +188,9 @@ class StructInfo() :
 		print('\n---', dst_pth)
 		print('---', src_pth)
 
+	def save(self, pth) :
+		pth.with_suffix('.json').save(self.tree)
+		pth.save([[self.var_type, self.var_size],] + self.addr)
 
 	def parse_tree(self, vname, ctype) :
 		# fill self.tree with the detail of all types found below the ctype given
