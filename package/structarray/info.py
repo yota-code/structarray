@@ -148,44 +148,44 @@ class StructInfo() :
 
 		return var_size
 
-	def save(self, dst_dir) :
-		(dst_dir / "structarray_info.json").save(self.tree)
+	def save(self, dst_dir, dst_name) :
+		(dst_dir / f"{dst_name}.json").save(self.tree)
+		(dst_dir / f"{dst_name}.tsv").save([[self.var_type, self.var_size],] + self.addr)
 
-		src_pth = dst_dir / f"{self.var_type}.sam.tsv"
+		# src_pth = dst_dir / f"{self.var_type}.sam.tsv"
 
 		# tambouille pour avec le hash dans le nom du fichier, môche
 
-		try :
-			src_pth.unlink()
-		except FileNotFoundError :
-			pass
+		# try :
+		# 	src_pth.unlink()
+		# except FileNotFoundError :
+		# 	pass
 
-		src_pth.save([[self.var_type, self.var_size],] + self.addr)
-		h = hashlib.blake2b(src_pth.read_bytes()).hexdigest()[:12]
+		# h = hashlib.blake2b(src_pth.read_bytes()).hexdigest()[:12]
 
-		dst_pth = dst_dir / f"{self.var_type}.{h}.sam.tsv"
-		try :
-			dst_pth.unlink()
-		except FileNotFoundError :
-			pass
+		# dst_pth = dst_dir / f"{self.var_type}.{h}.sam.tsv"
+		# try :
+		# 	dst_pth.unlink()
+		# except FileNotFoundError :
+		# 	pass
 
-		src_pth.rename(dst_pth)
+		# src_pth.rename(dst_pth)
 			
-		try :
-			src_pth.unlink()
-		except FileNotFoundError :
-			pass
-		src_pth.symlink_to(dst_pth)
+		# try :
+		# 	src_pth.unlink()
+		# except FileNotFoundError :
+		# 	pass
+		# src_pth.symlink_to(dst_pth)
 
-		ctx_pth = dst_dir / f"context.tsv"
-		try :
-			ctx_pth.unlink()
-		except FileNotFoundError :
-			pass
-		ctx_pth.hardlink_to(dst_pth)
+		# ctx_pth = dst_dir / f"context.tsv"
+		# try :
+		# 	ctx_pth.unlink()
+		# except FileNotFoundError :
+		# 	pass
+		# ctx_pth.hardlink_to(dst_pth)
 
-		print('\n---', dst_pth)
-		print('---', src_pth)
+		# print('\n---', dst_pth)
+		# print('---', src_pth)
 
 
 	def parse_tree(self, vname, ctype) :

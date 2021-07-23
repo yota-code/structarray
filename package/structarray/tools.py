@@ -8,6 +8,8 @@ from cc_pathlib import Path
 
 import structarray
 
+DISABLED !!!
+
 scade_context_template = '''#include <stdlib.h>
 #include <stdio.h>
 
@@ -47,7 +49,6 @@ int main(int argc, char * argv[]) {{
 	memset(& context, 0, sizeof(_C_{name}));
 
 	return EXIT_SUCCESS; 
-	//sizeof(_C_{name});
 
 }}
 '''
@@ -60,7 +61,7 @@ def scade_map_context(cwd, name, include_lst) :
 
 	cmd = (
 		["gcc", "-save-temps", "-std=c99", "-g"] +
-		[f"-I{include_dir}" for include_dir in include_lst] +
+		[f"-I{str(include_dir)}" for include_dir in include_lst] +
 		["structarray_context.c", "-o", "structarray_context.exe"]
 	)
 	ret = cwd.run(* cmd)
@@ -70,7 +71,6 @@ def scade_map_context(cwd, name, include_lst) :
 
 	ret = cwd.run("./structarray_context.exe")
 	txt = ret.stdout.decode(sys.stdout.encoding)
-
 	(cwd / "structarray_ctype.json").write_text(txt.replace(',\n}', '\n}'))
 
 	u = structarray.StructInfo(cwd / 'structarray_context.exe')

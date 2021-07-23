@@ -70,7 +70,7 @@ class StructArray() :
 		for name, ctype, offset in obj :
 			if ctype in ['P4', 'P8'] :
 				continue
-			self.meta[name] = (ctype, offset)
+			self.meta[name] = (ctype, int(offset))
 			self.var_lst.append(name)
 
 	def load_data(self, pth) :
@@ -125,7 +125,7 @@ class StructArray() :
 		if not self.extract_lst :
 			self.filter_all()
 
-		stack = [[k,] + list(self[k][0:10]) for k in self.extract_lst]
+		stack = [[k,] + list(self[k][:10]) for k in self.extract_lst]
 		pth.save(stack)
 
 	def debug(self) :
