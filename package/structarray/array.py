@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import io
 import math
 import re
 import struct
@@ -78,17 +79,27 @@ class StructArray() :
 
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
-		#try :
-		# print(name, ctype, offset)
-		arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
-		#except KeyError :
-		#	print("RAAAh", name)
-		#	raise
-			# return None
+
 		width = len(self.data) // self.block_size
 		height = len(self.data) // ( width * sizeof_map[ctype] )
-		arr.shape = (width, height)
-		return arr[:,int(offset) // sizeof_map[ctype]]
+
+		if offset % sizeof_map[ctype] == 0 :
+			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
+			arr.shape = (width, height)
+			return arr[:,int(offset) // sizeof_map[ctype]]
+		else :
+			v_lst = list()
+			p = offset
+			for i in range(width) :
+				v_lst.append(struct.unpack_from(ctype_map[ctype], self.data, p)[0])
+				p += self.block_size
+			# with io.BytesIO(self.data) as fid :
+			# 	while True :
+			# 		buffer = fid.read(self.block_size)
+			# 		if len(buffer) == 0 :
+			# 			break
+			# 		v_lst.append(struct.unpack_from(ctype_map[ctype], self.data, offset))
+			return np.array(v_lst)
 
 	def filter_select(self, * filter_lst) :
 		filter_lst = [glob_to_regex(line) for line in filter_lst]
