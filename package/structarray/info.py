@@ -148,18 +148,9 @@ class StructInfo() :
 
 		return var_size
 
-<<<<<<< HEAD
 	def save(self, dst_dir, dst_name) :
 		(dst_dir / f"{dst_name}.json").save(self.tree)
 		(dst_dir / f"{dst_name}.tsv").save([[self.var_type, self.var_size],] + self.addr)
-||||||| 3751226
-	def save(self, dst_dir) :
-		(dst_dir / "structarray_info.json").save(self.tree)
-=======
-
-	def save__disabled__(self, dst_dir) :
-		(dst_dir / "structarray_info.json").save(self.tree)
->>>>>>> df5bb23f093bc64d8d06f058dc85744e8718983c
 
 		# src_pth = dst_dir / f"{self.var_type}.sam.tsv"
 

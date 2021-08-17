@@ -8,15 +8,9 @@ from cc_pathlib import Path
 
 import structarray
 
-<<<<<<< HEAD
 DISABLED !!!
 
 scade_context_template = '''#include <stdlib.h>
-||||||| 3751226
-scade_context_template = '''#include <stdlib.h>
-=======
-ctype_info_template = '''#include <stdlib.h>
->>>>>>> df5bb23f093bc64d8d06f058dc85744e8718983c
 #include <stdio.h>
 
 #ifndef _INCLUDE_SCADE_TYPES
@@ -64,16 +58,8 @@ def get_ctype_info(cwd) :
 
 	cmd = (
 		["gcc", "-save-temps", "-std=c99", "-g"] +
-<<<<<<< HEAD
 		[f"-I{str(include_dir)}" for include_dir in include_lst] +
 		["structarray_context.c", "-o", "structarray_context.exe"]
-||||||| 3751226
-		[f"-I{include_dir}" for include_dir in include_lst] +
-		["structarray_context.c", "-o", "structarray_context.exe"]
-=======
-		[f"-I{include_dir}" for include_dir in include_lst] +
-		[src_name, "-o", exe_name]
->>>>>>> df5bb23f093bc64d8d06f058dc85744e8718983c
 	)
 	ret = cwd.run(* cmd)
 	if ret.returncode != 0 :
