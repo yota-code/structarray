@@ -8,26 +8,28 @@ from cc_pathlib import Path
 
 import structarray
 
+<<<<<<< HEAD
 DISABLED !!!
 
 scade_context_template = '''#include <stdlib.h>
+||||||| 3751226
+scade_context_template = '''#include <stdlib.h>
+=======
+ctype_info_template = '''#include <stdlib.h>
+>>>>>>> df5bb23f093bc64d8d06f058dc85744e8718983c
 #include <stdio.h>
 
-#include <string.h>
+#ifndef _INCLUDE_SCADE_TYPES
+	#include "scade/scade_types.h"
+#endif
 
 #define inttype_info(t) printf("\\t\\"%s\\" : \\"%s%d\\",\\n", #t, ( ( (((t)(0)) - 1) > 0) ? ("N") : ("Z")), sizeof(t))
 #define realtype_info(t) printf("\\t\\"%s\\" : \\"%s%d\\",\\n", #t, "R", sizeof(t))
 #define pointertype_info(t) printf("\\t\\"%s\\" : \\"%s%d\\",\\n", #t, "P", sizeof(t))
 
-#include "scade_types.h"
+int main(int argc, char * argv[]) {
 
-#include "{name}.h"
-
-_C_{name} context = {{0}};
-
-int main(int argc, char * argv[]) {{
-
-	printf("{{\\n");
+	printf("{\\n");
 
 	pointertype_info(void*);
 
@@ -44,7 +46,59 @@ int main(int argc, char * argv[]) {{
 	realtype_info(float);
 	realtype_info(double);
 
-	printf("}}\\n");
+	printf("}\\n");
+
+	return EXIT_SUCCESS; 
+
+}
+'''
+
+def get_ctype_info(cwd) :
+	src_name = 'structarray_ctype_info.c'
+	exe_name = 'structarray_ctype_info.exe'
+
+	include_lst = [ "../include/scade", "../include/fctext", "../include" ]
+
+	cwd.make_dirs()
+	(cwd / src_name).write_text(ctype_info_template)
+
+	cmd = (
+		["gcc", "-save-temps", "-std=c99", "-g"] +
+<<<<<<< HEAD
+		[f"-I{str(include_dir)}" for include_dir in include_lst] +
+		["structarray_context.c", "-o", "structarray_context.exe"]
+||||||| 3751226
+		[f"-I{include_dir}" for include_dir in include_lst] +
+		["structarray_context.c", "-o", "structarray_context.exe"]
+=======
+		[f"-I{include_dir}" for include_dir in include_lst] +
+		[src_name, "-o", exe_name]
+>>>>>>> df5bb23f093bc64d8d06f058dc85744e8718983c
+	)
+	ret = cwd.run(* cmd)
+	if ret.returncode != 0 :
+		raise ValueError("gcc couldn't compile properly")
+
+	ret = cwd.run(f"./{exe_name}")
+	txt = ret.stdout.decode(sys.stdout.encoding)
+	(cwd / "structarray_ctype.json").write_text(txt.replace(',\n}', '\n}'))
+
+scade_context_template = '''#include <stdlib.h>
+#include <stdio.h>
+
+#include <string.h>
+
+#ifndef _INCLUDE_SCADE_TYPES
+	#include "scade/scade_types.h"
+#endif
+
+#ifndef _INCLUDE_upmv_loop
+	#include "scade/{name}.h"
+#endif
+
+_C_{name} context = {{0}};
+
+int main(int argc, char * argv[]) {{
 
 	memset(& context, 0, sizeof(_C_{name}));
 
@@ -53,28 +107,74 @@ int main(int argc, char * argv[]) {{
 }}
 '''
 
-def scade_map_context(cwd, name, include_lst) :
+def get_scade_context(cwd, name) :
+	src_name = 'structarray_scade_context.c'
+	exe_name = 'structarray_scade_context.exe'
+
+	include_lst = [ "../include/scade", "../include/fctext", "../include" ]
 
 	cwd.make_dirs()
-
-	(cwd / 'structarray_context.c').write_text(scade_context_template.format(name=name))
+	(cwd / src_name).write_text(scade_context_template.format(name=name))
 
 	cmd = (
 		["gcc", "-save-temps", "-std=c99", "-g"] +
-		[f"-I{str(include_dir)}" for include_dir in include_lst] +
-		["structarray_context.c", "-o", "structarray_context.exe"]
+		[f"-I{include_dir}" for include_dir in include_lst] +
+		[src_name, "-o", exe_name]
 	)
+
 	ret = cwd.run(* cmd)
-	# ret = subprocess.run(cmd, cwd=model_dir)
 	if ret.returncode != 0 :
 		raise ValueError("gcc couldn't compile properly")
 
-	ret = cwd.run("./structarray_context.exe")
-	txt = ret.stdout.decode(sys.stdout.encoding)
-	(cwd / "structarray_ctype.json").write_text(txt.replace(',\n}', '\n}'))
-
-	u = structarray.StructInfo(cwd / 'structarray_context.exe')
-	u.parse('context')
-	u.save(cwd)
+	u = structarray.StructInfo(cwd / exe_name)
+	u.parse("context")
+	u.save(cwd / f"context.tsv")
 
 	return u
+
+
+scade_interface_template = '''#include <stdlib.h>
+#include <stdio.h>
+
+#include <string.h>
+
+#ifndef _INCLUDE_SCADE_TYPES
+	#include "scade/scade_types.h"
+#endif
+
+#include "unitest/interface.h"
+
+unitest_input_T input = {0};
+unitest_output_T output = {0};
+
+int main(int argc, char * argv[]) {
+
+	memset(& input, 0, sizeof(unitest_input_T));
+	memset(& output, 0, sizeof(unitest_output_T));
+
+	return EXIT_SUCCESS;
+}
+'''
+
+def get_scade_interface(cwd, ) :
+	src_name = 'structarray_scade_interface.c'
+	exe_name = 'structarray_scade_interface.exe'
+
+	include_lst = [ "../include/scade", "../include/fctext", "../include/unitest", "../include" ]
+
+	cwd.make_dirs()
+	(cwd / src_name).write_text(scade_interface_template)
+
+	cmd = (
+		["gcc", "-save-temps", "-std=c99", "-g"] +
+		[f"-I{include_dir}" for include_dir in include_lst] +
+		[src_name, "-o", exe_name]
+	)
+	ret = cwd.run(* cmd)
+	if ret.returncode != 0 :
+		raise ValueError("gcc couldn't compile properly")
+
+	for k in ['input', 'output'] :
+		u = structarray.StructInfo(cwd / exe_name)
+		u.parse(k)
+		u.save(cwd / f"{k}.tsv")

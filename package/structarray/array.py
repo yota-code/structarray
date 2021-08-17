@@ -2,6 +2,7 @@
 
 import io
 import math
+import os
 import re
 import struct
 
@@ -132,11 +133,22 @@ class StructArray() :
 		self.extract()
 		pth.save(self.get_stack())
 
-	def to_listing(self, pth, line=8) :
+	def to_listing(self, pth) :
 		if not self.extract_lst :
 			self.filter_all()
 
+<<<<<<< HEAD
 		stack = [[k,] + list(self[k][:10]) for k in self.extract_lst]
+||||||| 3751226
+		stack = [[k,] + list(self[k][0:10]) for k in self.extract_lst]
+=======
+		if 'STRUCTARRAY_listing_SLICE' in os.environ :
+			s = slice(* [int(i) for i in os.environ['STRUCTARRAY_listing_SLICE'].split(':')])
+		else :
+			s = slice(0, 10)
+
+		stack = [[k,] + list(self[k][s]) for k in self.extract_lst]
+>>>>>>> df5bb23f093bc64d8d06f058dc85744e8718983c
 		pth.save(stack)
 
 	def debug(self) :
