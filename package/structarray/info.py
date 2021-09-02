@@ -148,9 +148,9 @@ class StructInfo() :
 
 		return var_size
 
-	def save(self, dst_dir, dst_name) :
-		(dst_dir / f"{dst_name}.json").save(self.tree)
-		(dst_dir / f"{dst_name}.tsv").save([[self.var_type, self.var_size],] + self.addr)
+	# def save(self, dst_dir, dst_name) :
+	# 	(dst_dir / f"{dst_name}.json").save(self.tree)
+	# 	(dst_dir / f"{dst_name}.tsv").save([[self.var_type, self.var_size],] + self.addr)
 
 		# src_pth = dst_dir / f"{self.var_type}.sam.tsv"
 
@@ -189,7 +189,7 @@ class StructInfo() :
 
 	def save(self, pth) :
 		pth.with_suffix('.json').save(self.tree)
-		pth.save([[self.var_type, self.var_size],] + self.addr)
+		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
 
 	def parse_tree(self, vname, ctype) :
 		# fill self.tree with the detail of all types found below the ctype given
