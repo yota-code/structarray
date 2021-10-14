@@ -107,7 +107,8 @@ class StructInfo() :
 				member = struct_res.group('member')
 				for member_res in member_rec.finditer(struct_res.group('member')) :
 					if member_res.group('array') is None :
-						struct_lst.append([member_res.group('ctype').strip(), (member_res.group('pointer') is not None), member_res.group('name')])
+						if member_res.group('ctype') not in ["void",] :
+							struct_lst.append([member_res.group('ctype').strip(), (member_res.group('pointer') is not None), member_res.group('name')])
 					else :
 						for i in range(int(member_res.group('array'))) :
 							struct_lst.append([member_res.group('ctype').strip(), (member_res.group('pointer') is not None), member_res.group('name') + f'[{i}]'])
