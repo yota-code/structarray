@@ -51,11 +51,19 @@ class StructArray() :
 		self.meta = None
 		self.data = None
 
-		if meta is not None and meta.is_file() :
-			self.load_meta(meta)
+		self.length = 0
 
-		if data is not None and data.is_file() :
-			self.load_data(data)
+		if meta is not None :
+			m = Path(meta)
+			if m.is_file() :
+				self.meta = m
+				self.load_meta(m)
+
+		if data is not None :
+			d = Path(data)
+			if d.is_file() :
+				self.data = d
+				self.load_data(d)
 
 		self.extract_map = dict()
 		self.extract_lst = list()
@@ -77,6 +85,16 @@ class StructArray() :
 
 	def load_data(self, pth) :
 		self.data = pth.read_bytes()
+		if len(self.data) % self.block_size != 0 :
+			print("incomplete block at the end of data")
+		self.length = len(self.data) // self.block_size
+
+	def __len__(self) :
+		return self.length
+
+	def __iter__(self) :
+		for var in self.var_lst :
+			yield var
 
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
