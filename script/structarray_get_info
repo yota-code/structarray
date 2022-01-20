@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+import sys
+
+from cc_pathlib import Path
+
+import structarray.info
+
+u = structarray.info.StructInfo(Path(sys.argv[1]), Path(sys.argv[2]))
+u.parse(sys.argv[3])
+u.print()

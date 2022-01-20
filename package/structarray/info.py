@@ -23,7 +23,7 @@ def split_cpm(item) :
 		return [left.strip(), False, right.strip()]
 
 class StructInfo() :
-	def __init__(self, elf_pth) :
+	def __init__(self, elf_pth, ctype_pth=None) :
 
 		self.elf_pth = elf_pth.resolve()
 
@@ -32,7 +32,8 @@ class StructInfo() :
 
 		self._to_be_parsed_set = set()
 		
-		self.ctype_map = (self.elf_pth.parent / "structarray_ctype.json").load()
+		self.ctype_pth = (self.elf_pth.parent / "structarray_ctype.json") if ctype_pth is None else ctype_pth
+		self.ctype_map = self.ctype_pth.load()
 
 	def _gdb(self, * cmd_lst, chunk_size=1024) :
 
@@ -191,6 +192,10 @@ class StructInfo() :
 	def save(self, pth) :
 		pth.with_suffix('.json').save(self.tree)
 		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
+
+	def print(self) :
+		for line in ([[self.var_type, self.var_size],] + self.addr) :
+			print('\t'.join([str(i) for i in line]))
 
 	def parse_tree(self, vname, ctype) :
 		# fill self.tree with the detail of all types found below the ctype given
