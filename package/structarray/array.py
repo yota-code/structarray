@@ -11,22 +11,25 @@ import numpy as np
 from cc_pathlib import Path
 
 ctype_map = { # types of struct
-	'N1' : "B",
 	'Z1' : "b",
 	'Z4' : "i",
+	'Z8' : "q",
+	'N1' : "B",
 	'N4' : "I",
+	'N8' : "Q",
 	'R4' : "f",
-	'R8' : "d"
+	'R8' : "d",
 }
 
 ntype_map = { # types numpy
-	'N1' : "uint8",
-	'Z4' : "int32",
-	'N4' : "uint32",
-	'R4' : "float32",
-	'R8' : "double",
 	'Z1' : "int8",
+	'Z4' : "int32",
+	'Z8' : "int64",
+	'N1' : "uint8",
+	'N4' : "uint32",
 	'N8' : "uint64",
+	'R4' : "float32",
+	'R8' : "float64",
 }
 
 sizeof_map = { # size of types
@@ -88,6 +91,7 @@ class StructArray() :
 		if len(self.data) % self.block_size != 0 :
 			print("incomplete block at the end of data")
 		self.length = len(self.data) // self.block_size
+		print(f"data shape : {len(self.data)} = {self.length} blocks of {self.block_size} bytes")
 
 	def __len__(self) :
 		return self.length
@@ -101,8 +105,8 @@ class StructArray() :
 
 		width = len(self.data) // self.block_size
 		height = len(self.data) // ( width * sizeof_map[ctype] )
-
-		if offset % sizeof_map[ctype] == 0 :
+		
+		if self.block_size % sizeof_map[ctype] == 0 and offset % sizeof_map[ctype] == 0 :
 			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
 			arr.shape = (width, height)
 			return arr[:,int(offset) // sizeof_map[ctype]]
