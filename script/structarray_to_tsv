@@ -16,4 +16,5 @@ parser.add_argument('--filter', metavar='FILTER', type=Path, help='the filter (*
 p = parser.parse_args()
 
 u = structarray.StructArray(p.meta, p.data)
-u.to_tsv(Path('output.tsv'))
+u.to_tsv(p.data.with_suffix('.context.tsv'))
+u.to_listing(p.data.with_suffix('.listing.tsv'))
