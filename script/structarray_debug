@@ -10,4 +10,4 @@ meta = Path(sys.argv[1])
 data = Path(sys.argv[2])
 
 u = structarray.StructArray(meta, data)
-u.debug()
+u.debug( data.with_suffix('.debug.tsv') )

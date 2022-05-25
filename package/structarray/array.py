@@ -138,10 +138,10 @@ class StructArray() :
 	def filter_reset(self) :
 		self.extract_lst = list()
 		
-	def extract(self) :
+	def extract(self, start=None, stop=None) :
 		for k in self.meta :
 			if k not in self.extract_map :
-				self.extract_map[k] = self[k]
+				self.extract_map[k] = self[k][start:stop]
 		return self.extract_map
 
 	def get_stack(self) :
@@ -149,25 +149,27 @@ class StructArray() :
 		stack = [self.var_lst,] + [line for line in zip(* data_lst)]
 		return stack
 
-	def to_tsv(self, pth) :
+	def to_tsv(self, pth, start=None, stop=None) :
 		if not self.extract_map :
 			self.filter_all()
-		self.extract()
+		self.extract(start, stop)
 		pth.save(self.get_stack())
 
-	def to_listing(self, pth) :
+	def to_listing(self, pth, at=None) :
 		if not self.extract_lst :
 			self.filter_all()
 
 		if 'STRUCTARRAY_listing_SLICE' in os.environ :
 			s = slice(* [int(i) for i in os.environ['STRUCTARRAY_listing_SLICE'].split(':')])
+		elif at is not None :
+			s = slice(at, at + 1)
 		else :
 			s = slice(0, 10)
 
 		stack = [[k,] + list(self[k][s]) for k in self.extract_lst]
 		pth.save(stack)
 
-	def debug(self) :
+	def debug(self, pth) :
 		self.extract()
 		stack = self.get_stack()
 		header = stack[0]
@@ -178,13 +180,15 @@ class StructArray() :
 			print(f"---  {n}")
 			for i, item in enumerate(line) :
 				if math.isnan(item) :
-					print(f"\x1b[31m{header[i]}\x1b[0m")
+					print(f"NAN \x1b[31m{header[i]}\x1b[0m")
 					has_error = True
 				if math.isinf(item) :
-					print(f"\x1b[32m{header[i]}\x1b[0m")
+					print(f"INF \x1b[32m{header[i]}\x1b[0m")
 					has_error = True
 			if has_error :
 				break
+
+		self.to_listing(pth, n)
 
 if __name__ == '__main__' :
 

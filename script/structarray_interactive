@@ -12,11 +12,26 @@ parser.add_argument('meta', metavar='META', type=Path, help='the meta (*.tsv) fi
 parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
 
 parser.add_argument('--filter', metavar='FILTER', type=Path, help='the filter (*.tsv) file')
-parser.add_argument('--start', metavar='N', default=None, help='the filter (*.tsv) file')
-parser.add_argument('--stop', metavar='N', default=None, help='the filter (*.tsv) file')
 
 p = parser.parse_args()
 
 u = structarray.StructArray(p.meta, p.data)
-u.to_tsv(p.data.with_suffix('.context.tsv'), int(p.start) if p.start is not None else None, int(p.stop) if p.stop is not None else None)
-u.to_listing(p.data.with_suffix('.listing.tsv'))
+
+context_pth = p.data.with_suffix('.context.tsv')
+if not context_pth.is_file() :
+	u.to_tsv(p.data.with_suffix('.context.tsv'))
+	u.to_listing(p.data.with_suffix('.listing.tsv'))
+
+
+print(
+	u['_C_3_upmv_core._C_1_D__root__._C_2_D_lon_override.is_override'][:128]
+)
+
+print(
+	u['_C_3_upmv_core._C_1_D__root__._C_2_D_lon_override._L273_upmv_app']
+)
+
+import matplotlib.pyplot as plt
+
+plt.plot(u['_C_3_upmv_core._C_1_D__root__._C_2_D_lon_override._L223_upmv_app'])
+plt.show()
