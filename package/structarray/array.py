@@ -71,6 +71,14 @@ class StructArray() :
 		self.extract_map = dict()
 		self.extract_lst = list()
 
+	def search(self, pattern, mode='blob') :
+		if mode == 'blob':
+			pattern = pattern.replace('.', '\\.').replace('*', '.*')
+		elif mode == 'regexp' :
+			pass
+		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
+		return [var for var in self.var_lst if rec.search(var) is not None]
+
 	def load_meta(self, pth) :
 		self.meta = dict()
 		self.var_lst = list()
@@ -95,6 +103,9 @@ class StructArray() :
 
 	def __len__(self) :
 		return self.length
+
+	def __contains__(self, key) :
+		return key in self.var_lst
 
 	def __iter__(self) :
 		for var in self.var_lst :

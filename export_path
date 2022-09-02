@@ -17,3 +17,5 @@ typeset -U pythonpath
 typeset -U path
 
 export STRUCTARRAY_build_DIR=${source_DIR}/build
+
+export STRUCTARRAY_bookmark_DIR=${source_DIR}/data/upmv
