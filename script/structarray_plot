@@ -24,8 +24,6 @@ def clean_label(k_map) :
 				break
 	return {k : '.'.join(v[-3:]).lstrip('_') for k, v in k_map.items()}
 
-
-
 class PlotSA() :
 	def __init__(self, data_pth, meta_pth, bookmark_dir) :
 		self.data_pth = data_pth
@@ -53,7 +51,7 @@ class PlotSA() :
 					sys.exit(0)
 				if ans.startswith('!r') :
 					self.load()
-			if ans.startswith("@") :
+			elif ans.startswith("@") :
 				bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
 				if bookmark_pth.is_file() :
 					p_lst = bookmark_pth.load()
@@ -69,7 +67,11 @@ class PlotSA() :
 				for p in ans[1:].split(';') :
 					g_lst = list()
 					for g in p.split() :
-						g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
+						try :
+							g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
+						except :
+							print(g, n_lst)
+							raise
 					p_lst.append(g_lst)
 				self.plot(p_lst)
 			elif ans.startswith('?') :
@@ -133,7 +135,6 @@ class PlotSA() :
 					m['linewidth'] = width
 				if opacity is not None :
 					m['alpha'] = opacity
-				print(name)
 				if name.startswith('*') :
 					name = self.sa.search(name[1:], mode='blob')[0]
 				elif name.startswith('?') :
@@ -150,13 +151,13 @@ class PlotSA() :
 				print(m)
 
 			y_max = max(np.max(y) for y in y_lst)
-			y_min = min(np.max(y) for y in y_lst)
-			print(name, y_max, y_min, y_max < 12.0)
+			y_min = min(np.min(y) for y in y_lst)
+
 			if 0 <= y_min and y_max <= 1 :
 				q.set_ylim([-0.5, +1.5])
-			elif y_max <= 12.0 :
-				y_min = min(0.0, y_min)
-				q.set_ylim([y_min-0.5, y_max+0.5])
+			# elif y_max <= 12.0 :
+			# 	y_min = min(0.0, y_min)
+			# 	q.set_ylim([y_min-0.5, y_max+0.5])
 
 		
 			plt.grid()
