@@ -6,8 +6,8 @@
 		[
 			"*output_.pub_UpmvOut.objective.vx.cmd",
 			null,
-			null,
-			null,
+			0.5,
+			4,
 			null
 		],
 		[
@@ -20,7 +20,7 @@
 	],
 	[
 		[
-			"*.output_.pub_UpmvOut.objective.vx.is_requested",
+			"*output_.pub_UpmvOut.objective.vx.is_requested",
 			null,
 			null,
 			null,
@@ -80,14 +80,14 @@
 	[
 		[
 			"*output_.pub_UpmvOut.objective.psi.cmd",
-			null,
-			null,
-			null,
+			"tab:blue",
+			0.5,
+			4,
 			null
 		],
 		[
 			"*input_.sub_avidyne_upmi_UpmvIn.objective.psi.mes",
-			null,
+			"tab:red",
 			null,
 			null,
 			null
@@ -131,8 +131,8 @@
 		[
 			"*output_.pub_UpmvOut.objective.height.cmd",
 			null,
-			null,
-			null,
+			0.5,
+			4,
 			null
 		],
 		[
@@ -156,8 +156,8 @@
 		[
 			"*output_.pub_UpmvOut.objective.alt.cmd",
 			null,
-			null,
-			null,
+			0.5,
+			4,
 			null
 		],
 		[

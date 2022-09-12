@@ -2,14 +2,14 @@
 	[
 		[
 			"_C_1_upmv_app.output_.pub_UpmvOut.objective.vz.cmd",
-			null,
-			null,
-			null,
+			"tab:red",
+			0.5,
+			4,
 			null
 		],
 		[
 			"_C_1_upmv_app.input_.sub_avidyne_upmi_UpmvIn.objective.vz.mes",
-			null,
+			"tab:red",
 			null,
 			null,
 			null
@@ -18,30 +18,28 @@
 	[
 		[
 			"_C_1_upmv_app.output_.pub_UpmvOut.objective.height.cmd",
-			null,
-			null,
-			null,
+			"tab:green",
+			0.5,
+			4,
 			null
 		],
 		[
 			"_C_1_upmv_app.input_.sub_avidyne_upmi_UpmvIn.objective.height.mes",
-			null,
-			null,
-			null,
-			null
-		]
-	],
-	[
-		[
-			"_C_1_upmv_app.output_.pub_UpmvOut.objective.alt.cmd",
-			null,
+			"tab:green",
 			null,
 			null,
 			null
 		],
 		[
+			"_C_1_upmv_app.output_.pub_UpmvOut.objective.alt.cmd",
+			"tab:blue",
+			0.5,
+			4,
+			null
+		],
+		[
 			"_C_1_upmv_app.input_.sub_avidyne_upmi_UpmvIn.objective.alt.mes",
-			null,
+			"tab:blue",
 			null,
 			null,
 			null

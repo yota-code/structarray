@@ -15,14 +15,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def clean_label(k_map) :
-	if len(k_map) > 1 :
-		while True :
-			k_set = {v[0] for k, v in k_map.items()}
-			if len(k_set) == len(k_map) :
-				k_map = {k : v[1:] for k, v in k_map.items()}
-			else :
-				break
-	return {k : '.'.join(v[-3:]).lstrip('_') for k, v in k_map.items()}
+	s_map = {k : '.'.join(v).lstrip('_') for k, v in k_map.items()}
+	try :
+		if len(k_map) > 1 :
+			while True :
+				k_set = {v[0] for k, v in k_map.items()}
+				if len(k_set) == len(k_map) :
+					k_map = {k : v[1:] for k, v in k_map.items()}
+				else :
+					break
+
+		return {k : '.'.join(v[-3:]).lstrip('_') for k, v in k_map.items()}
+	except :
+		return s_map
 
 class PlotSA() :
 	def __init__(self, data_pth, meta_pth, bookmark_dir) :
@@ -37,6 +42,7 @@ class PlotSA() :
 		self.sa = structarray.StructArray(self.meta_pth, self.data_pth)
 
 		time_lst = sorted((len(var), var) for var in self.sa.search('.time'))
+		print(time_lst)
 		self.t_arr = self.sa[time_lst[0][1]]
 
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
@@ -136,11 +142,18 @@ class PlotSA() :
 				if opacity is not None :
 					m['alpha'] = opacity
 				if name.startswith('*') :
-					name = self.sa.search(name[1:], mode='blob')[0]
+					try :
+						name = self.sa.search(name[1:], mode='blob')[0]
+					except :
+						print(f"can not find var {name}")
 				elif name.startswith('?') :
 					name = self.sa.search(name[1:], mode='regexp')[0]
 				if name in self.sa :
 					y_arr = self.sa[name]
+					print(self.sa.meta[name][0] == 'Z4')
+					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name) :
+						y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
+						y_arr = (y_arr + 360.0) % 360.0
 					if format is None :
 						plt.plot(self.t_arr, y_arr, ** m)
 					else :
