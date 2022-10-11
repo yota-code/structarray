@@ -42,8 +42,10 @@ class PlotSA() :
 		self.sa = structarray.StructArray(self.meta_pth, self.data_pth)
 
 		time_lst = sorted((len(var), var) for var in self.sa.search('.time'))
-		print(time_lst)
-		self.t_arr = self.sa[time_lst[0][1]]
+		if time_lst :
+			self.t_arr = self.sa[time_lst[0][1]]
+		else :
+			self.t_arr = np.arange(self.sa.length)
 
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
 
@@ -151,7 +153,7 @@ class PlotSA() :
 				if name in self.sa :
 					y_arr = self.sa[name]
 					print(self.sa.meta[name][0] == 'Z4')
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name) :
+					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
 						y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
 						y_arr = (y_arr + 360.0) % 360.0
 					if format is None :
@@ -161,16 +163,20 @@ class PlotSA() :
 					y_lst.append(y_arr)
 				else :
 					print(f"{name} not found")
+					print('\n'.join(self.sa.search(name)))
 				print(m)
 
-			y_max = max(np.max(y) for y in y_lst)
-			y_min = min(np.min(y) for y in y_lst)
+			try :
+				y_max = max(np.max(y) for y in y_lst)
+				y_min = min(np.min(y) for y in y_lst)
 
-			if 0 <= y_min and y_max <= 1 :
-				q.set_ylim([-0.5, +1.5])
-			# elif y_max <= 12.0 :
-			# 	y_min = min(0.0, y_min)
-			# 	q.set_ylim([y_min-0.5, y_max+0.5])
+				if 0 <= y_min and y_max <= 1 :
+					q.set_ylim([-0.5, +1.5])
+				# elif y_max <= 12.0 :
+				# 	y_min = min(0.0, y_min)
+				# 	q.set_ylim([y_min-0.5, y_max+0.5])
+			except ValueError :
+				pass
 
 		
 			plt.grid()

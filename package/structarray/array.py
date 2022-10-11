@@ -72,7 +72,7 @@ class StructArray() :
 		self.extract_lst = list()
 
 	def search(self, pattern, mode='blob') :
-		print(f"StructArray.search({pattern}, {mode})")
+		# print(f"StructArray.search({pattern}, {mode})")
 		if mode == 'blob':
 			pattern = pattern.replace('.', '\\.').replace('*', '.*')
 		elif mode == 'regexp' :
