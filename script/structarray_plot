@@ -67,6 +67,20 @@ class PlotSA() :
 				else :
 					print(f"file not found: {bookmark_pth}")
 					print('\t'.join(p.name for p in bookmark_dir))
+
+			elif ans.startswith('&') :
+				if ans == '&' :
+					ans = '&0'
+				try :
+					n = int(ans[1:])
+				except ValueError :
+					return
+
+				n = min(self.sa.length - 1, n)
+				
+				for name in r_lst :
+					print(f"{name} = {self.sa[name][n]}")
+
 			elif ans.startswith('#') :
 				if ans == '#' :
 					ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
@@ -97,7 +111,6 @@ class PlotSA() :
 
 		print(json.dumps(p_lst, indent='\t'))
 
-		
 		if title is not None :
 			fig = plt.figure(title)
 			fig.suptitle(title)

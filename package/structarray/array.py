@@ -202,11 +202,13 @@ class StructArray() :
 
 		self.to_listing(pth, n)
 
-if __name__ == '__main__' :
+# if __name__ == '__main__' :
 
-	u = StructArray(
-		Path("/C/autools/source/a876969/vertex/unitest/build/EagleStateEstimator/mapping/context.tsv"),
-		Path("/C/autools/source/a876969/vertex/unitest/build/EagleStateEstimator/replay/test01/context.reb")
-	)
-	u.to_tsv(Path("debug.tsv"))
-	u.debug_nan(4)
+# 	import sys
+
+# 	data = Path(sys.argv[1])
+# 	meta = data.parent / "mapping.tsv"
+
+# 	u = StructArray(meta, data)
+# 	u.to_tsv(Path("debug.tsv"))
+# 	u.debug_nan(4)
