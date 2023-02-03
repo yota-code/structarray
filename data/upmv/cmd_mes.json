@@ -31,8 +31,8 @@
 		[
 			"*output_.pub_UpmvOut.objective.vy.cmd",
 			null,
-			null,
-			null,
+			0.5,
+			4,
 			null
 		],
 		[
@@ -56,8 +56,8 @@
 		[
 			"*output_.pub_UpmvOut.objective.vz.cmd",
 			null,
-			null,
-			null,
+			0.5,
+			4,
 			null
 		],
 		[
@@ -80,14 +80,14 @@
 	[
 		[
 			"*output_.pub_UpmvOut.objective.psi.cmd",
-			"tab:blue",
+			null,
 			0.5,
 			4,
 			null
 		],
 		[
 			"*input_.sub_avidyne_upmi_UpmvIn.objective.psi.mes",
-			"tab:red",
+			null,
 			null,
 			null,
 			null
@@ -106,8 +106,8 @@
 		[
 			"*output_.pub_UpmvOut.objective.ias.cmd",
 			null,
-			null,
-			null,
+			0.5,
+			4,
 			null
 		],
 		[

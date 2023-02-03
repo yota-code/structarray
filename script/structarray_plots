@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import os
+import re
 import readline
 import sys
 
@@ -13,6 +14,8 @@ import structarray
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+print(structarray.__file__)
 
 def clean_label(k_map) :
 	s_map = {k : '.'.join(v).lstrip('_') for k, v in k_map.items()}
@@ -30,24 +33,35 @@ def clean_label(k_map) :
 		return s_map
 
 class PlotSA() :
-	def __init__(self, data_pth, meta_pth, bookmark_dir) :
-		self.data_pth = data_pth
-		self.meta_pth = meta_pth
+	def __init__(self, * path_lst, bookmark_dir) :
+
+		self.path_lst = path_lst
+
 		self.bookmark_dir = bookmark_dir
 
 		self.load()
 		self.run()
 
 	def load(self) :
-		self.sa = structarray.StructArray(self.meta_pth, self.data_pth)
+		self.reb_lst = [structarray.StructArray(meta=path.parent / "mapping.tsv", data=path) for path in self.path_lst]
 
-		time_lst = sorted((len(var), var) for var in self.sa.search('.time'))
-		if time_lst :
-			self.t_arr = self.sa[time_lst[0][1]]
-		else :
-			self.t_arr = np.arange(self.sa.length)
+		self.time_lst = list()
+		self.name_set = set()
+		for reb in self.reb_lst :
+			time_lst = sorted((len(var), var) for var in self.search('.time'))
+			time_arr = reb[time_lst[0][1]] if time_lst else np.arange(reb.length)
+			self.time_lst.append(time_arr)
+			print(f'time: {time_arr[0]} .. {time_arr[-1]}')
+			self.name_set |= set(reb.var_lst)
 
-		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
+	def search(self, pattern, mode='blob') :
+		# print(f"StructArray.search({pattern}, {mode})")
+		if mode == 'blob':
+			pattern = pattern.replace('.', '\\.').replace('*', '.*')
+		elif mode == 'regexp' :
+			pass
+		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
+		return [var for var in self.name_set if rec.search(var) is not None]
 
 	def run(self) :
 		while True :
@@ -66,7 +80,7 @@ class PlotSA() :
 					self.plot(p_lst, ans[1:])
 				else :
 					print(f"file not found: {bookmark_pth}")
-					print('\n'.join(sorted(p.fname for p in bookmark_dir)))
+					print('\t'.join(p.name for p in bookmark_dir))
 
 			elif ans.startswith('&') :
 				if ans == '&' :
@@ -76,15 +90,16 @@ class PlotSA() :
 				except ValueError :
 					return
 
-				n = min(self.sa.length - 1, n)
-				
-				for name in r_lst :
-					y_val = self.sa[name][n]
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-						y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-						# y_arr = np.unwrap(360.0 * y_arr.astype(np.double) / 0x100000000, 360.0)
-						
-					print(f"{name} = {y_val}")
+				for reb in self.reb_lst :
+					n = min(reb.length - 1, n)
+					
+					for name in r_lst :
+						y_val = reb[name][n]
+						if reb.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
+							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
+							# y_arr = np.unwrap(360.0 * y_arr.astype(np.double) / 0x100000000, 360.0)
+							
+						print(f"{name} = {y_val}")
 
 			elif ans.startswith('#') :
 				if ans == '#' :
@@ -102,12 +117,12 @@ class PlotSA() :
 					p_lst.append(g_lst)
 				self.plot(p_lst)
 			elif ans.startswith('?') :
-				r_lst = self.sa.search(ans[1:], mode='regexp')
+				r_lst = self.search(ans[1:], mode='regexp')
 				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
 				if len(r_lst) >= 32 :
 					print('...')
 			else : # default to blob research mode
-				r_lst = self.sa.search(ans)
+				r_lst = self.search(ans)
 				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
 				if len(r_lst) >= 32 :
 					print('...')
@@ -163,25 +178,26 @@ class PlotSA() :
 					m['alpha'] = opacity
 				if name.startswith('*') :
 					try :
-						name = self.sa.search(name[1:], mode='blob')[0]
+						name = self.search(name[1:], mode='blob')[0]
 					except :
 						print(f"can not find var {name}")
 				elif name.startswith('?') :
-					name = self.sa.search(name[1:], mode='regexp')[0]
-				if name in self.sa :
-					y_arr = self.sa[name]
-					print(self.sa.meta[name][0] == 'Z4')
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-						y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
-						y_arr = (y_arr + 360.0) % 360.0
-					if format is None :
-						plt.plot(self.t_arr, y_arr, ** m)
-					else :
-						plt.plot(self.t_arr, y_arr, format, ** m)
-					y_lst.append(y_arr)
+					name = self.search(name[1:], mode='regexp')[0]
+				if name in self.name_set :
+					for time, reb in zip(self.time_lst, self.reb_lst) :
+						y_arr = reb[name]
+						print(reb.meta[name][0] == 'Z4')
+						if reb.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
+							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
+							y_arr = (y_arr + 360.0) % 360.0
+						if format is None :
+							plt.plot(time, y_arr, ** m)
+						else :
+							plt.plot(time, y_arr, format, ** m)
+						y_lst.append(y_arr)
 				else :
 					print(f"{name} not found")
-					print('\n'.join(self.sa.search(name)))
+					print('\n'.join(self.search(name)))
 				print(m)
 
 			try :
@@ -214,18 +230,10 @@ if __name__ == '__main__' :
 
 	parser = argparse.ArgumentParser(description='Convert a meta (*.sam.tsv) and data (*.sad.bin) file into a tsv file')
 
-	parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
-	parser.add_argument('meta', metavar='META', type=Path, nargs='?', default=None, help='the meta (*.tsv) file')
+	parser.add_argument('data', metavar='DATA', nargs='+', type=Path, help='the data (*.reb) file')
 
 	p = parser.parse_args()
 
-	data_pth = (p.data).resolve()
-
-	if p.meta is None :
-		meta_pth = (p.data.parent / "mapping.tsv")
-	else :
-		meta_pth = (p.meta).resolve()
-
-	PlotSA(data_pth, meta_pth, bookmark_dir).run()
+	PlotSA(* p.data, bookmark_dir=bookmark_dir).run()
 
 
