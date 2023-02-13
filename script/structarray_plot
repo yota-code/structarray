@@ -72,7 +72,10 @@ class PlotSA() :
 				if ans == '&' :
 					ans = '&0'
 				try :
-					n = int(ans[1:])
+					if '.' in ans[1:] :
+						n = np.where(self.t_arr == float(ans[1:]))[0]
+					else :
+						n = int(ans[1:])
 				except ValueError :
 					return
 
