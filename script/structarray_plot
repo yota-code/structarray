@@ -73,13 +73,15 @@ class PlotSA() :
 					ans = '&0'
 				try :
 					if '.' in ans[1:] :
+						print("time")
 						n = np.where(self.t_arr == float(ans[1:]))[0]
 					else :
+						print("index")
 						n = int(ans[1:])
 				except ValueError :
 					return
-
-				n = min(self.sa.length - 1, n)
+				print(n)
+				# n = min(self.sa.length - 1, n)
 				
 				for name in r_lst :
 					y_val = self.sa[name][n]
@@ -191,7 +193,7 @@ class PlotSA() :
 				y_max = max(np.max(y) for y in y_lst)
 				y_min = min(np.min(y) for y in y_lst)
 
-				if 0 <= y_min and y_max <= 1 :
+				if 0 <= y_min and y_max <= 1 and ( 0.5 <= abs(y_max - y_min) or abs(y_max - y_min) == 0.0 ) :
 					q.set_ylim([-0.5, +1.5])
 				# elif y_max <= 12.0 :
 				# 	y_min = min(0.0, y_min)

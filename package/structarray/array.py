@@ -100,9 +100,10 @@ class StructArray() :
 
 	def load_data(self, pth) :
 		self.data = pth.read_bytes()
-		if len(self.data) % self.block_size != 0 :
-			print("incomplete block at the end of data")
 		self.length = len(self.data) // self.block_size
+		if len(self.data) % self.block_size != 0 :
+			self.data = self.data[:self.length * self.block_size]
+			print(f"incomplete block at the end of data, truncated at {len(self.data)}")
 		print(f"data shape : {len(self.data)} = {self.length} blocks of {self.block_size} bytes")
 
 	def __len__(self) :
@@ -126,10 +127,13 @@ class StructArray() :
 			arr.shape = (width, height)
 			return arr[:,int(offset) // sizeof_map[ctype]]
 		else :
+			print("RAAAAH")
 			v_lst = list()
 			p = offset
 			for i in range(width) :
-				v_lst.append(struct.unpack_from(ctype_map[ctype], self.data, p)[0])
+				element = struct.unpack_from(ctype_map[ctype], self.data, p)[0]
+				print(element)
+				v_lst.append(element)
 				p += self.block_size
 			# with io.BytesIO(self.data) as fid :
 			# 	while True :
@@ -194,16 +198,21 @@ class StructArray() :
 		for n, line in enumerate(stack[1:]) :
 			print(f"---  {n}")
 			for i, item in enumerate(line) :
+				if header[i] in [
+					'_C_3_upmv_core._C_1_C__root__._C_1_C_goaround._C_1_C_goaround_ver._L115_upmv_app'
+				] :
+					continue
 				if math.isnan(item) :
 					print(f"NAN \x1b[31m{header[i]}\x1b[0m")
 					has_error = True
-				if math.isinf(item) :
-					print(f"INF \x1b[32m{header[i]}\x1b[0m")
-					has_error = True
+				# if math.isinf(item) :
+				# 	print(f"INF \x1b[32m{header[i]}\x1b[0m")
+				# 	has_error = True
 			if has_error :
 				break
 
 		self.to_listing(pth, n)
+		self.to_listing(pth.with_suffix('.1.tsv'), n-1)
 
 # if __name__ == '__main__' :
 
