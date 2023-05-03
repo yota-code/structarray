@@ -85,9 +85,10 @@ class PlotSA() :
 				
 				for name in r_lst :
 					y_val = self.sa[name][n]
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-						y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-						# y_arr = np.unwrap(360.0 * y_arr.astype(np.double) / 0x100000000, 360.0)
+					if 'psi' in name or 'trk' in name or 'argument' in name or 'dir' in name :
+						if self.sa.meta[name][0] == 'Z4' :
+							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
+						# y_val = (y_val + 360.0) % 360.0
 						
 					print(f"{name} = {y_val}")
 
@@ -175,10 +176,10 @@ class PlotSA() :
 					name = self.sa.search(name[1:], mode='regexp')[0]
 				if name in self.sa :
 					y_arr = self.sa[name]
-					print(self.sa.meta[name][0] == 'Z4')
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-						y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
-						y_arr = (y_arr + 360.0) % 360.0
+					if 'psi' in name or 'trk' in name or 'argument' in name or 'dir' in name :
+						if self.sa.meta[name][0] == 'Z4' :
+							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
+						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
 					if format is None :
 						plt.plot(self.t_arr, y_arr, ** m)
 					else :

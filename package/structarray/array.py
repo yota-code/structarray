@@ -54,7 +54,7 @@ class StructArray() :
 		self.meta = None
 		self.data = None
 
-		print(f"StructArray({self.meta}, {self.data})")
+		print(f"StructArray({meta}, {data})")
 
 		self.length = 0
 

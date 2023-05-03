@@ -169,7 +169,6 @@ class PlotSA() :
 
 			for name, color, opacity, width, format in g_lst :
 				m = dict()
-				m['label'] = k_map[name]
 				if color is not None :
 					m['color'] = color
 				if width is not None :
@@ -184,16 +183,19 @@ class PlotSA() :
 				elif name.startswith('?') :
 					name = self.search(name[1:], mode='regexp')[0]
 				if name in self.name_set :
-					for time, reb in zip(self.time_lst, self.reb_lst) :
+					for j, (time, reb) in enumerate(zip(self.time_lst, self.reb_lst)) :
+						m['label'] = f"{j}) " + k_map[name]
 						y_arr = reb[name]
 						print(reb.meta[name][0] == 'Z4')
 						if reb.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
 							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
 							y_arr = (y_arr + 360.0) % 360.0
 						if format is None :
-							plt.plot(time, y_arr, ** m)
+							# plt.plot(time, y_arr, ** m)
+							plt.plot(y_arr, ** m)
 						else :
-							plt.plot(time, y_arr, format, ** m)
+							# plt.plot(time, y_arr, format, ** m)
+							plt.plot(y_arr, format, ** m)
 						y_lst.append(y_arr)
 				else :
 					print(f"{name} not found")

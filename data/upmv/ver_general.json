@@ -1,14 +1,17 @@
 [
+	{
+		"col": 2
+	},
 	[
 		[
-			"_C_1_upmv_app.output_.pub_UpmvOut.objective.vz.cmd",
+			"*output_.pub_UpmvOut.objective.vz.cmd",
 			"tab:red",
 			0.5,
 			4,
 			null
 		],
 		[
-			"_C_1_upmv_app.input_.sub_avidyne_upmi_UpmvIn.objective.vz.mes",
+			"*input_.sub_avidyne_upmi_UpmvIn.objective.vz.mes",
 			"tab:red",
 			null,
 			null,
@@ -17,29 +20,54 @@
 	],
 	[
 		[
-			"_C_1_upmv_app.output_.pub_UpmvOut.objective.height.cmd",
+			"*output_.pub_UpmvOut.objective.height.cmd",
 			"tab:green",
 			0.5,
 			4,
 			null
 		],
 		[
-			"_C_1_upmv_app.input_.sub_avidyne_upmi_UpmvIn.objective.height.mes",
+			"*input_.sub_avidyne_upmi_UpmvIn.objective.height.mes",
 			"tab:green",
 			null,
 			null,
 			null
 		],
 		[
-			"_C_1_upmv_app.output_.pub_UpmvOut.objective.alt.cmd",
+			"*output_.pub_UpmvOut.objective.alt.cmd",
 			"tab:blue",
 			0.5,
 			4,
 			null
 		],
 		[
-			"_C_1_upmv_app.input_.sub_avidyne_upmi_UpmvIn.objective.alt.mes",
+			"*input_.sub_avidyne_upmi_UpmvIn.objective.alt.mes",
 			"tab:blue",
+			null,
+			null,
+			null
+		]
+	],
+	[
+		[
+			"*output_.pub_UpmvOut.objective.vz.is_requested",
+			"tab:red",
+			null,
+			null,
+			null
+		]
+	],
+	[
+		[
+			"*output_.pub_UpmvOut.objective.alt.is_requested",
+			"tab:blue",
+			null,
+			null,
+			null
+		],
+		[
+			"*output_.pub_UpmvOut.objective.height.is_requested",
+			"tab:green",
 			null,
 			null,
 			null
