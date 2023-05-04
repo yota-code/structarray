@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 
+import argparse
 import sys
 
 from cc_pathlib import Path
 
 import structarray
 
-meta = Path(sys.argv[1])
-data = Path(sys.argv[2])
+parser = argparse.ArgumentParser(description='Try to identify the source of inf or nan in a record')
 
-u = structarray.StructArray(meta, data)
-u.debug( data.with_suffix('.debug.tsv') )
+parser.add_argument('data', metavar='DATA', type=Path, nargs='+', help='the data (*.reb) file')
+parser.add_argument('--meta', metavar='META', type=Path, default=None, help='the meta (*.tsv) file')
+
+p = parser.parse_args()
+
+for p_data in p.data :
+
+	data_pth = (p_data).resolve()
+
+	if p.meta is None :
+		meta_pth = (data_pth.parent / "mapping.tsv")
+	else :
+		meta_pth = Path(p.meta).resolve()
+
+	u = structarray.StructArray(meta_pth, data_pth)
+	u.debug(data_pth.with_suffix('.debug.tsv'))

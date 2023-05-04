@@ -72,17 +72,23 @@ class PlotSA() :
 				if ans == '&' :
 					ans = '&0'
 				try :
-					n = int(ans[1:])
+					if '.' in ans[1:] :
+						print("time")
+						n = np.where(self.t_arr == float(ans[1:]))[0]
+					else :
+						print("index")
+						n = int(ans[1:])
 				except ValueError :
 					return
-
-				n = min(self.sa.length - 1, n)
+				print(n)
+				# n = min(self.sa.length - 1, n)
 				
 				for name in r_lst :
 					y_val = self.sa[name][n]
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-						y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-						# y_arr = np.unwrap(360.0 * y_arr.astype(np.double) / 0x100000000, 360.0)
+					if 'psi' in name or 'trk' in name or 'argument' in name or 'dir' in name :
+						if self.sa.meta[name][0] == 'Z4' :
+							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
+						# y_val = (y_val + 360.0) % 360.0
 						
 					print(f"{name} = {y_val}")
 
@@ -170,10 +176,10 @@ class PlotSA() :
 					name = self.sa.search(name[1:], mode='regexp')[0]
 				if name in self.sa :
 					y_arr = self.sa[name]
-					print(self.sa.meta[name][0] == 'Z4')
-					if self.sa.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-						y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
-						y_arr = (y_arr + 360.0) % 360.0
+					if 'psi' in name or 'trk' in name or 'argument' in name or 'dir' in name :
+						if self.sa.meta[name][0] == 'Z4' :
+							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
+						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
 					if format is None :
 						plt.plot(self.t_arr, y_arr, ** m)
 					else :
@@ -188,7 +194,7 @@ class PlotSA() :
 				y_max = max(np.max(y) for y in y_lst)
 				y_min = min(np.min(y) for y in y_lst)
 
-				if 0 <= y_min and y_max <= 1 :
+				if 0 <= y_min and y_max <= 1 and ( 0.5 <= abs(y_max - y_min) or abs(y_max - y_min) == 0.0 ) :
 					q.set_ylim([-0.5, +1.5])
 				# elif y_max <= 12.0 :
 				# 	y_min = min(0.0, y_min)
