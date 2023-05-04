@@ -90,11 +90,27 @@ class StructArray() :
 		first_line = obj.pop(0)
 		self.struct_name = first_line[0]
 		self.block_size = int(first_line[1])
-		for name, ctype, offset in obj :
+
+		addr = 0
+		for name, ctype, padding in obj :
+			if len(line) == 2 :
+				name, ctype, padding = * line, 0
+			elif len(line) == 3 :
+				name, ctype, padding = line
+			else :
+				raise ValueError(f"malformed line, {line}")
 			if ctype in ['P4', 'P8'] :
-				continue
-			self.meta[name] = (ctype, int(offset))
-			self.var_lst.append(name)
+				pass
+			else :
+				self.meta[name] = (ctype, addr)
+				self.var_lst.append(name)
+			addr += int(padding) + self.sizeof_map(ctype)
+
+		# for name, ctype, offset in obj :
+		# 	if ctype in ['P4', 'P8'] :
+		# 		continue
+		# 	self.meta[name] = (ctype, int(offset))
+		# 	self.var_lst.append(name)
 
 		print(len(self.var_lst))
 

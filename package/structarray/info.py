@@ -23,6 +23,9 @@ def split_cpm(item) :
 		return [left.strip(), False, right.strip()]
 
 class StructInfo() :
+
+	version = 2
+
 	def __init__(self, elf_pth, ctype_pth=None) :
 
 		self.elf_pth = elf_pth.resolve()
@@ -191,7 +194,23 @@ class StructInfo() :
 
 	def save(self, pth) :
 		pth.with_suffix('.json').save(self.tree)
-		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
+		pth.with_suffix('.old.tsv').save([[self.var_type, self.var_size],] + self.addr)
+
+		s_lst = list()
+		prev_addr = 0
+		for name, ctype, curr_addr in self.addr :
+			if s_lst :
+				u = curr_addr - prev_addr - int(s_lst[-1][1][1:])
+				if u != 0 :
+					s_lst[-1].append(u)
+			s_lst.append([name, ctype,])
+			prev_addr = curr_addr
+
+		u = self.var_size - prev_addr - int(s_lst[-1][1][1:])
+		if u != 0 :
+			s_lst[-1].append(u)
+
+		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + s_lst)
 
 	def print(self) :
 		for line in ([[self.var_type, self.var_size],] + self.addr) :
