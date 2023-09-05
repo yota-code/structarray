@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import sys
+
+from cc_pathlib import Path
+
+import structarray
+
+data_pth = Path(sys.argv[1]).resolve()
+meta_pth = data_pth.parent / "mapping.tsv"
+
+u = structarray.StructArray(meta_pth, data_pth)
+u.to_listing(data_pth.with_suffix('.listing.tsv'))

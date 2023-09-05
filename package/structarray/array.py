@@ -34,12 +34,15 @@ ntype_map = { # types numpy
 
 sizeof_map = { # size of types
 	'N1' : 1,
-	'Z4' : 4,
-	'N4' : 4,
-	'R4' : 4,
 	'Z1' : 1,
+	'N4' : 4,
+	'Z4' : 4,
+	'R4' : 4,
 	'N8' : 8,
+	'Z8' : 8,
 	'R8' : 8,
+	'P4' : 4,
+	'P8' : 8,
 }
 
 def glob_to_regex(s) :
@@ -92,7 +95,7 @@ class StructArray() :
 		self.block_size = int(first_line[1])
 
 		addr = 0
-		for name, ctype, padding in obj :
+		for line in obj :
 			if len(line) == 2 :
 				name, ctype, padding = * line, 0
 			elif len(line) == 3 :
@@ -104,7 +107,7 @@ class StructArray() :
 			else :
 				self.meta[name] = (ctype, addr)
 				self.var_lst.append(name)
-			addr += int(padding) + self.sizeof_map(ctype)
+			addr += int(padding) + sizeof_map[ctype]
 
 		# for name, ctype, offset in obj :
 		# 	if ctype in ['P4', 'P8'] :
@@ -189,6 +192,24 @@ class StructArray() :
 			self.filter_all()
 		self.extract(start, stop)
 		pth.save(self.get_stack())
+
+	def to_hdf5(self, pth) :
+		import h5py
+
+		h5py_opt = {
+			'compression' : "gzip",
+			'compression_opts' : 9,
+			'shuffle' : True,
+			'fletcher32' : True,
+			# 'chunks' : (2**12,)
+		}
+
+		fid = h5py.File(str(pth), 'a', libver='latest')
+		for var in self :
+			obj.create_dataset('/' + var, data=self[var], ** self.h5py_opt)
+
+		fid.flush()
+		fid.close()
 
 	def to_listing(self, pth, at=None) :
 		if not self.extract_lst :

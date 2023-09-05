@@ -29,6 +29,10 @@ def clean_label(k_map) :
 	except :
 		return s_map
 
+def ispi(line) :
+	name = line.split('.')[-1]
+	return ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name or 'drift' in name) and 'psidot' not in name and 'psiddot' not in name
+
 class PlotSA() :
 	def __init__(self, data_pth, meta_pth, bookmark_dir) :
 		self.data_pth = data_pth
@@ -85,10 +89,12 @@ class PlotSA() :
 				
 				for name in r_lst :
 					y_val = self.sa[name][n]
-					if 'psi' in name or 'trk' in name or 'argument' in name or 'dir' in name :
+					if ispi(name) :
 						if self.sa.meta[name][0] == 'Z4' :
 							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-						# y_val = (y_val + 360.0) % 360.0
+						y_val = (y_val + 360.0) % 360.0
+						y_val = np.where(y_val > 180.0, y_val - 360.0, y_val)
+
 						
 					print(f"{name} = {y_val}")
 
@@ -176,10 +182,11 @@ class PlotSA() :
 					name = self.sa.search(name[1:], mode='regexp')[0]
 				if name in self.sa :
 					y_arr = self.sa[name]
-					if 'psi' in name or 'trk' in name or 'argument' in name or 'dir' in name :
+					if ispi(name) :
 						if self.sa.meta[name][0] == 'Z4' :
 							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
 						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
+						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 					if format is None :
 						plt.plot(self.t_arr, y_arr, ** m)
 					else :
