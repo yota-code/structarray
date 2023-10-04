@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import math
+import os
+import readline
+import sys
+
+from cc_pathlib import Path
+
+import structarray
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+ref_data_pth = Path(sys.argv[1])
+ref_meta_pth = ref_data_pth.parent / "mapping.tsv"
+ref = structarray.StructArray(ref_meta_pth, ref_data_pth)
+
+tst_data_pth = Path(sys.argv[2])
+tst_meta_pth = tst_data_pth.parent / "mapping.tsv"
+tst = structarray.StructArray(tst_meta_pth, tst_data_pth)
+
+if len(ref.data) != len(tst.data) :
+	raise ValueError("The files don't have the same size")
+
+if ref.var_lst != tst.var_lst :
+	raise ValueError("The columns names doesn't match")
+
+print()
+for i, name in enumerate(ref.var_lst) :
+	a, b = ref[name], tst[name]
+	print(f"{i} / {len(ref.var_lst)}. {name}")
+	if not np.array_equal(a, b, equal_nan=True) :
+		plt.plot(a)
+		plt.plot(b)
+		plt.title(name)
+		plt.grid()
+		plt.show()
+
+print("\nbon... ben c'est tout pareil\n")
+
