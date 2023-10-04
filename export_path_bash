@@ -3,7 +3,7 @@
 source_DIR=$(realpath $(dirname ${BASH_SOURCE[0]}))
 
 function push_pythonpath() {
-	pth=$1:A
+	pth=$1
 	echo "+ ${pth}"
 	export PATH=${pth}/script:$PATH
 	export PYTHONPATH=${pth}/package:$PYTHONPATH
@@ -14,3 +14,5 @@ push_pythonpath ${source_DIR}
 export STRUCTARRAY_build_DIR=${source_DIR}/build
 
 export STRUCTARRAY_bookmark_DIR=${source_DIR}/data/upmv
+
+hash -r

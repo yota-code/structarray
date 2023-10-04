@@ -52,24 +52,28 @@ def glob_to_regex(s) :
 
 class StructArray() :
 
-	def __init__(self, meta=None, data=None) :
+	def __init__(self, meta_pth=None, data_pth=None) :
 
 		self.meta = None
 		self.data = None
 
-		print(f"StructArray({meta}, {data})")
+		print(f"StructArray({meta_pth}, {data_pth})")
 
 		self.length = 0
 
-		if meta is not None :
-			self.meta = meta.resolve()
-			if self.meta.is_file() :
-				self.load_meta(meta)
+		if meta_pth is not None :
+			meta_pth = meta_pth.resolve()
+			if meta_pth.is_file() :
+				self.load_meta(meta_pth)
+			else :
+				raise FileNotFoundError(f"{meta_pth} does not exists")
 
-		if data is not None :
-			self.data = data.resolve()
-			if self.data.is_file() :
-				self.load_data(self.data)
+		if data_pth is not None :
+			data_pth = data_pth.resolve()
+			if data_pth.is_file() :
+				self.load_data(data_pth)
+			else :
+				raise FileNotFoundError(f"{data_pth} does not exists")
 
 		self.extract_map = dict()
 		self.extract_lst = list()
@@ -115,9 +119,10 @@ class StructArray() :
 		# 	self.meta[name] = (ctype, int(offset))
 		# 	self.var_lst.append(name)
 
-		print(len(self.var_lst))
+		print("number of columns: ", len(self.var_lst))
 
 	def load_data(self, pth) :
+		print(f"StructArray.load_data({pth})")
 		self.data = pth.read_bytes()
 		self.length = len(self.data) // self.block_size
 		if len(self.data) % self.block_size != 0 :
@@ -135,6 +140,12 @@ class StructArray() :
 		for var in self.var_lst :
 			yield var
 
+	def all_aligned(self) :
+		for name in self.var_lst :
+			ctype, offset = self.meta[name]
+			if offset % sizeof_map[ctype] != 0 :
+				print(f"{name} is not aligned: size={sizeof_map[ctype]} offeset={offset}")
+
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
 
@@ -146,7 +157,6 @@ class StructArray() :
 			arr.shape = (width, height)
 			return arr[:,int(offset) // sizeof_map[ctype]]
 		else :
-			print("RAAAAH")
 			v_lst = list()
 			p = offset
 			for i in range(width) :
