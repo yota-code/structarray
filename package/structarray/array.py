@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import hashlib
 import io
 import math
 import os
@@ -10,7 +11,7 @@ import numpy as np
 
 from cc_pathlib import Path
 
-ctype_map = { # types of struct
+stype_map = { # types of struct
 	'Z1' : "b",
 	'Z4' : "i",
 	'Z8' : "q",
@@ -50,16 +51,71 @@ def glob_to_regex(s) :
 	s = s.replace('\\*', '.*?')
 	return '(' + s + ')'
 
+try :
+	import h5py
+
+	class StructHDF5() :
+
+		h5py_opt = {
+			'compression' : "gzip",
+			'compression_opts' : 9,
+			'shuffle' : True,
+			'fletcher32' : True,
+		}
+
+		def __init__(self, cache_pth, interval=Ellipsis) :
+
+			self.hdf_pth = cache_pth.resolve()
+			# self.hsh_pth = self.hdf_pth.with_suffix(".tsv")
+
+			self.key_map = dict() # key -> hsh
+			self.hsh_map = dict() # hsh -> key
+
+			self.interval = interval
+
+			if self.hdf_pth.is_file() :
+				with h5py.File(self.hdf_pth, 'r', libver="latest") as obj :
+					self.key_map = {
+						key : obj.attrs[key] for key in obj.attrs.keys()
+					}
+					self.hsh_map = {
+						obj.attrs[key] : key for key in obj.attrs.keys()
+					}
+
+		def __getitem__(self, key) :
+			with h5py.File(self.hdf_pth, 'r', libver="latest") as obj :
+				return obj[self.key_map[key]][self.interval]
+
+		def __setitem__(self, key, value) :
+			hsh = hashlib.blake2b(value.tobytes(), digest_size=32).hexdigest()
+
+			with h5py.File(self.hdf_pth, 'a', libver="latest") as obj :
+				if hsh not in self.hsh_map :
+					print(f"write, {key} {hsh} !!")
+					obj.create_dataset('/' + hsh, data=value, ** self.h5py_opt)
+					print(obj.keys())
+				obj.attrs[key] = hsh
+
+			self.key_map[key] = hsh
+			self.hsh_map[hsh] = key
+				
+		def __contains__(self, key) :
+			return key in self.key_map
+
+except :
+	pass
+
 class StructArray() :
 
 	def __init__(self, meta_pth=None, data_pth=None) :
 
 		self.meta = None
 		self.data = None
+		self.cache = None
 
 		print(f"StructArray({meta_pth}, {data_pth})")
 
-		self.length = 0
+		self.array_len = 0
 
 		if meta_pth is not None :
 			meta_pth = meta_pth.resolve()
@@ -89,10 +145,12 @@ class StructArray() :
 
 	def load_meta(self, pth) :
 		print(f"StructArray.load_meta({pth})")
+		self.meta_pth = pth.resolve()
+
 		self.meta = dict()
 		self.var_lst = list()
 
-		obj = pth.load()
+		obj = self.meta_pth.load()
 		
 		first_line = obj.pop(0)
 		self.struct_name = first_line[0]
@@ -122,16 +180,25 @@ class StructArray() :
 		print("number of columns: ", len(self.var_lst))
 
 	def load_data(self, pth) :
-		print(f"StructArray.load_data({pth})")
-		self.data = pth.read_bytes()
-		self.length = len(self.data) // self.block_size
-		if len(self.data) % self.block_size != 0 :
-			self.data = self.data[:self.length * self.block_size]
-			print(f"incomplete block at the end of data, truncated at {len(self.data)}")
-		print(f"data shape : {len(self.data)} = {self.length} blocks of {self.block_size} bytes")
+		self.data_len = pth.stat().st_size
+		self.array_len = self.data_len // self.block_size
+		print(f"StructArray.load_data({pth}) => {self.data_len} bytes / {self.array_len} blocks of {self.block_size} bytes")
+
+		self.end_of_file = self.array_len * self.block_size if ( self.data_len % self.block_size != 0 ) else None
+		if self.end_of_file :
+			print(f"possible incomplete block at the end of data, file will be truncated at {self.end_of_file}")
+
+		if 2**33 <= self.data_len :
+			self.data = pth
+			self.cache = StructHDF5(pth.with_suffix('.hdf5'))
+			print("huge file, cache activated", self.cache.hsh_map)
+		else :
+			self.data = pth.read_bytes()[:self.end_of_file]
+
+		print(f"data shape : {self.data_len} = {self.array_len} blocks of {self.block_size} bytes")
 
 	def __len__(self) :
-		return self.length
+		return self.array_len
 
 	def __contains__(self, key) :
 		return key in self.var_lst
@@ -146,31 +213,55 @@ class StructArray() :
 			if offset % sizeof_map[ctype] != 0 :
 				print(f"{name} is not aligned: size={sizeof_map[ctype]} offeset={offset}")
 
+	def is_aligned(self, name) :
+		ctype, offset = self.meta[name]
+		return offset % sizeof_map[ctype] == 0
+
 	def __getitem__(self, name) :
 		ctype, offset = self.meta[name]
 
-		width = len(self.data) // self.block_size
-		height = len(self.data) // ( width * sizeof_map[ctype] )
-		
-		if self.block_size % sizeof_map[ctype] == 0 and offset % sizeof_map[ctype] == 0 :
-			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
-			arr.shape = (width, height)
-			return arr[:,int(offset) // sizeof_map[ctype]]
+		width = self.data_len // self.block_size
+		height = self.data_len // ( width * sizeof_map[ctype] )
+
+		if isinstance(self.data, Path) :
+			if name not in self.cache :
+				v_lst = list()
+				v_len = struct.calcsize(stype_map[ctype])
+				p = offset
+				print(name, offset, v_len, self.block_size)
+				with self.data.open('rb') as fid :
+					while p <= self.data_len :
+						fid.seek(p)
+						v = struct.unpack(stype_map[ctype], fid.read(v_len))[0]
+						v_lst.append(v)
+						p += self.block_size
+						print(p, p / self.data_len, end='\r')
+				v_arr = np.array(v_lst)
+				self.cache[name] = v_arr
+			else :
+				print("cached", name)
+				v_arr = self.cache[name]
+			return v_arr
 		else :
-			v_lst = list()
-			p = offset
-			for i in range(width) :
-				element = struct.unpack_from(ctype_map[ctype], self.data, p)[0]
-				print(element)
-				v_lst.append(element)
-				p += self.block_size
-			# with io.BytesIO(self.data) as fid :
-			# 	while True :
-			# 		buffer = fid.read(self.block_size)
-			# 		if len(buffer) == 0 :
-			# 			break
-			# 		v_lst.append(struct.unpack_from(ctype_map[ctype], self.data, offset))
-			return np.array(v_lst)
+			if self.is_aligned(name) :
+				arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
+				arr.shape = (width, height)
+				return arr[:,int(offset) // sizeof_map[ctype]]
+			else :
+				v_lst = list()
+				p = offset
+				for i in range(width) :
+					element = struct.unpack_from(stype_map[ctype], self.data, p)[0]
+					print(element)
+					v_lst.append(element)
+					p += self.block_size
+				# with io.BytesIO(self.data) as fid :
+				# 	while True :
+				# 		buffer = fid.read(self.block_size)
+				# 		if len(buffer) == 0 :
+				# 			break
+				# 		v_lst.append(struct.unpack_from(stype_map[ctype], self.data, offset))
+				return np.array(v_lst)
 
 	def filter_select(self, * filter_lst) :
 		filter_lst = [glob_to_regex(line) for line in filter_lst]
@@ -205,14 +296,6 @@ class StructArray() :
 
 	def to_hdf5(self, pth) :
 		import h5py
-
-		h5py_opt = {
-			'compression' : "gzip",
-			'compression_opts' : 9,
-			'shuffle' : True,
-			'fletcher32' : True,
-			# 'chunks' : (2**12,)
-		}
 
 		fid = h5py.File(str(pth), 'a', libver='latest')
 		for var in self :

@@ -43,7 +43,7 @@ class PlotSA() :
 		self.run()
 
 	def load(self) :
-		self.reb_lst = [structarray.StructArray(meta=path.parent / "mapping.tsv", data=path) for path in self.path_lst]
+		self.reb_lst = [structarray.StructArray(meta_pth=path.parent / "mapping.tsv", data_pth=path) for path in self.path_lst]
 
 		self.time_lst = list()
 		self.name_set = set()
