@@ -87,7 +87,7 @@ class StructInfo() :
 			yield path_lst + [self.tree[ctype],]
 
 	def get_addr(self, * path_lst, relative_to=0) :
-		print(f">>> StructInfo.get_addr( {len(path_lst)} )")
+		print(f">>> StructInfo.get_addr( {len(path_lst)} )", file=sys.stderr)
 
 		line_lst = self._gdb(* [f'p/a &({unp(path)})' for path in path_lst]).splitlines()
 		addr_lst = list()
@@ -97,7 +97,7 @@ class StructInfo() :
 		return addr_lst
 
 	def get_tree(self, * ctype_lst) :
-		print(f">>> StructInfo.get_tree( {len(ctype_lst)} )")
+		print(f">>> StructInfo.get_tree( {len(ctype_lst)} )", file=sys.stderr)
 
 		new_set = set()
 
