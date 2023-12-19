@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import argparse
+import sys
+
+from cc_pathlib import Path
+
+import structarray
+
+parser = argparse.ArgumentParser(description='Convert a .reb file to hdf5')
+
+parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
+parser.add_argument('--meta', metavar='META', type=Path, help='the meta (*.tsv) file')
+
+p = parser.parse_args()
+
+data_pth = p.data.resolve()
+
+if p.meta is None :
+    meta_pth = data_pth.parent / "mapping.tsv"
+
+u = structarray.StructArray(meta_pth, data_pth)
+
+k = structarray.StructHDF5(data_pth.with_suffix('.hdf5'))
+for v in u :
+    m = u[v]
+    k[v] = m
+    
+Path("hdf5map.json").save(k.key_map)

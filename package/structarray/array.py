@@ -13,9 +13,11 @@ from cc_pathlib import Path
 
 stype_map = { # types of struct
 	'Z1' : "b",
+	'Z2' : "h",
 	'Z4' : "i",
 	'Z8' : "q",
 	'N1' : "B",
+	'N2' : "H",
 	'N4' : "I",
 	'N8' : "Q",
 	'R4' : "f",
@@ -24,9 +26,11 @@ stype_map = { # types of struct
 
 ntype_map = { # types numpy
 	'Z1' : "int8",
+	'Z2' : "int16",
 	'Z4' : "int32",
 	'Z8' : "int64",
 	'N1' : "uint8",
+	'N2' : "uint16",
 	'N4' : "uint32",
 	'N8' : "uint64",
 	'R4' : "float32",
@@ -36,6 +40,8 @@ ntype_map = { # types numpy
 sizeof_map = { # size of types
 	'N1' : 1,
 	'Z1' : 1,
+	'N2' : 2,
+	'Z2' : 2,
 	'N4' : 4,
 	'Z4' : 4,
 	'R4' : 4,
@@ -91,9 +97,9 @@ try :
 
 			with h5py.File(self.hdf_pth, 'a', libver="latest") as obj :
 				if hsh not in self.hsh_map :
-					print(f"write, {key} {hsh} !!")
+					print(f"write, {key} {hsh}")
 					obj.create_dataset('/' + hsh, data=value, ** self.h5py_opt)
-					print(obj.keys())
+					#print(obj.keys())
 				obj.attrs[key] = hsh
 
 			self.key_map[key] = hsh
@@ -228,18 +234,18 @@ class StructArray() :
 				v_lst = list()
 				v_len = struct.calcsize(stype_map[ctype])
 				p = offset
-				print(name, offset, v_len, self.block_size)
+				# print(name, offset, v_len, self.block_size)
 				with self.data.open('rb') as fid :
 					while p <= self.data_len :
 						fid.seek(p)
 						v = struct.unpack(stype_map[ctype], fid.read(v_len))[0]
 						v_lst.append(v)
 						p += self.block_size
-						print(p, p / self.data_len, end='\r')
+						# print(p, p / self.data_len, end='\r')
 				v_arr = np.array(v_lst)
 				self.cache[name] = v_arr
 			else :
-				print("cached", name)
+				# print("cached", name)
 				v_arr = self.cache[name]
 			return v_arr
 		else :
@@ -252,7 +258,6 @@ class StructArray() :
 				p = offset
 				for i in range(width) :
 					element = struct.unpack_from(stype_map[ctype], self.data, p)[0]
-					print(element)
 					v_lst.append(element)
 					p += self.block_size
 				# with io.BytesIO(self.data) as fid :

@@ -178,6 +178,8 @@ class StructInfo() :
 		self.var_type = var_type
 		self.var_size = var_size
 
+		print(f"sizeof({var_type}) = {var_size}")
+
 		return var_size
 
 	# def save(self, dst_dir, dst_name) :
@@ -219,9 +221,11 @@ class StructInfo() :
 		# print('\n---', dst_pth)
 		# print('---', src_pth)
 
-	def save(self, pth) :
+	def save_absolute(self, pth) :
+		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
+	
+	def save_relative(self, pth) :
 		pth.with_suffix('.json').save(self.tree)
-		pth.with_suffix('.old.tsv').save([[self.var_type, self.var_size],] + self.addr)
 
 		s_lst = list()
 		prev_addr = 0
