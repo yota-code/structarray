@@ -45,11 +45,11 @@ class PlotSA() :
 	def load(self) :
 		self.sa = structarray.StructArray(self.meta_pth, self.data_pth)
 
-		time_lst = sorted((len(var), var) for var in self.sa.search('.time'))
+		time_lst = sorted((len(var), var) for var in self.sa.search('time'))
 		if time_lst :
 			self.t_arr = self.sa[time_lst[0][1]]
 		else :
-			self.t_arr = np.arange(self.sa.length)
+			self.t_arr = np.arange(len(self.sa))
 
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
 
