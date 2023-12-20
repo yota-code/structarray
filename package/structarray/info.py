@@ -223,7 +223,7 @@ class StructInfo() :
 
 	def save_absolute(self, pth) :
 		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
-	
+
 	def save_relative(self, pth) :
 		pth.with_suffix('.json').save(self.tree)
 
@@ -265,6 +265,6 @@ class StructInfo() :
 		addr_lst = self.get_addr(* path_lst, relative_to=origin)
 
 		self.addr = [
-			[ name, self.ctype_map[ptype], addr ]
+			[ name.replace('.[', '['), self.ctype_map[ptype], addr ]
 			for name, ptype, addr in zip(name_lst, type_lst, addr_lst)
 		]
