@@ -69,7 +69,7 @@ try :
 			'fletcher32' : True,
 		}
 
-		archive = False
+		is_archive = False
 
 		def __init__(self, cache_pth, interval=Ellipsis) :
 
