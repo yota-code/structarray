@@ -19,7 +19,6 @@ def compact_names(v_lst) :
 	p_lst = list()
 	for v in v_lst :
 		n_lst = v.split('.')
-
 		q = 0
 		for p, n in zip(p_lst, n_lst) :
 			if p != n :
@@ -70,7 +69,7 @@ v_lst = u.var_lst
 r_lst = compact_names(v_lst)
 
 e_map = dict()
-for c in ['R4', 'R8', 'Z1', 'Z2', 'Z4', 'N1', 'N2', 'N4'] :
+for c in ['R8', 'R4', 'Z4', 'Z2', 'Z1', 'N4', 'N2', 'N1'] :
 	i_lst = [i for i, v in enumerate(v_lst) if u.meta[v][0] == c]
 	print(c, len(i_lst))
 	if i_lst :
