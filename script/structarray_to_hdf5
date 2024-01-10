@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+
+import argparse
+import hashlib
+import sys
+
+import brotli
+import h5py
+
+import numpy as np
+
+from cc_pathlib import Path
+
+import structarray
+
+def compact_names(v_lst) :
+	# validated
+	r_lst = list()
+	p_lst = list()
+	for v in v_lst :
+		n_lst = v.split('.')
+
+		q = 0
+		for p, n in zip(p_lst, n_lst) :
+			if p != n :
+				break
+			q += 1
+
+		r_lst.append((f"{q}/" if q else '') + '.'.join(n_lst[q:]))
+		p_lst = n_lst
+	return r_lst
+
+def expand_names(r_lst) :
+	# validated
+	v_lst = list()
+	p_lst = list()
+	for r in r_lst :
+		if '/' in r :
+			c, sep, z = r.partition('/')
+			n_lst = p_lst[:int(c)] + z.split('.')
+			v_lst.append('.'.join(n_lst))
+		else :
+			v_lst.append(r)
+			n_lst = r.split('.')
+		p_lst = n_lst
+	return v_lst
+
+h5py_opt = {
+	'compression' : "gzip",
+	'compression_opts' : 9,
+	'shuffle' : True,
+	'fletcher32' : True,
+}
+
+parser = argparse.ArgumentParser(description='Convert a .reb file to hdf5')
+
+parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
+parser.add_argument('--meta', metavar='META', type=Path, help='the meta (*.tsv) file')
+
+p = parser.parse_args()
+
+data_pth = p.data.resolve()
+
+if p.meta is None :
+	meta_pth = data_pth.parent / "mapping.tsv"
+
+u = structarray.StructArray(meta_pth, data_pth)
+
+v_lst = u.var_lst
+r_lst = compact_names(v_lst)
+
+e_map = dict()
+for c in ['R4', 'R8', 'Z1', 'Z2', 'Z4', 'N1', 'N2', 'N4'] :
+	i_lst = [i for i, v in enumerate(v_lst) if u.meta[v][0] == c]
+	print(c, len(i_lst))
+	if i_lst :
+		print("TODO")
+		e_map[c] = dict() # ctype -> name -> position
+		s = dict() # hash -> position
+		m = list()
+		for i in i_lst :
+			v = v_lst[i]
+			d = u[v]
+			h = hashlib.blake2b(d.tobytes(), digest_size=32).hexdigest()
+			if h not in s :
+				s[h] = len(m)
+				m.append(d)
+			e_map[c][i] = s[h]
+		with h5py.File(data_pth.with_suffix('.hdf5'), 'a', libver="latest") as obj :
+			w = np.vstack(m)
+			print(w.shape, w.dtype)
+			obj.create_dataset('/' + c, data=w, ** h5py_opt)
+		print("size:", data_pth.with_suffix('.hdf5').stat().st_size)
+
+Path("test__e.json").save(e_map)
+
+f_lst = list()
+for i, (v, r) in enumerate(zip(v_lst, r_lst)) :
+	v = v_lst[i]
+	ctype = u.meta[v][0]
+	f_lst.append([r, ctype, e_map[ctype][i]])
+Path("test__f.tsv").save(f_lst)
+
+map_bin = Path("test__f.tsv").read_text().encode('ascii')
+map_zip = brotli.compress(map_bin)
+
+print(len(map_bin), len(map_zip))
+
+with h5py.File(data_pth.with_suffix('.hdf5'), 'a', libver="latest") as obj :
+	obj.attrs['__map__'] = np.void(map_zip) # https://docs.h5py.org/en/stable/strings.html
+print("size:", data_pth.with_suffix('.hdf5').stat().st_size)
+
+
+sys.exit(0)
+
+
+g = list()
+p = None
+for v, c, j in f :
+	if p is None :
+		g.append(v, c, j)
+	else :
+		pass
+
+
+	p = v.split('.')
+
+
+sys.exit(0)
+
+k = structarray.StructHDF5(data_pth.with_suffix('.hdf5'))
+k.is_archive = True
+
+for i, v in enumerate(u) :
+	print(f"{i} / {len(u.var_lst)}", end='\r')
+	try :
+		m = u[v]
+		k[v] = m
+	except :
+		print(f"FAILED: {i} / {len(u.var_lst)} {v}", end='\n')
+		raise
+
+Path("hey_map.json").save(k.key_map)
+Path("hsh_map.json").save(k.hsh_map)

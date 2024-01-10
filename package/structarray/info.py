@@ -8,6 +8,7 @@ import hashlib
 from cc_pathlib import Path
 
 struct_rec = re.compile(r'''struct\s*\{(?P<member>.*?)\}''', re.MULTILINE | re.DOTALL)
+array_rec = re.compile(r'(?P<ctype>.*?)\s*\[(?P<array>\d+)\]')
 addr_rec = re.compile(r'''\$[0-9]+ = (?P<addr>0x[0-9a-f]+)''')
 member_rec = re.compile(r'''\s*(?P<ctype>.*?)\b\s*(?P<pointer>\*)?\s*\b(?P<name>[a-zA-Z_][a-zA-Z0-9_]*)(\[(?P<array>\d+)\])?\s*;''')
 
@@ -24,10 +25,15 @@ def split_cpm(item) :
 
 class StructInfo() :
 
+	debug = True
 	version = 2
 
 	def __init__(self, elf_pth, ctype_pth=None) :
 
+		if self.debug :
+			self.log_pth = Path("debug.log")
+			self.log_pth.write_text('')
+			
 		self.elf_pth = elf_pth.resolve()
 
 		self.addr = list()
@@ -62,7 +68,6 @@ class StructInfo() :
 		pass
 
 	def walk(self, ctype=None, path_lst=None, follow_pointers=False, depth=0) :
-
 		if ctype is None :
 			ctype = self.var_type
 		if ctype not in self.tree :
@@ -87,28 +92,44 @@ class StructInfo() :
 			yield path_lst + [self.tree[ctype],]
 
 	def get_addr(self, * path_lst, relative_to=0) :
-		print(f">>> StructInfo.get_addr( {len(path_lst)} )")
+		print(f">>> StructInfo.get_addr( {len(path_lst)} )", file=sys.stderr)
 
 		line_lst = self._gdb(* [f'p/a &({unp(path)})' for path in path_lst]).splitlines()
 		addr_lst = list()
 		for line in line_lst :
+			if 'no member named' in line :
+				print(path_lst)
+				raise
 			addr_res = addr_rec.search(line)
 			addr_lst.append(int(addr_res.group('addr'), 16) - relative_to)
 		return addr_lst
 
 	def get_tree(self, * ctype_lst) :
-		print(f">>> StructInfo.get_tree( {len(ctype_lst)} )")
+		print(f">>> StructInfo.get_tree( {len(ctype_lst)} )", file=sys.stderr)
 
 		new_set = set()
 
 		line = self._gdb(* [f'ptype {ctype}' for ctype in ctype_lst])
 		ptype_lst = [item.strip() for item in line.split('type =') if item.strip()]
-		
+
+		if self.debug :
+			with self.log_pth.open('at') as fid :
+				fid.write(">"*8 + '\n')
+				fid.write('\n'.join(ctype_lst) + '\n')
+				fid.write("-"*8 + '\n')
+				fid.write(line)
+				# fid.write("-"*8 + '\n')
+				# fid.write('\n'.join(ptype_lst) + '\n')
+				fid.write("<"*8 + '\n')
+
 		for ctype, ptype in zip(ctype_lst, ptype_lst) :
-			struct_res = struct_rec.match(ptype)
-			if struct_res is not None :
+
+			if self.debug :
+				with self.log_pth.open('at') as fid :
+					fid.write(">>> " + ctype + ' := ' + repr(ptype) +'\n')
+
+			if (struct_res := struct_rec.match(ptype)) is not None :
 				struct_lst = list()
-				member = struct_res.group('member')
 				for member_res in member_rec.finditer(struct_res.group('member')) :
 					if member_res.group('array') is None :
 						if member_res.group('ctype') not in ["void",] :
@@ -116,14 +137,20 @@ class StructInfo() :
 					else :
 						for i in range(int(member_res.group('array'))) :
 							struct_lst.append([member_res.group('ctype').strip(), (member_res.group('pointer') is not None), member_res.group('name') + f'[{i}]'])
-
 				self.tree[ctype] = struct_lst
-
 				new_set |= set(c for c, p, m in struct_lst)
+			elif (array_res := array_rec.match(ptype)) is not None :
+				array_lst = list()
+				for i in range(int(array_res.group('array'))) :
+					array_lst.append([array_res.group('ctype').strip(), False, f'[{i}]'])
+				self.tree[ctype] = array_lst
+				new_set.add(array_res.group('ctype').strip())
 			else :
 				if ptype not in self.ctype_map :
 					raise ValueError(f"unknown ctype: {ptype}")
 				self.tree[ctype] = ptype
+
+		Path("tree.json").save(self.tree, filter_opt={'verbose':True})
 
 		return new_set
 
@@ -150,6 +177,8 @@ class StructInfo() :
 		self.var_name = var_name
 		self.var_type = var_type
 		self.var_size = var_size
+
+		print(f"sizeof({var_type}) = {var_size}")
 
 		return var_size
 
@@ -192,9 +221,11 @@ class StructInfo() :
 		# print('\n---', dst_pth)
 		# print('---', src_pth)
 
-	def save(self, pth) :
+	def save_absolute(self, pth) :
+		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
+
+	def save_relative(self, pth) :
 		pth.with_suffix('.json').save(self.tree)
-		pth.with_suffix('.old.tsv').save([[self.var_type, self.var_size],] + self.addr)
 
 		s_lst = list()
 		prev_addr = 0
@@ -229,11 +260,11 @@ class StructInfo() :
 
 		line_lst = list( self.walk(ctype) )
 		name_lst = [ unp('.'.join(line[:-1])) for line in line_lst ]
-		path_lst = [ unp(f'{vname}.' + '.'.join(line[:-1])) for line in line_lst ]
+		path_lst = [ unp(f'{vname}.' + '.'.join(line[:-1])).replace('.[', '[') for line in line_lst ]
 		type_lst = [ line[-1] for line in line_lst ]
 		addr_lst = self.get_addr(* path_lst, relative_to=origin)
 
 		self.addr = [
-			[ name, self.ctype_map[ptype], addr ]
+			[ name.replace('.[', '['), self.ctype_map[ptype], addr ]
 			for name, ptype, addr in zip(name_lst, type_lst, addr_lst)
 		]
