@@ -51,59 +51,60 @@ def glob_to_regex(s) :
 	s = s.replace('\\*', '.*?')
 	return '(' + s + ')'
 
-try :
-	import h5py
+# try :
+import h5py
 
-	class StructHDF5() :
+class StructHDF5() :
 
-		h5py_opt = {
-			'compression' : "gzip",
-			'compression_opts' : 9,
-			'shuffle' : True,
-			'fletcher32' : True,
-		}
+	h5py_opt = {
+		'compression' : "gzip",
+		'compression_opts' : 9,
+		'shuffle' : True,
+		'fletcher32' : True,
+	}
 
-		def __init__(self, cache_pth, interval=Ellipsis) :
+	def __init__(self, cache_pth, interval=Ellipsis) :
 
-			self.hdf_pth = cache_pth.resolve()
-			# self.hsh_pth = self.hdf_pth.with_suffix(".tsv")
+		self.hdf_pth = cache_pth.resolve()
+		# self.hsh_pth = self.hdf_pth.with_suffix(".tsv")
 
-			self.key_map = dict() # key -> hsh
-			self.hsh_map = dict() # hsh -> key
+		self.key_map = dict() # key -> hsh
+		self.hsh_map = dict() # hsh -> key
 
-			self.interval = interval
+		self.interval = interval
 
-			if self.hdf_pth.is_file() :
-				with h5py.File(self.hdf_pth, 'r', libver="latest") as obj :
-					self.key_map = {
-						key : obj.attrs[key] for key in obj.attrs.keys()
-					}
-					self.hsh_map = {
-						obj.attrs[key] : key for key in obj.attrs.keys()
-					}
-
-		def __getitem__(self, key) :
+		if self.hdf_pth.is_file() :
 			with h5py.File(self.hdf_pth, 'r', libver="latest") as obj :
-				return obj[self.key_map[key]][self.interval]
+				self.key_map = {
+					key : obj.attrs[key] for key in obj.attrs.keys()
+				}
+				self.hsh_map = {
+					obj.attrs[key] : key for key in obj.attrs.keys()
+				}
 
-		def __setitem__(self, key, value) :
-			hsh = hashlib.blake2b(value.tobytes(), digest_size=32).hexdigest()
+	def __getitem__(self, key) :
+		with h5py.File(self.hdf_pth, 'r', libver="latest") as obj :
+			return obj[self.key_map[key]][self.interval]
 
-			with h5py.File(self.hdf_pth, 'a', libver="latest") as obj :
-				if hsh not in self.hsh_map :
-					print(f"write, {key} {hsh} !!")
-					obj.create_dataset('/' + hsh, data=value, ** self.h5py_opt)
-					print(obj.keys())
-				obj.attrs[key] = hsh
+	def __setitem__(self, key, value) :
+		hsh = hashlib.blake2b(value.tobytes(), digest_size=32).hexdigest()
 
-			self.key_map[key] = hsh
-			self.hsh_map[hsh] = key
-				
-		def __contains__(self, key) :
-			return key in self.key_map
+		with h5py.File(self.hdf_pth, 'a', libver="latest") as obj :
+			if hsh not in self.hsh_map :
+				print(f"write, {key} {hsh} !!")
+				obj.create_dataset('/' + hsh, data=value, ** self.h5py_opt)
+				print(obj.keys())
+			obj.attrs[key] = hsh
 
-except :
-	pass
+		self.key_map[key] = hsh
+		self.hsh_map[hsh] = key
+			
+	def __contains__(self, key) :
+		return key in self.key_map
+
+# 	h5py_import = False
+# except :
+# 	h5py_import = False
 
 class StructArray() :
 
