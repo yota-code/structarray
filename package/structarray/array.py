@@ -69,6 +69,8 @@ try :
 			'fletcher32' : True,
 		}
 
+		is_archive = False
+
 		def __init__(self, cache_pth, interval=Ellipsis) :
 
 			self.hdf_pth = cache_pth.resolve()
@@ -100,7 +102,8 @@ try :
 					# print(f"+ {hsh[:9]} {('...' + key[-48:]) if 45 < len(key) else key}")
 					obj.create_dataset('/' + hsh, data=value, ** self.h5py_opt)
 					#print(obj.keys())
-					obj.attrs[key] = hsh
+					if not self.is_archive :
+						obj.attrs[key] = hsh
 
 			self.key_map[key] = hsh
 			self.hsh_map[hsh] = key
