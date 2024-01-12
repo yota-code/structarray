@@ -59,6 +59,7 @@ parser.add_argument('--meta', metavar='META', type=Path, help='the meta (*.tsv) 
 p = parser.parse_args()
 
 data_pth = p.data.resolve()
+hdf5_pth = data_pth.with_suffix('.hdf5')
 
 if p.meta is None :
 	meta_pth = data_pth.parent / "mapping.tsv"
@@ -68,12 +69,16 @@ u = structarray.StructArray(meta_pth, data_pth)
 v_lst = u.var_lst
 r_lst = compact_names(v_lst)
 
+if hdf5_pth.is_file() :
+	hdf5_pth.unlink()
+
 e_map = dict()
 for c in ['R8', 'R4', 'Z4', 'Z2', 'Z1', 'N4', 'N2', 'N1'] :
 	i_lst = [i for i, v in enumerate(v_lst) if u.meta[v][0] == c]
 	print(c, len(i_lst))
+	#Path(f"{c}.tsv").save([[v_lst[i], u.meta[v_lst[i]][0], r_lst[i]] for i in i_lst])
+	#continue
 	if i_lst :
-		print("TODO")
 		e_map[c] = dict() # ctype -> name -> position
 		s = dict() # hash -> position
 		m = list()
@@ -83,13 +88,16 @@ for c in ['R8', 'R4', 'Z4', 'Z2', 'Z1', 'N4', 'N2', 'N1'] :
 			h = hashlib.blake2b(d.tobytes(), digest_size=32).hexdigest()
 			if h not in s :
 				s[h] = len(m)
+				print(c, i, '/', len(v_lst), v, s[h], end='\r')
 				m.append(d)
+			else :
+				print(c, i, '/', len(v_lst), v, s[h], '*', end='\r')
 			e_map[c][i] = s[h]
-		with h5py.File(data_pth.with_suffix('.hdf5'), 'a', libver="latest") as obj :
+		with h5py.File(hdf5_pth, 'a', libver="latest") as obj :
 			w = np.vstack(m)
 			print(w.shape, w.dtype)
 			obj.create_dataset('/' + c, data=w, ** h5py_opt)
-		print("size:", data_pth.with_suffix('.hdf5').stat().st_size)
+		print("size:", hdf5_pth.stat().st_size)
 
 Path("test__e.json").save(e_map)
 
@@ -105,9 +113,9 @@ map_zip = brotli.compress(map_bin)
 
 print(len(map_bin), len(map_zip))
 
-with h5py.File(data_pth.with_suffix('.hdf5'), 'a', libver="latest") as obj :
+with h5py.File(hdf5_pth, 'a', libver="latest") as obj :
 	obj.attrs['__map__'] = np.void(map_zip) # https://docs.h5py.org/en/stable/strings.html
-print("size:", data_pth.with_suffix('.hdf5').stat().st_size)
+print(f"final size: {hdf5_pth.stat().st_size} or {100.0*hdf5_pth.stat().st_size / (data_pth.stat().st_size + meta_pth.stat().st_size):0.2}% for the original .reb + .tsv")
 
 
 sys.exit(0)

@@ -69,8 +69,6 @@ try :
 			'fletcher32' : True,
 		}
 
-		archive = False
-
 		def __init__(self, cache_pth, interval=Ellipsis) :
 
 			self.hdf_pth = cache_pth.resolve()
@@ -102,8 +100,7 @@ try :
 					# print(f"+ {hsh[:9]} {('...' + key[-48:]) if 45 < len(key) else key}")
 					obj.create_dataset('/' + hsh, data=value, ** self.h5py_opt)
 					#print(obj.keys())
-					if not self.is_archive :
-						obj.attrs[key] = hsh
+					obj.attrs[key] = hsh
 
 			self.key_map[key] = hsh
 			self.hsh_map[hsh] = key
@@ -116,11 +113,13 @@ except :
 
 class StructArray() :
 
-	def __init__(self, meta_pth=None, data_pth=None) :
+	def __init__(self, meta_pth=None, data_pth=None, no_cache=False) :
 
 		self.meta = None
 		self.data = None
-		self.cache = None
+
+		self.cache = dict()
+		self.cache_disabled = False
 
 		print(f"StructArray({meta_pth}, {data_pth})")
 
@@ -197,10 +196,11 @@ class StructArray() :
 		if self.end_of_file :
 			print(f"possible incomplete block at the end of data, file will be truncated at {self.end_of_file}")
 
-		if 2**33 <= self.data_len :
-			self.data = pth
-			self.cache = StructHDF5(pth.with_suffix('.hdf5'))
-			print("huge file, cache activated", self.cache.hsh_map)
+		if 2**32 <= self.data_len :
+			self.data = pth # direct file access mode for files of more than 4 GiBytes
+			if not self.cache_disabled :
+				self.cache = StructHDF5(pth.with_suffix('.hdf5'))
+				print("huge file, cache activated", self.cache.hsh_map)
 		else :
 			self.data = pth.read_bytes()[:self.end_of_file]
 
@@ -233,22 +233,23 @@ class StructArray() :
 		height = self.data_len // ( width * sizeof_map[ctype] )
 
 		if isinstance(self.data, Path) :
-			if name not in self.cache :
+			if self.cache_disabled or name not in self.cache :
 				v_lst = list()
 				v_len = struct.calcsize(stype_map[ctype])
 				p = offset
-				print(name, offset, v_len, self.block_size)
+				# print(name, offset, v_len, self.block_size)
 				with self.data.open('rb') as fid :
 					while p <= self.data_len :
 						fid.seek(p)
 						v = struct.unpack(stype_map[ctype], fid.read(v_len))[0]
 						v_lst.append(v)
 						p += self.block_size
-						print(p, p / self.data_len, end='\r')
+						# print(p, p / self.data_len, end='\r')
 				v_arr = np.array(v_lst)
-				self.cache[name] = v_arr
+				if not self.cache_disabled :
+					self.cache[name] = v_arr
 			else :
-				print("cached", name)
+				# print("cached", name)
 				v_arr = self.cache[name]
 			return v_arr
 		else :
