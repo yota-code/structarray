@@ -110,7 +110,6 @@ try :
 				
 		def __contains__(self, key) :
 			return key in self.key_map
-
 except :
 	pass
 

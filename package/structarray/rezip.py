@@ -13,7 +13,7 @@ from cc_pathlib import Path
 """
 .rez or rezip formats are compact binary files based on hdf5
 
-the mapping is embedded
+the mapping is embedded under a compact and compressed form
 """
 
 from structarray.array import StructArray as RebHandler
