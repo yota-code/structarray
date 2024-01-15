@@ -2,6 +2,7 @@
 
 import collections
 import enum
+import re
 
 from cc_pathlib import Path
 
@@ -32,12 +33,17 @@ class MetaHandler() :
 		for name, (mtype, addr) in self._m.items() :
 			if not mtype.startswith('P') :
 				yield name
+
+	def __getitem__(self, key) :
+		return self._m[key]
 		
 	def load(self, pth) :
 		pth = Path(pth).resolve()
 
 		if pth.suffix != '.tsv' :
 			raise ValueError("mapping must be a tsv file")
+		if not pth.is_file() :
+			raise FileNotFoundError(f"{pth} does not exists")
 		
 		self._m = collections.OrderedDict()
 		self._v = list()
@@ -135,3 +141,24 @@ class MetaHandler() :
 				print("OTHER", other_line)
 				return False
 		return True
+	
+	def is_aligned(self, name) :
+		ctype, offset = self[name]
+		return offset % sizeof_map[ctype] == 0
+
+	def all_aligned(self) :
+		for name in self._m :
+			ctype, offset = self._m[name]
+			if offset % sizeof_map[ctype] != 0 :
+				print(f"{name} is not aligned: size={sizeof_map[ctype]} offeset={offset}")
+				return False
+		return True
+	
+	def search(self, pattern, mode='blob') :
+		# print(f"StructArray.search({pattern}, {mode})")
+		if mode == 'blob':
+			pattern = pattern.replace('.', '\\.').replace('*', '.*')
+		elif mode == 'regexp' :
+			pass
+		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
+		return [var for var in self if rec.search(var) is not None]

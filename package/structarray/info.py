@@ -23,7 +23,7 @@ def split_cpm(item) :
 		left, right = item.split()
 		return [left.strip(), False, right.strip()]
 
-class StructInfo() :
+class MetaParser() :
 
 	debug = True
 	version = 2
@@ -181,45 +181,6 @@ class StructInfo() :
 		print(f"sizeof({var_type}) = {var_size}")
 
 		return var_size
-
-	# def save(self, dst_dir, dst_name) :
-	# 	(dst_dir / f"{dst_name}.json").save(self.tree)
-	# 	(dst_dir / f"{dst_name}.tsv").save([[self.var_type, self.var_size],] + self.addr)
-
-		# src_pth = dst_dir / f"{self.var_type}.sam.tsv"
-
-		# tambouille pour avec le hash dans le nom du fichier, môche
-
-		# try :
-		# 	src_pth.unlink()
-		# except FileNotFoundError :
-		# 	pass
-
-		# h = hashlib.blake2b(src_pth.read_bytes()).hexdigest()[:12]
-
-		# dst_pth = dst_dir / f"{self.var_type}.{h}.sam.tsv"
-		# try :
-		# 	dst_pth.unlink()
-		# except FileNotFoundError :
-		# 	pass
-
-		# src_pth.rename(dst_pth)
-			
-		# try :
-		# 	src_pth.unlink()
-		# except FileNotFoundError :
-		# 	pass
-		# src_pth.symlink_to(dst_pth)
-
-		# ctx_pth = dst_dir / f"context.tsv"
-		# try :
-		# 	ctx_pth.unlink()
-		# except FileNotFoundError :
-		# 	pass
-		# ctx_pth.hardlink_to(dst_pth)
-
-		# print('\n---', dst_pth)
-		# print('---', src_pth)
 
 	def save_absolute(self, pth) :
 		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
