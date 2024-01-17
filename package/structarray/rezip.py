@@ -29,7 +29,7 @@ class RezHandler() :
 		assert self.pth.suffix == '.rez'
 
 		with h5py.File(self.pth, 'r', libver="latest") as obj :
-			self.meta.load(obj.attrs['__map__'])
+			self.meta.load(obj.attrs['_meta'])
 
 		return self
 

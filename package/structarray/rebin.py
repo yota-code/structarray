@@ -59,7 +59,7 @@ class RebHandler() :
 
 		self.data_len = self.data_pth.stat().st_size
 		self.array_len = self.data_len // self.meta.sizeof
-		print(f"LOADING...\ndata: {self.data_pth}\nmeta:{self.meta_pth}\n => {self.data_len} bytes or {self.array_len} blocks of {self.meta.sizeof} bytes\n")
+		print(f"LOADING...\ndata: {self.data_pth}\nmeta: {self.meta_pth}\n => {self.data_len} bytes or {self.array_len} blocks of {self.meta.sizeof} bytes\n")
 
 		self.end_of_file = self.array_len * self.meta.sizeof if ( self.data_len % self.meta.sizeof != 0 ) else None
 		if self.end_of_file :
@@ -206,7 +206,7 @@ class RebHandler() :
 			'compression' : "gzip",
 			'compression_opts' : 9,
 			'shuffle' : True,
-			'fletcher32' : True,
+			# 'fletcher32' : True,
 		}
 
 		v_lst = list(self.meta)
@@ -220,7 +220,7 @@ class RebHandler() :
 		e_map = dict()
 		for c in ['R8', 'R4', 'Z4', 'Z2', 'Z1', 'N4', 'N2', 'N1'] :
 			i_lst = [i for i, v in enumerate(v_lst) if self.meta[v][0] == c]
-			print(c, len(i_lst))
+			print(f"{c} {0:7d} / {len(i_lst)}")
 			if i_lst :
 				e_map[c] = dict() # ctype -> name -> position
 				s = collections.defaultdict(set) # hash -> position set
@@ -230,7 +230,7 @@ class RebHandler() :
 					d = self[v] # full data line extracted
 					if d[0] == d[-1] and (d[0] == d).all() :
 						e_map[c][i] = ('=', d[0])
-						print(f"\x1b[A\x1b[K{n+1:7d} / {len(i_lst)} # {v_lst[i]} = {d[0]}")
+						print(f"\x1b[A\x1b[K{c} {n+1:7d} / {len(i_lst)} # {d[0]} = {v_lst[i]}")
 					else :
 						h = hash(d.tobytes()) # hash of the line
 						j = len(m)
@@ -245,15 +245,14 @@ class RebHandler() :
 								s[h].add(j)
 								m.append(d)
 						e_map[c][i] = ('@', j)
-						print(f"\x1b[A\x1b[K{n+1:7d} / {len(i_lst)} # {v_lst[i]} @ {j}")
+						print(f"\x1b[A\x1b[K{c} {n+1:7d} / {len(i_lst)} # {j} @ {v_lst[i]}")
 
 				Path(f"s_map.{c}.json").save(s)
 
 				with h5py.File(archive_pth, 'a', libver="latest") as obj :
 					w = np.vstack(m)
-					print(c, w.shape, w.dtype)
+					print(f"\x1b[A\x1b[K{c} {len(i_lst):7d} / {len(i_lst)} => {w.shape[0]} rows")
 					obj.create_dataset('/' + c, data=w, ** h5py_opt)
-				# print("size:", archive_pth.stat().st_size)
 
 		f_lst = [str(self.array_len),] # on doit garder array_len dans les méta données parce qu'il se peut que TOUS les vecteurs soient constants
 		for i, (v, r) in enumerate(zip(v_lst, r_lst)) :
@@ -261,14 +260,15 @@ class RebHandler() :
 			z, j = e_map[mtype][i]
 			f_lst.append(f'{r}\t{mtype}{z}{j}')
 
-		Path(archive_pth.with_suffix('.tsv')).write_text('\n'.join(f_lst))
+		Path(archive_pth.with_suffix('.mez')).write_text('\n'.join(f_lst))
 
 		with h5py.File(archive_pth, 'a', libver="latest") as obj :
-			obj.attrs['__map__'] = np.void(brotli.compress('\n'.join(f_lst).encode('ascii'), mode=brotli.MODE_TEXT)) # https://docs.h5py.org/en/stable/strings.html
+			meta_zip = brotli.compress('\n'.join(f_lst).encode('ascii'), mode=brotli.MODE_TEXT)
+			obj.attrs['_meta'] = np.void(meta_zip) # https://docs.h5py.org/en/stable/strings.html
 
 		data_size = self.data_pth.stat().st_size
 		meta_size = self.meta_pth.stat().st_size
 		archive_size = archive_pth.stat().st_size
-		print(f"original: {data_size + meta_size:15d} bytes ({data_size} data + {meta_size} meta)\n archive: {archive_size:15d} bytes\n => archive takes {100.0 * archive_size / (data_size + meta_size):0.5}% of original")
+		print(f"\noriginal: {data_size + meta_size:15d} bytes ({meta_size:8d} meta)\n archive: {archive_size:15d} bytes ({len(meta_zip):8d} meta)\n => archive takes {100.0 * archive_size / (data_size + meta_size):0.5}% of original")
 
 		return archive_pth
