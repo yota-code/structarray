@@ -12,7 +12,7 @@ import numpy as np
 
 from cc_pathlib import Path
 
-from structarray.meta import MetaHandler, sizeof_map
+from structarray.meta import MetaReb, sizeof_map, ntype_map, compact_name
 
 stype_map = { # types of struct
 	'Z1' : "b",
@@ -27,19 +27,6 @@ stype_map = { # types of struct
 	'R8' : "d",
 }
 
-ntype_map = { # types numpy
-	'Z1' : "int8",
-	'Z2' : "int16",
-	'Z4' : "int32",
-	'Z8' : "int64",
-	'N1' : "uint8",
-	'N2' : "uint16",
-	'N4' : "uint32",
-	'N8' : "uint64",
-	'R4' : "float32",
-	'R8' : "float64",
-}
-
 def glob_to_regex(s) :
 	s = re.escape(s)
 	s = s.replace('\\*', '.*?')
@@ -47,50 +34,52 @@ def glob_to_regex(s) :
 
 class RebHandler() :
 
-	def __init__(self, data_pth, meta_pth=None, cache_disabled=False) :
-		self.meta = None
+	def __init__(self, cache_disabled=False) :
+		self.meta = MetaReb()
 		self.data = None
 
 		self.cache_disabled = cache_disabled
 
 		self.array_len = 0
-
-		data_pth = Path(data_pth).resolve()
-		meta_pth = data_pth.parent / "mapping.tsv" if meta_pth is None else Path(meta_pth).resolve()
-
-		self.meta = MetaHandler().load(meta_pth)
-		self.data = self.load(data_pth)
 		
 		# the following is deprecated
 		self.extract_map = dict()
 		self.extract_lst = list()
 
-	def load(self, pth) :
+	def __len__(self) :
+		return self.array_len
+	
+	def load(self, data_pth, meta_pth=None) :
 
-		self.data_len = pth.stat().st_size
+		self.data_pth = Path(data_pth).resolve()
+		assert self.data_pth.suffix == '.reb'
+
+		self.meta_pth = self.data_pth.parent / "mapping.tsv" if meta_pth is None else Path(meta_pth).resolve()
+		self.meta.load(self.meta_pth)
+
+		self.data_len = self.data_pth.stat().st_size
 		self.array_len = self.data_len // self.meta.sizeof
-		print(f"LOADING {pth} => {self.data_len} bytes / {self.array_len} blocks of {self.meta.sizeof} bytes")
+		print(f"LOADING...\ndata: {self.data_pth}\nmeta:{self.meta_pth}\n => {self.data_len} bytes or {self.array_len} blocks of {self.meta.sizeof} bytes\n")
 
 		self.end_of_file = self.array_len * self.meta.sizeof if ( self.data_len % self.meta.sizeof != 0 ) else None
 		if self.end_of_file :
 			print(f"! possible incomplete block at the end of data, file will be truncated at {self.end_of_file}")
 
 		if 2**32 <= self.data_len :
-			self.data = pth # direct file access mode for files of more than 4 GiBytes
+			self.data = self.data_pth # direct file access mode for files of more than 4 GiBytes
 			if not self.cache_disabled :
 				try :
 					from structarray.cache import CacheHandler
-					self.cache = CacheHandler(pth.with_suffix('.hdf5'))
+					self.cache = CacheHandler(self.data_pth.with_suffix('.__cache__.hdf5'))
 				except ModuleNotFoundError :
 					self.cache = dict()
 				print("! huge file detected, cache activated")
 		else :
-			self.data = pth.read_bytes()[:self.end_of_file]
+			self.data = self.data_pth.read_bytes()[:self.end_of_file]
 			self.cache_disabled = True
 
-	def __len__(self) :
-		return self.array_len
-	
+		return self
+
 	def get_from_file(self, name) :
 		ctype, offset = self.meta[name]
 
@@ -111,7 +100,7 @@ class RebHandler() :
 		width = self.data_len // self.meta.sizeof
 		height = self.data_len // ( width * sizeof_map[ctype] )
 
-		if self.is_aligned(name) :
+		if self.meta.is_aligned(name) :
 			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
 			arr.shape = (width, height)
 			return arr[:,int(offset) // sizeof_map[ctype]]
@@ -127,7 +116,7 @@ class RebHandler() :
 	def __getitem__(self, name) :
 		if isinstance(self.data, Path) :
 			if self.cache_disabled or name not in self.cache :
-				v_arr = self.parse_line_from_file(name)
+				v_arr = self.get_from_file(name)
 				if not self.cache_disabled :
 					self.cache[name] = v_arr
 			else :
@@ -207,9 +196,11 @@ class RebHandler() :
 		self.to_listing(pth, n)
 		self.to_listing(pth.with_suffix('.1.tsv'), n-1)
 
-	def to_rez(self, pth) :
+	def to_rez(self) :
 		import h5py
 		import brotli
+
+		archive_pth = self.data_pth.with_suffix('.rez')
 
 		h5py_opt = {
 			'compression' : "gzip",
@@ -218,11 +209,13 @@ class RebHandler() :
 			'fletcher32' : True,
 		}
 
-		v_lst = self.var_lst
-		r_lst = [name for name, mtype, addr in self.meta._dump_addr(False, True)]
+		v_lst = list(self.meta)
+		r_lst = compact_name(v_lst)
 
-		if pth.is_file() :
-			pth.unlink()
+		# assert len(v_lst) == len(r_lst)
+
+		if archive_pth.is_file() :
+			archive_pth.unlink()
 
 		e_map = dict()
 		for c in ['R8', 'R4', 'Z4', 'Z2', 'Z1', 'N4', 'N2', 'N1'] :
@@ -232,47 +225,50 @@ class RebHandler() :
 				e_map[c] = dict() # ctype -> name -> position
 				s = collections.defaultdict(set) # hash -> position set
 				m = list()
-				for i in i_lst :
+				for n, i in enumerate(i_lst) :
 					v = v_lst[i] # full name of the variable
 					d = self[v] # full data line extracted
-					h = hash(d.tobytes()) # hash of the line
-					j = len(m)
-					if h not in s :
-						s[h].add(j)
-						m.append(d)
+					if d[0] == d[-1] and (d[0] == d).all() :
+						e_map[c][i] = ('=', d[0])
+						print(f"\x1b[A\x1b[K{n+1:7d} / {len(i_lst)} # {v_lst[i]} = {d[0]}")
 					else :
-						for j in s[h] :
-							if d.tobytes() == m[j].tobytes() :
-								break
-						else :
+						h = hash(d.tobytes()) # hash of the line
+						j = len(m)
+						if h not in s :
 							s[h].add(j)
 							m.append(d)
-					e_map[c][i] = j
-					print(f"  {i} {j}\x1b[k", end='\r')
+						else :
+							for j in s[h] :
+								if d.tobytes() == m[j].tobytes() :
+									break
+							else :
+								s[h].add(j)
+								m.append(d)
+						e_map[c][i] = ('@', j)
+						print(f"\x1b[A\x1b[K{n+1:7d} / {len(i_lst)} # {v_lst[i]} @ {j}")
 
 				Path(f"s_map.{c}.json").save(s)
 
-				with h5py.File(pth, 'a', libver="latest") as obj :
+				with h5py.File(archive_pth, 'a', libver="latest") as obj :
 					w = np.vstack(m)
-					print(w.shape, w.dtype)
+					print(c, w.shape, w.dtype)
 					obj.create_dataset('/' + c, data=w, ** h5py_opt)
-				print("size:", pth.stat().st_size)
+				# print("size:", archive_pth.stat().st_size)
 
-		f_lst = list()
+		f_lst = [str(self.array_len),] # on doit garder array_len dans les méta données parce qu'il se peut que TOUS les vecteurs soient constants
 		for i, (v, r) in enumerate(zip(v_lst, r_lst)) :
-			ctype = self.meta[v][0]
-			f_lst.append(f'{r}\t{ctype}\t{e_map[ctype][i]}')
+			mtype = self.meta[v][0]
+			z, j = e_map[mtype][i]
+			f_lst.append(f'{r}\t{mtype}{z}{j}')
 
-		with h5py.File(pth, 'a', libver="latest") as obj :
-			obj.attrs['__map__'] = np.void(brotli.compress('\n'.join(f_lst).encode('ascii'))) # https://docs.h5py.org/en/stable/strings.html
+		Path(archive_pth.with_suffix('.tsv')).write_text('\n'.join(f_lst))
 
-# if __name__ == '__main__' :
+		with h5py.File(archive_pth, 'a', libver="latest") as obj :
+			obj.attrs['__map__'] = np.void(brotli.compress('\n'.join(f_lst).encode('ascii'), mode=brotli.MODE_TEXT)) # https://docs.h5py.org/en/stable/strings.html
 
-# 	import sys
+		data_size = self.data_pth.stat().st_size
+		meta_size = self.meta_pth.stat().st_size
+		archive_size = archive_pth.stat().st_size
+		print(f"original: {data_size + meta_size:15d} bytes ({data_size} data + {meta_size} meta)\n archive: {archive_size:15d} bytes\n => archive takes {100.0 * archive_size / (data_size + meta_size):0.5}% of original")
 
-# 	data = Path(sys.argv[1])
-# 	meta = data.parent / "mapping.tsv"
-
-# 	u = StructArray(meta, data)
-# 	u.to_tsv(Path("debug.tsv"))
-# 	u.debug_nan(4)
+		return archive_pth

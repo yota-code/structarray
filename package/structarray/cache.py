@@ -7,7 +7,7 @@ import h5py
 class CacheHandler() :
 
 	""" simple cache function, with a single optimisation :
-	identical lines will not be duplicated
+	- lines which have the same hash will not be duplicated
 	"""
 
 	def __init__(self, cache_pth) :

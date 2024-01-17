@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
+import ast
 import collections
-import enum
+import math
 import re
 
 from cc_pathlib import Path
@@ -21,7 +22,58 @@ sizeof_map = { # size of types
 	'P8' : 8,
 }
 
-class MetaHandler() :
+ntype_map = { # types numpy
+	'Z1' : "int8",
+	'Z2' : "int16",
+	'Z4' : "int32",
+	'Z8' : "int64",
+	'N1' : "uint8",
+	'N2' : "uint16",
+	'N4' : "uint32",
+	'N8' : "uint64",
+	'R4' : "float32",
+	'R8' : "float64",
+}
+
+
+def compact_name(v_lst) :
+	# validated
+	# remove duplicate parts from the variable names
+	r_lst = list()
+	p_lst = list()
+	for v in v_lst :
+		n_lst = v.split('.')
+		q = 0
+		for p, n in zip(p_lst, n_lst) :
+			if p != n :
+				break
+			q += 1
+		r_lst.append((f"{q}/" if q else '') + '.'.join(n_lst[q:]))
+		p_lst = n_lst
+	return r_lst
+
+
+def expand_name(r_lst) :
+	# validated
+	# undo the compaction and give back the original names
+	v_lst = list()
+	p_lst = list()
+	for r in r_lst :
+		if '/' in r :
+			c, sep, z = r.partition('/')
+			n_lst = p_lst[:int(c)] + z.split('.')
+			v_lst.append('.'.join(n_lst))
+		else :
+			v_lst.append(r)
+			n_lst = r.split('.')
+		p_lst = n_lst
+	return v_lst
+
+class MetaGeneric() :
+	def __getitem__(self, key) :
+		return self._m[key]
+
+class MetaReb(MetaGeneric) :
 	
 	def __init__(self) :
 		self._m = collections.OrderedDict()
@@ -33,9 +85,6 @@ class MetaHandler() :
 		for name, (mtype, addr) in self._m.items() :
 			if not mtype.startswith('P') :
 				yield name
-
-	def __getitem__(self, key) :
-		return self._m[key]
 		
 	def load(self, pth) :
 		pth = Path(pth).resolve()
@@ -76,7 +125,7 @@ class MetaHandler() :
 				except :
 					print(prev, z)
 					print(prev.split('.')[:int(c)])
-					raise
+					raise ValueError
 
 			addr = addr if is_relative else value
 			self._m[name] = (mtype, addr)
@@ -162,3 +211,61 @@ class MetaHandler() :
 			pass
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
 		return [var for var in self if rec.search(var) is not None]
+
+
+def expand_name_gen() :
+	# validated
+	# undo the compaction and give back the original names
+	r = yield None
+	while True :
+		if '/' in r :
+			c, sep, z = r.partition('/')
+			n_lst = p_lst[:int(c)] + z.split('.')
+			r = yield '.'.join(n_lst)
+		else :
+			n_lst = r.split('.')
+			r = yield r
+		p_lst = n_lst
+
+
+z_map = {
+	'inf' : math.inf,
+	'nan' : math.nan,
+	'-inf' : -math.inf
+}
+
+class MetaRez(MetaGeneric) :
+	def __init__(self) :
+		self._m = collections.OrderedDict()
+
+	def load(self, meta_zip) :
+		import brotli
+
+		self._m.clear()
+
+		meta_bin = brotli.decompress(meta_zip)
+		meta_txt = meta_bin.decode('ascii')
+		meta_lst = meta_txt.splitlines()
+
+		self.array_len = int(meta_lst.pop(0))
+
+		exp = expand_name_gen()
+		next(exp)
+
+		for line in meta_lst :
+			r, value = line.split('\t')
+			v = exp.send(r)
+			m = value[:2]
+			z = value[2]
+			try :
+				b = ast.literal_eval(value[3:])
+			except ValueError :
+				try :
+					b = float(value[3:])
+				except :
+					raise
+			self._m[v] = (m, z, b)
+
+		print('\n'.join(list(self._m)[:20]))
+
+		return self
