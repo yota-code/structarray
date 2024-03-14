@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import collections
-import hashlib
-import sys
-
-import brotli
-import h5py
-
-import numpy as np
 
 from cc_pathlib import Path
 

@@ -199,8 +199,21 @@ class RebHandler() :
 		self.to_listing(pth.with_suffix('.1.tsv'), n-1)
 
 	def to_rez(self) :
-		import h5py
+
+		""" en deux passes ? la première repère les vecteurs constants ou identiques 
+		la deuxième fourre tout dans un hdf5 ? mais ça fait lire le fichier 2 fois
+		
+		ou alors on stocke dans des fichiers temporaires pour chaque type
+
+		"""
+
 		import brotli
+
+		import h5py
+		try :
+			import hdf5plugin
+		except ImportError :
+			pass
 
 		archive_pth = self.data_pth.with_suffix('.rez')
 

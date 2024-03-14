@@ -6,6 +6,12 @@ import json
 import brotli
 import h5py
 
+try :
+	import hdf5plugin
+except ImportError :
+	pass
+
+
 import numpy as np
 
 from cc_pathlib import Path
