@@ -43,9 +43,9 @@ class PlotSA() :
 		self.run()
 
 	def load(self) :
-		self.sa = structarray.StructArray(self.meta_pth, self.data_pth)
+		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
 
-		time_lst = sorted((len(var), var) for var in self.sa.search('time'))
+		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time'))
 		if time_lst :
 			self.t_arr = self.sa[time_lst[0][1]]
 		else :
@@ -114,12 +114,12 @@ class PlotSA() :
 					p_lst.append(g_lst)
 				self.plot(p_lst)
 			elif ans.startswith('?') :
-				r_lst = self.sa.search(ans[1:], mode='regexp')
+				r_lst = self.sa.meta.search(ans[1:], mode='regexp')
 				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
 				if len(r_lst) >= 32 :
 					print('...')
 			else : # default to blob research mode
-				r_lst = self.sa.search(ans)
+				r_lst = self.sa.meta.search(ans)
 				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
 				if len(r_lst) >= 32 :
 					print('...')
@@ -175,12 +175,12 @@ class PlotSA() :
 					m['alpha'] = opacity
 				if name.startswith('*') :
 					try :
-						name = self.sa.search(name[1:], mode='blob')[0]
+						name = self.sa.meta.search(name[1:], mode='blob')[0]
 					except :
 						print(f"can not find var {name}")
 				elif name.startswith('?') :
-					name = self.sa.search(name[1:], mode='regexp')[0]
-				if name in self.sa :
+					name = self.sa.meta.search(name[1:], mode='regexp')[0]
+				if name in self.sa.meta :
 					y_arr = self.sa[name]
 					if ispi(name) :
 						if self.sa.meta[name][0] == 'Z4' :
@@ -194,7 +194,7 @@ class PlotSA() :
 					y_lst.append(y_arr)
 				else :
 					print(f"{name} not found")
-					print('\n'.join(self.sa.search(name)))
+					print('\n'.join(self.sa.meta.search(name)))
 				print(m)
 
 			try :

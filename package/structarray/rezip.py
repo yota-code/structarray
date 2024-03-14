@@ -43,5 +43,7 @@ class RezHandler() :
 		else :
 			raise ValueError
 
-	
 
+class RezArchiver() :
+	def __init__(self) :
+		pass

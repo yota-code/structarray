@@ -96,6 +96,7 @@ class RebHandler() :
 		return np.array(v_lst)
 	
 	def get_from_buffer(self, name) :
+		# print(f"get_from_buffer({name})")
 		ctype, offset = self.meta[name]
 		width = self.data_len // self.meta.sizeof
 		height = self.data_len // ( width * sizeof_map[ctype] )
@@ -114,6 +115,7 @@ class RebHandler() :
 			return np.array(v_lst)
 
 	def __getitem__(self, name) :
+		# print(f"__getitem__({name})")
 		if isinstance(self.data, Path) :
 			if self.cache_disabled or name not in self.cache :
 				v_arr = self.get_from_file(name)
@@ -202,12 +204,21 @@ class RebHandler() :
 
 		archive_pth = self.data_pth.with_suffix('.rez')
 
-		h5py_opt = {
-			'compression' : "gzip",
-			'compression_opts' : 9,
-			'shuffle' : True,
-			# 'fletcher32' : True,
-		}
+		try :
+			import hdf5plugin
+
+			h5py_opt = dict(
+				hdf5plugin.Blosc2(cname='zstd', clevel=9, filters=hdf5plugin.Blosc2.SHUFFLE | hdf5plugin.Blosc2.DELTA)
+			)
+		except :
+			h5py_opt = {
+				'compression' : "gzip",
+				'compression_opts' : 9,
+				'shuffle' : True,
+				# 'fletcher32' : True,
+			}
+
+		print(h5py_opt)
 
 		v_lst = list(self.meta)
 		r_lst = compact_name(v_lst)
@@ -252,6 +263,7 @@ class RebHandler() :
 				with h5py.File(archive_pth, 'a', libver="latest") as obj :
 					w = np.vstack(m)
 					print(f"\x1b[A\x1b[K{c} {len(i_lst):7d} / {len(i_lst)} => {w.shape[0]} rows")
+					print("RAAAH", w.shape)
 					obj.create_dataset('/' + c, data=w, ** h5py_opt)
 
 		f_lst = [str(self.array_len),] # on doit garder array_len dans les méta données parce qu'il se peut que TOUS les vecteurs soient constants
