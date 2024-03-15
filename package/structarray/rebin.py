@@ -136,7 +136,7 @@ class RebHandler() :
 				self.extract_lst.append(var)
 
 	def filter_all(self) :
-		self.extract_lst = self.var_lst[:]
+		self.extract_lst = list(self.meta)
 
 	def filter_reset(self) :
 		self.extract_lst = list()
@@ -148,8 +148,8 @@ class RebHandler() :
 		return self.extract_map
 
 	def get_stack(self) :
-		data_lst = [self.extract_map[k] for k in self.var_lst]
-		stack = [self.var_lst,] + [line for line in zip(* data_lst)]
+		data_lst = [self.extract_map[k] for k in self.extract_lst]
+		stack = [self.extract_lst,] + [line for line in zip(* data_lst)]
 		return stack
 
 	def to_tsv(self, pth, start=None, stop=None) :

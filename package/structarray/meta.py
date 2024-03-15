@@ -70,6 +70,10 @@ def expand_name(r_lst) :
 	return v_lst
 
 class MetaGeneric() :
+	""" decrit les adresses d'un blob binaire
+	TODO : tout remettre la dedans, seuls les loader changent suivant le format
+	et même MetaParse devrait être ici
+	"""
 	def __getitem__(self, key) :
 		return self._m[key]
 

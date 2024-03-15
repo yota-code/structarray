@@ -150,8 +150,6 @@ class MetaParser() :
 					raise ValueError(f"unknown ctype: {ptype}")
 				self.tree[ctype] = ptype
 
-		Path("tree.json").save(self.tree, filter_opt={'verbose':True})
-
 		return new_set
 
 	def get_sizeof(self, ctype) :
@@ -183,6 +181,7 @@ class MetaParser() :
 		return var_size
 
 	def save_absolute(self, pth) :
+		pth.with_suffix('.tree.json').save(self.tree, verbose=True)
 		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + self.addr)
 
 	def save_relative(self, pth) :
