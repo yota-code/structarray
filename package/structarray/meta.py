@@ -72,18 +72,23 @@ def expand_name(r_lst) :
 class MetaGeneric() :
 	""" decrit les adresses d'un blob binaire
 	TODO : tout remettre la dedans, seuls les loader changent suivant le format
-	et même MetaParse devrait être ici
+	et même MetaParse devrait être ici...
+	ou pas, on devrait avoir un parseur par type de données d'entrées
 	"""
 	def __getitem__(self, key) :
 		return self._m[key]
 
 class MetaReb(MetaGeneric) :
+	""" un gestionnaire des méta données pour les enregistrements .reb """
 	
-	def __init__(self) :
+	def __init__(self, name=None, sizeof=None) :
 		self._m = collections.OrderedDict()
 
-		self.name = None
-		self.sizeof = None
+		self.name = name
+		self.sizeof = sizeof
+
+	def push(self, name, mtype, addr) :
+		self._m[name] = (mtype, addr)
 
 	def __iter__(self) :
 		for name, (mtype, addr) in self._m.items() :
@@ -99,7 +104,6 @@ class MetaReb(MetaGeneric) :
 			raise FileNotFoundError(f"{pth} does not exists")
 		
 		self._m = collections.OrderedDict()
-		self._v = list()
 
 		obj = pth.load()
 		
@@ -111,7 +115,9 @@ class MetaReb(MetaGeneric) :
 		return self
 
 	def _load_addr(self, obj) :
-		is_relative = len(obj[0]) == 2 # or ( len(obj[0]) == 3 and int(obj[0][2]) == 0 )
+		""" si la première ligne des addresses ne contient que 2 champs,
+		on considère que c'est un fichier décrit en relatif """
+		is_relative = len(obj[0]) == 2
 
 		addr = 0
 		for line in obj :
@@ -123,6 +129,7 @@ class MetaReb(MetaGeneric) :
 				raise ValueError(f"malformed line, {line}")
 			
 			if '/' in name :
+				# si y a un / c'est que le nom est compact
 				c, sep, z = name.partition('/')
 				try :
 					name = '.'.join(prev.split('.')[:int(c)]) + '.' + z

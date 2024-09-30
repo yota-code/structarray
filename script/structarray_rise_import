@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+
+import hashlib
+import sys
+
+import structarray
+
+from structarray.meta import MetaReb
+
+from cc_pathlib import Path
+
+rtype_mtype_map = {
+	'unsigned char' : "N1",
+	'char' : "Z1",
+	'short unsigned int' : "N2",
+	'long unsigned int' : "N4",
+	'int' : "Z4",
+	'long int' : "Z4",
+	'float' : "R4",
+	'void' : "P4",
+}
+
+def rise_to_meta(rise_pth, var_name) :
+	for line in rise_pth.with_suffix('.map').read_text().splitlines() :
+		addr, size, gtype, name = line.split()
+		if name == var_name :
+			var_size = int(size)
+
+	u = MetaReb(var_name, var_size)
+	prefix = f"{var_name}."
+
+	for line in rise_pth.with_suffix('.txt').read_text().splitlines() :
+		if not line.startswith(prefix) :
+			continue
+		name, addr, * rtype = line.split()
+		u.push(name.removeprefix(prefix), rtype_mtype_map[' '.join(rtype)], int(addr))
+	
+	u.dump(Path(f"{rise_pth.name}~{var_name}.rel.tsv"), True, True)
+	u.dump(Path(f"{rise_pth.name}~{var_name}.abs.tsv"))
+	
+if __name__ == '__main__' :
+	
+	rise_to_meta(Path(sys.argv[1]).resolve(), sys.argv[2])

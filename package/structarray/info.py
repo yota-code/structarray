@@ -25,12 +25,12 @@ def split_cpm(item) :
 
 class MetaParser() :
 
-	debug = True
+	_debug = True
 	version = 2
 
-	def __init__(self, elf_pth, ctype_pth=None) :
+	def __init__(self, elf_pth) :
 
-		if self.debug :
+		if self._debug :
 			self.log_pth = Path("debug.log")
 			self.log_pth.write_text('')
 			
@@ -41,20 +41,26 @@ class MetaParser() :
 
 		self._to_be_parsed_set = set()
 		
-		self.ctype_pth = (self.elf_pth.parent / "structarray_ctype.json") if ctype_pth is None else ctype_pth
-		self.ctype_map = self.ctype_pth.load()
+		# self.ctype_pth = (self.elf_pth.parent / "structarray_ctype.json") if ctype_pth is None else ctype_pth
+		self.ctype_map = dict() # self.ctype_pth.load()
+		self.ctype_map['void*'] = 'P' + str(self.get_sizeof('void*'))
 
-	def _gdb(self, * cmd_lst, chunk_size=1024) :
+	def _gdb(self, * cmd_lst, chunk_size=2**12, unlimited_size=False) :
 
 		cmd_lst = list(cmd_lst)
 		stack = list()
 
 		chunk = cmd_lst[:chunk_size]
 		while chunk :
-			# print(f'\t{len(cmd_lst)}')
+			print(f'\t{len(cmd_lst)}')
 			line = ['gdb', str(self.elf_pth), '-batch',]
+			if unlimited_size :
+				line += ['-ex', "set max-value-size unlimited"]
 			for cmd in chunk :
 				line += ['-ex', cmd]
+
+			if self._debug :
+				print(' '.join(line[3:])[:92])
 
 			ret = subprocess.run(line, stdout=subprocess.PIPE)
 			stack.append(ret.stdout.decode(sys.stdout.encoding))
@@ -109,10 +115,10 @@ class MetaParser() :
 
 		new_set = set()
 
-		line = self._gdb(* [f'ptype {ctype}' for ctype in ctype_lst])
+		line = self._gdb(* [f'ptype {ctype}' for ctype in ctype_lst], unlimited_size=True)
 		ptype_lst = [item.strip() for item in line.split('type =') if item.strip()]
 
-		if self.debug :
+		if self._debug :
 			with self.log_pth.open('at') as fid :
 				fid.write(">"*8 + '\n')
 				fid.write('\n'.join(ctype_lst) + '\n')
@@ -124,7 +130,7 @@ class MetaParser() :
 
 		for ctype, ptype in zip(ctype_lst, ptype_lst) :
 
-			if self.debug :
+			if self._debug :
 				with self.log_pth.open('at') as fid :
 					fid.write(">>> " + ctype + ' := ' + repr(ptype) +'\n')
 
@@ -141,13 +147,25 @@ class MetaParser() :
 				new_set |= set(c for c, p, m in struct_lst)
 			elif (array_res := array_rec.match(ptype)) is not None :
 				array_lst = list()
-				for i in range(int(array_res.group('array'))) :
+				array_size = int(array_res.group('array'))
+				for i in range(array_size) :
 					array_lst.append([array_res.group('ctype').strip(), False, f'[{i}]'])
 				self.tree[ctype] = array_lst
 				new_set.add(array_res.group('ctype').strip())
 			else :
 				if ptype not in self.ctype_map :
-					raise ValueError(f"unknown ctype: {ptype}")
+					psize = self.get_sizeof(ptype)
+					if ptype in ['float', 'double'] :
+						pcatg = 'R'
+					elif 'unsigned' in ptype :
+						pcatg = 'N'
+					elif '*' in ptype :
+						pcatg = 'P'
+					else :
+						pcatg = 'Z'
+					print(f"\x1b[33m{ptype} => {pcatg}{psize}\x1b[0m")
+					self.ctype_map[ptype] = pcatg + str(psize)
+					# raise ValueError(f"unknown ctype: {ptype}")
 				self.tree[ctype] = ptype
 
 		return new_set
@@ -203,6 +221,14 @@ class MetaParser() :
 
 		pth.with_suffix('.tsv').save([[self.var_type, self.var_size],] + s_lst)
 
+	def save(self, pth) :
+		from structarray.meta import MetaReb
+		u = MetaReb(self.var_name, self.var_size)
+		for name, mtype, addr in self.addr :
+			u.push(name, mtype, addr)
+		u.dump(pth.with_suffix('.map.tsv'), True, True)
+		u.dump(pth.with_suffix('.abs.tsv'))
+
 	def print(self) :
 		for line in ([[self.var_type, self.var_size],] + self.addr) :
 			print('\t'.join([str(i) for i in line]))
@@ -218,13 +244,22 @@ class MetaParser() :
 
 	def parse_addr(self, vname, ctype, origin=0) :
 
-		line_lst = list( self.walk(ctype) )
+		line_lst = list(self.walk(ctype))
 		name_lst = [ unp('.'.join(line[:-1])) for line in line_lst ]
 		path_lst = [ unp(f'{vname}.' + '.'.join(line[:-1])).replace('.[', '[') for line in line_lst ]
 		type_lst = [ line[-1] for line in line_lst ]
-		addr_lst = self.get_addr(* path_lst, relative_to=origin)
+
+		cache_pth = Path("tmp.addr_lst.json")
+
+		if cache_pth.is_file() :
+			addr_lst = cache_pth.load()
+		else :
+			addr_lst = self.get_addr(* path_lst, relative_to=origin)
+			cache_pth.save(addr_lst)
+
+		Path("tmp.ctype_map.json", verbose=True).save(self.ctype_map)
 
 		self.addr = [
-			[ name.replace('.[', '['), self.ctype_map[ptype], addr ]
+			[ re.sub(r'\.\[(?P<array>\d+)\]', r'@\g<array>', name), self.ctype_map[ptype], addr ]
 			for name, ptype, addr in zip(name_lst, type_lst, addr_lst)
 		]
