@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-import hashlib
-import sys
-
-import structarray
-
 from structarray.meta import MetaReb
 
 from cc_pathlib import Path
@@ -20,24 +15,49 @@ rtype_mtype_map = {
 	'void' : "P4",
 }
 
-def rise_to_meta(rise_pth, var_name) :
-	for line in rise_pth.with_suffix('.map').read_text().splitlines() :
-		addr, size, gtype, name = line.split()
-		if name == var_name :
-			var_size = int(size)
+def rise_to_meta(rise_pth, var_name="UpmS", prefix="G_IO_Afcs._C_1_AfcsS1._C_3_RtmSchNomS1._C_2_UpmS.", out_name="mapping.tsv") :
 
-	u = MetaReb(var_name, var_size)
-	prefix = f"{var_name}."
-
+	if prefix is None :
+		""" On a une structure de haut niveau """
+		for line in rise_pth.with_suffix('.map').read_text().splitlines() :
+			addr, size, gtype, name = line.split()
+			if name == var_name :
+				var_size = int(size)
+		prefix = f"{var_name}."
+	
+	m_lst = list()
+	active = False
+	zero = None
 	for line in rise_pth.with_suffix('.txt').read_text().splitlines() :
 		if not line.startswith(prefix) :
-			continue
+			if active is True :
+				name, addr, * rtype = line.split()
+				size = int(addr) - zero
+				break
+			else :
+				continue
+		else :
+			if active is False :
+				name, addr, * rtype = line.split()
+				zero = int(addr)
+				active = True
+
 		name, addr, * rtype = line.split()
-		u.push(name.removeprefix(prefix), rtype_mtype_map[' '.join(rtype)], int(addr))
+		m_lst.append((
+			name.removeprefix(prefix),
+			rtype_mtype_map[' '.join(rtype)],
+			int(addr) - zero
+		))
 	
-	u.dump(Path(f"{rise_pth.name}~{var_name}.rel.tsv"), True, True)
-	u.dump(Path(f"{rise_pth.name}~{var_name}.abs.tsv"))
+	
+	u = MetaReb(var_name, size)
+	for m in m_lst :
+		u.push(* m)
+	u.dump(Path(out_name), True, True)
+	u.dump(Path("ABS" + out_name), False, False)
 	
 if __name__ == '__main__' :
-	
-	rise_to_meta(Path(sys.argv[1]).resolve(), sys.argv[2])
+	import sys
+
+	# rise_to_meta(Path(sys.argv[1]).resolve())
+	rise_to_meta(Path(sys.argv[1]).resolve(), "G_IO_Afcs", None)

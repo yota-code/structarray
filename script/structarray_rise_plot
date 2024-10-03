@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import math
+import os
+import readline
+import sys
+
+from cc_pathlib import Path
+
+import structarray
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def clean_label(k_map) :
+	s_map = {k : '.'.join(v).lstrip('_') for k, v in k_map.items()}
+	try :
+		if len(k_map) > 1 :
+			while True :
+				k_set = {v[0] for k, v in k_map.items()}
+				if len(k_set) == len(k_map) :
+					k_map = {k : v[1:] for k, v in k_map.items()}
+				else :
+					break
+
+		return {k : '.'.join(v[-3:]).lstrip('_') for k, v in k_map.items()}
+	except :
+		return s_map
+
+def ispi(line) :
+	name = line.split('.')[-1]
+	return ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name or 'drift' in name) and 'psidot' not in name and 'psiddot' not in name
+
+class PlotSA() :
+
+	period = 0.1
+
+	def __init__(self, data_pth, meta_pth, bookmark_dir) :
+		self.data_pth = data_pth
+		self.meta_pth = meta_pth
+		self.bookmark_dir = bookmark_dir
+
+		self.load()
+		self.run()
+
+	def load(self) :
+		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
+		self.t_arr = np.arange(len(self.sa)) * self.period
+		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
+
+	def run(self) :
+		while True :
+			ans = input(">>> ").strip()
+			if not ans :
+				continue
+			if ans.startswith('!') :
+				if ans.startswith('!q') :
+					sys.exit(0)
+				if ans.startswith('!r') :
+					self.load()
+			elif ans.startswith("@") :
+				bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
+				if bookmark_pth.is_file() :
+					p_lst = bookmark_pth.load()
+					self.plot(p_lst, ans[1:])
+				else :
+					print(f"file not found: {bookmark_pth}")
+					print('\n'.join(sorted(p.fname for p in bookmark_dir)))
+
+			elif ans.startswith('&') :
+				if ans == '&' :
+					ans = '&0'
+				try :
+					if '.' in ans[1:] :
+						print("time")
+						n = np.where(self.t_arr == float(ans[1:]))[0]
+					else :
+						print("index")
+						n = int(ans[1:])
+				except ValueError :
+					return
+				print(n)
+				# n = min(self.sa.length - 1, n)
+				
+				for name in r_lst :
+					y_val = self.sa[name][n]
+					if ispi(name) :
+						if self.sa.meta[name][0] == 'Z4' :
+							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
+						y_val = (y_val + 360.0) % 360.0
+						y_val = np.where(y_val > 180.0, y_val - 360.0, y_val)
+					
+					print(f"{name} = {y_val}")
+
+			elif ans.startswith('#') :
+				if ans == '#' :
+					ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
+				print(ans)
+				p_lst = list()
+				for p in ans[1:].split(';') :
+					g_lst = list()
+					for g in p.split() :
+						try :
+							g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
+						except :
+							print(g, n_lst)
+							raise
+					p_lst.append(g_lst)
+				self.plot(p_lst)
+			elif ans.startswith('?') :
+				r_lst = self.sa.meta.search(ans[1:], mode='regexp')
+				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
+				if len(r_lst) >= 32 :
+					print('...')
+			else : # default to blob research mode
+				r_lst = self.sa.meta.search(ans)
+				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
+				if len(r_lst) >= 32 :
+					print('...')
+
+	def plot(self, p_lst, title=None) :
+
+		print(json.dumps(p_lst, indent='\t'))
+
+		if title is not None :
+			fig = plt.figure(title)
+			fig.suptitle(title)
+		else :
+			fig = plt.figure()
+
+		if isinstance(p_lst[0], dict) :
+			meta = p_lst.pop(0)
+		else :
+			meta = dict()
+
+		if 'col' in meta :
+			n_col = meta['col']
+			n_row = int(math.ceil(len(p_lst) / n_col))
+		else :
+			n_col, n_row = 1, len(p_lst)
+
+		k_map = dict()
+		for g_lst in p_lst :
+			for name, color, opacity, width, format in g_lst :
+				k_map[name] = name.split('.')
+		k_map = clean_label(k_map)
+
+		for i, g_lst in enumerate(p_lst) :
+			if i == 0 :
+				z = plt.subplot(n_row, n_col, i+1)
+				q = z
+				if len(p_lst) > 1 :
+					plt.setp(z.get_xticklabels(), visible=False)
+			else :
+				q = plt.subplot(n_row, n_col, i+1, sharex=z)
+				if i+1 < len(p_lst) :
+					plt.setp(q.get_xticklabels(), visible=False)
+
+			y_lst = list()
+
+			for name, color, opacity, width, format in g_lst :
+				m = dict()
+				m['label'] = k_map[name]
+				if color is not None :
+					m['color'] = color
+				if width is not None :
+					m['linewidth'] = width
+				if opacity is not None :
+					m['alpha'] = opacity
+				if name.startswith('*') :
+					try :
+						name = self.sa.meta.search(name[1:], mode='blob')[0]
+					except :
+						print(f"can not find var {name}")
+				elif name.startswith('?') :
+					name = self.sa.meta.search(name[1:], mode='regexp')[0]
+				if name in self.sa.meta :
+					y_arr = self.sa[name]
+					if ispi(name) :
+						if self.sa.meta[name][0] == 'Z4' :
+							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
+						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
+						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
+					if format is None :
+						plt.plot(self.t_arr, y_arr, ** m)
+					else :
+						plt.plot(self.t_arr, y_arr, format, ** m)
+					y_lst.append(y_arr)
+				else :
+					print(f"{name} not found")
+					print('\n'.join(self.sa.meta.search(name)))
+				print(m)
+
+			try :
+				y_max = max(np.max(y) for y in y_lst)
+				y_min = min(np.min(y) for y in y_lst)
+
+				if 0 <= y_min and y_max <= 1 and ( 0.5 <= abs(y_max - y_min) or abs(y_max - y_min) == 0.0 ) :
+					q.set_ylim([-0.5, +1.5])
+				# elif y_max <= 12.0 :
+				# 	y_min = min(0.0, y_min)
+				# 	q.set_ylim([y_min-0.5, y_max+0.5])
+			except ValueError :
+				pass
+
+		
+			plt.grid()
+			plt.legend()
+
+		# fig.tight_layout()
+		plt.show(block=False)
+
+
+if __name__ == '__main__' :
+
+	bookmark_dir = Path(os.environ["STRUCTARRAY_bookmark_DIR"]).resolve()
+
+	print(bookmark_dir)
+
+	n_lst = '0123456789abcdefgjklmnpqrstuvxyz'
+
+	parser = argparse.ArgumentParser(description='Convert a meta (*.sam.tsv) and data (*.sad.bin) file into a tsv file')
+
+	parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
+	parser.add_argument('meta', metavar='META', type=Path, nargs='?', default=None, help='the meta (*.tsv) file')
+
+	p = parser.parse_args()
+
+	data_pth = (p.data).resolve()
+
+	if p.meta is None :
+		meta_pth = (p.data.parent / "mapping.tsv")
+	else :
+		meta_pth = (p.meta).resolve()
+
+	PlotSA(data_pth, meta_pth, bookmark_dir).run()
+
+

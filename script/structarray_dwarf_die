@@ -1,0 +1,324 @@
+"""
+typedef struct {
+	/* snip */
+} _T465_Afcs;
+
+typedef _T465_Afcs S_CdtIasToEmi_T;
+
+typedef struct {
+	S_CdtIasToEmi_T S_CdtIasToEmi;
+	real R_ZBiCft;
+} _T466_Afcs;
+
+typedef _T466_Afcs S_CdtAdToEmi_T;
+
+ <1><1977c>: Abbrev Number: 15 (DW_TAG_structure_type)
+    <1977d>   DW_AT_byte_size   : 68
+    <1977e>   DW_AT_decl_file   : 6
+    <1977f>   DW_AT_decl_line   : 8750
+    <19781>   DW_AT_decl_column : 9
+    <19782>   DW_AT_sibling     : <0x197a3>
+
+ <1><197a3>: Abbrev Number: 12 (DW_TAG_typedef)
+    <197a4>   DW_AT_name        : (indirect string, offset: 0x36dc0): _T466_Afcs
+    <197a8>   DW_AT_decl_file   : 6
+    <197a9>   DW_AT_decl_line   : 8753
+    <197ab>   DW_AT_decl_column : 3
+    <197ac>   DW_AT_type        : <0x1977c>
+
+ <1><197b0>: Abbrev Number: 12 (DW_TAG_typedef)
+    <197b1>   DW_AT_name        : (indirect string, offset: 0x70188): S_CdtAdToEmi_T
+    <197b5>   DW_AT_decl_file   : 6
+    <197b6>   DW_AT_decl_line   : 8755
+    <197b8>   DW_AT_decl_column : 20
+    <197b9>   DW_AT_type        : <0x197a3>
+
+"""
+
+# le moyen le plus rapide de récupérer le .debug_info:
+# readelf -wi *.o
+
+import collections
+import pprint
+import time
+
+from cc_pathlib import Path
+import sys
+
+# If pyelftools is not installed, the example can also run from the root or
+# examples/ dir of the source distribution.
+sys.path[0:0] = ['.', '..']
+
+from elftools.elf.elffile import ELFFile
+
+die_encoding_str = 'xxxxRZZNN'
+
+r_map = {
+	'base' : dict(),
+	'alias' : dict(),
+	'struct' : dict(),
+}
+
+from inspect import getouterframes, currentframe
+
+Base = collections.namedtuple('Base', ['name', 'mtype'])
+Pointer = collections.namedtuple('Pointer', ['type', 'size'])
+Typedef = collections.namedtuple('Typedef', ['type', 'name'])
+Array = collections.namedtuple('Array', ['type', 'shape'])
+Structure = collections.namedtuple('Structure', ['size', 'detail'])
+Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
+Variable = collections.namedtuple('Variable', ['type', 'name'])
+
+class ParserElfTools() :
+	def __init__(self, pth) :
+		self.t_lst = [time.time(),]
+
+		self.top = self.load(pth)
+		self.chrono("get_top_DIE()")
+
+		self.r_map = collections.defaultdict(dict)
+		self.s_map = dict()
+		self.typedef_map = dict()
+		self.variable_map = dict()
+		self.base_map = dict()
+
+		self.first_pass()
+		self.chrono("first_pass()")
+
+		Path("r_map.py").write_text(pprint.pformat(self.r_map, width=128))
+		Path("base_map.json").save(self.base_map, verbose=True)
+		Path("typedef_map.json").save(self.typedef_map, verbose=True)
+		Path("variable_map.json").save(self.variable_map, verbose=True)
+
+	def iter_structure(self, name) :
+
+		# name can either be the name of a global variable or a the name of a typedef
+
+		if name in self.variable_map :
+			cident, ctype = self.variable_map[name]
+		elif name in self.typedef_map :
+			cident, ctype = self.typedef_map[name], name
+		else :
+			raise ValueError
+
+		yield from self._walk([(None, cident, ctype, 0),])
+
+	def _walk(self, m_lst, depth=0) :
+
+		pname, pident, ptype, poffset = m_lst[-1]
+		q = self.r_map[pident]
+
+		# if ptype is None and isinstance(self.r_map[pident], Typedef) :
+		# 	q = self.r_map[pident]
+		# 	m_lst[-1] = (pname, q.type, q.name, poffset)
+		# 	pname, pident, ptype, poffset = m_lst[-1]
+
+
+		match q :
+			case Base() :
+				m_lst[-1] = (pname, None, q.mtype, poffset)
+				yield m_lst
+			case Typedef() :
+				m_lst[-1] = (pname, q.type, q.name, poffset)
+				yield from self._walk(m_lst)
+			case Structure() :
+				for m in self.r_map[m_lst[-1][1]].detail :
+					yield from self._walk(m_lst + [(m.name, m.type, None, poffset + m.offset),], depth+1)
+			case Pointer() :
+				m_lst[-1] = (pname, self.r_map[q.type].name, f"P{q.size}", poffset)
+				yield m_lst
+			case _ :
+				raise ValueError(m_lst, q)
+
+	def chrono(self, label) :
+		self.t_lst.append(time.time())
+		print(f"<!> {label} :: {self.t_lst[-1] - self.t_lst[-2]:0.3f} sec") 
+
+	def load(self, pth) :
+		with Path(pth).open('rb') as fid :
+			elffile = ELFFile(fid)
+			self.chrono("ELFFile()")
+
+			if not elffile.has_dwarf_info() :
+				raise ValueError
+
+			self.info = elffile.get_dwarf_info(relocate_dwarf_sections=False, follow_links=False)
+			self.chrono("get_dwarf_info()")
+
+		for unit in self.info.iter_CUs() :
+			return unit.get_top_DIE()
+
+	def first_pass(self) :
+		if not self.top.has_children :
+			return
+
+		for i, child in enumerate(self.top.iter_children()) :
+			tag = child.tag.removeprefix('DW_TAG_')
+			func = f"_parse_{tag}"
+			getattr(self, func)(child)
+			if 'DW_AT_sibling' in child.attributes :
+				self.s_map[child.offset] = child.attributes['DW_AT_sibling'].value
+			
+		print(i)
+
+	def _parse_base_type(self, die) :
+		p = Base(
+			die.attributes['DW_AT_name'].value.decode('utf8'),
+			f"{die_encoding_str[die.attributes['DW_AT_encoding'].value]}{die.attributes['DW_AT_byte_size'].value}"
+		)
+		self.r_map[die.offset] = p
+		self.base_map[p.name] = p.mtype
+
+	def _parse_typedef(self, die) :
+		p = Typedef(
+			die.attributes['DW_AT_type'].value,
+			die.attributes['DW_AT_name'].value.decode('utf8')
+		)
+		self.r_map[die.offset] = p
+		self.typedef_map[p.name] = p.type
+
+	def _parse_array_type(self, die) :
+		u_lst = list()
+		for i, child in enumerate(die.iter_children()) :
+			if 'DW_AT_upper_bound' in child.attributes :
+				u_lst.append(child.attributes['DW_AT_upper_bound'].value)
+			else :
+				print(child)
+		p = Array(
+			die.attributes['DW_AT_type'].value,
+			tuple(u_lst),
+		)
+		self.r_map[die.offset] = p
+
+	def _parse_pointer_type(self, die) :
+		p = Pointer(
+			die.attributes['DW_AT_type'].value,
+			die.attributes['DW_AT_byte_size'].value,
+		)
+		self.r_map[die.offset] = p
+
+	def _parse_variable(self, die) :
+		if 'DW_AT_name' in die.attributes :
+			p = Typedef(
+				die.attributes['DW_AT_type'].value,
+				die.attributes['DW_AT_name'].value.decode('utf8')
+			)
+			self.r_map[die.offset] = p
+			self.variable_map[p.name] = p.type
+
+	def _parse_structure_type(self, die) :
+		m_lst = list()
+		for i, child in enumerate(die.iter_children()) :
+			if child.tag == 'DW_TAG_member' :
+				m_lst.append(Member(
+					child.attributes['DW_AT_type'].value,
+					child.attributes['DW_AT_name'].value.decode('utf8'),
+					child.attributes['DW_AT_data_member_location'].value,
+				))
+		p = Structure(
+			die.attributes['DW_AT_byte_size'].value,
+			m_lst
+		)
+		self.r_map[die.offset] = p
+
+def die_rec(parent, depth=0) :
+	""" pas bon, il faut itérer au cas par cas, les sous niveaux sont pertinents """
+	if parent.has_children :
+		for child in parent.iter_children() :
+			yield from die_rec(child, depth + 1)
+	yield depth, parent
+
+def die_parse(self) :
+	tag_set = set()
+	for depth, die in die_rec(self) :
+		match die.tag :
+			case "DW_TAG_base_type" :
+				r_map['base'][die.offset] = (
+					die.attributes['DW_AT_name'].value.decode('utf8'),
+					f"{die_encoding_str[die.attributes['DW_AT_encoding'].value]}{die.attributes['DW_AT_byte_size'].value}"
+				)
+			case "DW_TAG_typedef" :
+				r_map['alias'][die.offset] = (
+					die.attributes['DW_AT_name'].value.decode('utf8'),
+					die.attributes['DW_AT_type'].value
+				)
+			case "DW_TAG_structure_type" :
+				r_map['struct'][die.offset] = (
+					die.attributes['DW_AT_byte_size'].value,
+				)
+			case _ :
+				tag_set.add(die.tag)
+
+	print(tag_set)
+
+def process_file(filename):
+	print('Processing file:', filename)
+	with open(filename, 'rb') as f:
+		elffile = ELFFile(f)
+
+		if not elffile.has_dwarf_info():
+			print('  file has no DWARF info')
+			return
+
+		# get_dwarf_info returns a DWARFInfo context object, which is the
+		# starting point for all DWARF-based processing in pyelftools.
+		print("start")
+		dwarfinfo = elffile.get_dwarf_info()
+		print("stop")
+
+		for CU in dwarfinfo.iter_CUs():
+			# DWARFInfo allows to iterate over the compile units contained in
+			# the .debug_info section. CU is a CompileUnit object, with some
+			# computed attributes (such as its offset in the section) and
+			# a header which conforms to the DWARF standard. The access to
+			# header elements is, as usual, via item-lookup.
+			print(f"Found a compile unit at offset {CU.cu_offset}, length {CU['unit_length']}")
+
+			# Start with the top DIE, the root for this CU's DIE tree
+			top_die = CU.get_top_DIE()
+			print(f"Top DIE with tag={top_die.tag}")
+
+
+			# We're interested in the filename...
+			print(f"	name={top_die.get_full_path()}")
+
+			Path("die.txt").write_text(repr(top_die.to_json()))
+			Path("die.json").save(top_die.to_json(), verbose=True)
+			# Display DIEs recursively starting with top_die
+			# die_info_rec(top_die)
+
+
+def die_info_rec(die, indent_level='\t'):
+	""" A recursive function for showing information about a DIE and its
+		children.
+	"""
+	print(die)
+	print(indent_level + 'DIE tag=%s' % die.tag)
+	child_indent = indent_level + '  '
+	for child in die.iter_children() :
+		die_info_rec(child, child_indent)
+		break
+
+if __name__ == '__main__':
+
+	u = ParserElfTools(Path(sys.argv[1]))
+	for i, line in enumerate(u.iter_structure(sys.argv[2])) :
+		print(line)
+		if i > 999 :
+			break
+
+	# with Path(sys.argv[1]).open('rb') as fid :
+	# 	elffile = ELFFile(fid)
+
+	# 	if not elffile.has_dwarf_info() :
+	# 		raise ValueError
+
+	# 	info = elffile.get_dwarf_info()
+
+	# for unit in info.iter_CUs() :
+	# 	die = unit.get_top_DIE()
+	# 	break
+	
+	# die_parse(die)
+
+	# Path("output.json").save(r_map, verbose=True)
