@@ -96,21 +96,25 @@ class ParserElfTools() :
 		Path("variable_map.json").save(self.variable_map, verbose=True)
 
 		self.dump(name, mapping_pth)
-		self.chrono("dump()")
+		self.chrono("total()")
 
 	def dump(self, name, mapping_pth) :
+
 		def as_array(shape) :
-			return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
+			return ''.join(f'[{s+1}]' for s in shape) if isinstance(shape, tuple) else ''
+
 		u = MetaReb(name)
 		for m_lst in self.iter_structure(name) :
 			p_lst = [m[0] for m in m_lst[:-1] if m[0] is not None]
 			p_lst.append(m_lst[-1][0] + as_array(m_lst[-1][1]))
 			u.push('.'.join(p_lst), m_lst[-1][2], m_lst[-1][3])
 		u.sizeof = self.sizeof
-		u.dump(mapping_pth, False, False)
+		self.chrono("dump()")
+
+		# u.dump(mapping_pth, False, False)
+		u.dump(mapping_pth, True, True)
 
 	def iter_structure(self, name) :
-
 		# name can either be the name of a global variable or a the name of a typedef
 
 		if name in self.variable_map :
@@ -150,7 +154,7 @@ class ParserElfTools() :
 
 	def chrono(self, label) :
 		self.t_lst.append(time.time())
-		print(f"{self.t_lst[-1] - self.t_lst[-2]:8.3f} sec :: {label}") 
+		print(f"{self.t_lst[-1] - self.t_lst[-2]:7.3f} /{self.t_lst[-1] - self.t_lst[0]:7.3f} :: {label}") 
 
 	def load(self, pth) :
 		with Path(pth).open('rb') as fid :
@@ -168,7 +172,7 @@ class ParserElfTools() :
 
 	def parse(self) :
 		if not self.top.has_children :
-			return
+			raise ValueError
 
 		for i, child in enumerate(self.top.iter_children()) :
 			tag = child.tag.removeprefix('DW_TAG_')
