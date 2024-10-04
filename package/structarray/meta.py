@@ -151,7 +151,7 @@ class MetaReb(MetaGeneric) :
 		if not pth.suffix == '.tsv' :
 			raise ValueError
 		if self.sizeof is None :
-			raise ValueError
+			raise ValueError("self.sizeof is not defined !")
 		
 		s_lst = [
 			[self.name, self.sizeof],
