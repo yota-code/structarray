@@ -1,42 +1,8 @@
+#!/usr/bin/env python3
 """
-typedef struct {
-	/* snip */
-} _T465_Afcs;
-
-typedef _T465_Afcs S_CdtIasToEmi_T;
-
-typedef struct {
-	S_CdtIasToEmi_T S_CdtIasToEmi;
-	real R_ZBiCft;
-} _T466_Afcs;
-
-typedef _T466_Afcs S_CdtAdToEmi_T;
-
- <1><1977c>: Abbrev Number: 15 (DW_TAG_structure_type)
-    <1977d>   DW_AT_byte_size   : 68
-    <1977e>   DW_AT_decl_file   : 6
-    <1977f>   DW_AT_decl_line   : 8750
-    <19781>   DW_AT_decl_column : 9
-    <19782>   DW_AT_sibling     : <0x197a3>
-
- <1><197a3>: Abbrev Number: 12 (DW_TAG_typedef)
-    <197a4>   DW_AT_name        : (indirect string, offset: 0x36dc0): _T466_Afcs
-    <197a8>   DW_AT_decl_file   : 6
-    <197a9>   DW_AT_decl_line   : 8753
-    <197ab>   DW_AT_decl_column : 3
-    <197ac>   DW_AT_type        : <0x1977c>
-
- <1><197b0>: Abbrev Number: 12 (DW_TAG_typedef)
-    <197b1>   DW_AT_name        : (indirect string, offset: 0x70188): S_CdtAdToEmi_T
-    <197b5>   DW_AT_decl_file   : 6
-    <197b6>   DW_AT_decl_line   : 8755
-    <197b8>   DW_AT_decl_column : 20
-    <197b9>   DW_AT_type        : <0x197a3>
-
+le moyen le plus rapide de récupérer le .debug_info:
+readelf -wi *.o
 """
-
-# le moyen le plus rapide de récupérer le .debug_info:
-# readelf -wi *.o
 
 import collections
 import pprint
@@ -47,21 +13,9 @@ import sys
 
 from structarray.meta import MetaReb
 
-# If pyelftools is not installed, the example can also run from the root or
-# examples/ dir of the source distribution.
-sys.path[0:0] = ['.', '..']
-
 from elftools.elf.elffile import ELFFile
 
 die_encoding_str = 'xxxxRZZNN'
-
-r_map = {
-	'base' : dict(),
-	'alias' : dict(),
-	'struct' : dict(),
-}
-
-from inspect import getouterframes, currentframe
 
 Base = collections.namedtuple('Base', ['name', 'mtype'])
 Pointer = collections.namedtuple('Pointer', ['type', 'size'])
@@ -74,26 +28,19 @@ Variable = collections.namedtuple('Variable', ['type', 'name'])
 class ParserElfTools() :
 	def __init__(self, elf_pth, name, mapping_pth) :
 		self.t_lst = [time.time(),]
-
-		# self.elf_pth = Path(elf_pth).resolve()
-		# self.mapping_pth = Path(mapping_pth).resolve()
-
+		
 		self.top = self.load(elf_pth)
 		self.chrono("elftools.get_top_DIE()")
 
 		self.r_map = collections.defaultdict(dict)
-		self.s_map = dict()
+		self.s_map = dict() # useless, could be removed
+
 		self.typedef_map = dict()
 		self.variable_map = dict()
 		self.base_map = dict()
 
 		self.parse()
 		self.chrono("parse()")
-
-		Path("r_map.py").write_text(pprint.pformat(self.r_map, width=128))
-		Path("base_map.json").save(self.base_map, verbose=True)
-		Path("typedef_map.json").save(self.typedef_map, verbose=True)
-		Path("variable_map.json").save(self.variable_map, verbose=True)
 
 		self.dump(name, mapping_pth)
 		self.chrono("total()")
