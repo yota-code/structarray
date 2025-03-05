@@ -15,7 +15,7 @@ from structarray.meta import MetaReb
 
 from elftools.elf.elffile import ELFFile
 
-die_encoding_str = 'xxxxRZZNN'
+die_encoding_str = 'xyNwRZZNN'
 
 Base = collections.namedtuple('Base', ['name', 'mtype'])
 Pointer = collections.namedtuple('Pointer', ['type', 'size'])
@@ -58,8 +58,8 @@ class ParserElfTools() :
 		u.sizeof = self.sizeof
 		self.chrono("dump()")
 
-		# u.dump(mapping_pth, False, False)
-		u.dump(mapping_pth, True, True)
+		u.dump(mapping_pth, False, False)
+		# u.dump(mapping_pth, True, True)
 
 	def iter_structure(self, name) :
 		# name can either be the name of a global variable or a the name of a typedef
@@ -74,6 +74,11 @@ class ParserElfTools() :
 		self.sizeof = self.r_map[cident].size
 
 		yield from self._walk([(None, cident, ctype, 0),])
+
+	def to_base(self, q) :
+		while isinstance(q, Typedef) :
+			q = self.r_map[q.type]
+		return q
 
 	def _walk(self, m_lst, depth=0) :
 
@@ -94,7 +99,7 @@ class ParserElfTools() :
 				m_lst[-1] = (pname, self.r_map[q.type].name, f"P{q.size}", poffset)
 				yield m_lst
 			case Array() :
-				m_lst[-1] = (pname, q.shape, self.r_map[q.type].mtype, poffset)
+				m_lst[-1] = (pname, q.shape, self.to_base(self.r_map[q.type]).mtype, poffset)
 				yield m_lst
 			case _ :
 				raise ValueError(m_lst, q)
@@ -124,10 +129,13 @@ class ParserElfTools() :
 		for i, child in enumerate(self.top.iter_children()) :
 			tag = child.tag.removeprefix('DW_TAG_')
 			func = f"_parse_{tag}"
-			getattr(self, func)(child)
-			if 'DW_AT_sibling' in child.attributes :
-				self.s_map[child.offset] = child.attributes['DW_AT_sibling'].value
-			
+			try :
+				getattr(self, func)(child)
+				if 'DW_AT_sibling' in child.attributes :
+					self.s_map[child.offset] = child.attributes['DW_AT_sibling'].value
+			except AttributeError :
+				print(f"unknown: {func}")
+
 	def _parse_base_type(self, die) :
 		p = Base(
 			die.attributes['DW_AT_name'].value.decode('utf8'),

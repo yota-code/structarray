@@ -35,7 +35,6 @@ ntype_map = { # types numpy
 	'R8' : "float64",
 }
 
-
 def compact_name(v_lst) :
 	# validated
 	# remove duplicate parts from the variable names
@@ -179,7 +178,11 @@ class MetaReb(MetaGeneric) :
 
 			if is_relative :
 				if s_lst :
-					padding = addr - prev - int(s_lst[-1][1][1:])
+					try :
+						padding = addr - prev - int(s_lst[-1][1][1:])
+					except :
+						print(s_lst)
+						raise
 					if padding != 0 :
 						s_lst[-1].append(padding)
 				s_lst.append([name, mtype,])
