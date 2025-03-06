@@ -58,8 +58,8 @@ class ParserElfTools() :
 		u.sizeof = self.sizeof
 		self.chrono("dump()")
 
-		u.dump(mapping_pth, False, False)
-		# u.dump(mapping_pth, True, True)
+		# u.dump(mapping_pth, False, False)
+		u.dump(mapping_pth, True, True)
 
 	def iter_structure(self, name) :
 		# name can either be the name of a global variable or a the name of a typedef

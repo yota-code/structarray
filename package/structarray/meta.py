@@ -175,23 +175,24 @@ class MetaReb(MetaGeneric) :
 					q += 1
 				name = (f"{q}/" if q else '') + '.'.join(n_lst[q:])
 				p_lst = n_lst
-
 			if is_relative :
+				element_nbr = int(re.match(r'.*?\[(?P<size>\d+)\]', name).group('size')) if name.endswith(']') else 1
+
 				if s_lst :
-					try :
-						padding = addr - prev - int(s_lst[-1][1][1:])
-					except :
-						print(s_lst)
-						raise
+					padding = addr - prev
+					# assert 0 <= padding < 7
 					if padding != 0 :
 						s_lst[-1].append(padding)
+
 				s_lst.append([name, mtype,])
-				prev = addr
+
+				element_size = int(s_lst[-1][1][1:])
+				prev = addr + (element_size * element_nbr)
 			else :
 				s_lst.append([name, mtype, addr])
 
 		if is_relative :
-			padding = self.sizeof - prev - int(s_lst[-1][1][1:])
+			padding = self.sizeof - prev
 			if padding != 0 :
 				s_lst[-1].append(padding)
 
