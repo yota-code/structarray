@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
+
 """
 le moyen le plus rapide de récupérer le .debug_info:
 readelf -wi *.o
 """
 
-# à REFACTORER en utilisant parself
-
 import collections
-import pprint
 import time
 
 from cc_pathlib import Path
@@ -27,79 +25,146 @@ Structure = collections.namedtuple('Structure', ['size', 'detail'])
 Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
 Variable = collections.namedtuple('Variable', ['type', 'name'])
 
-class ParserElfTools() :
-	def __init__(self, elf_pth, name, mapping_pth) :
+class ElfParser() :
+	"""
+	TODO:
+	    si on a un tableau de structure, y a des trucs qui pourraient
+	    passer à l'as dans metaReb lors de la génération des adresses
+	    compactes
+
+	    il manque un arbre à parcourir... je sais pas où le mettre !
+	    meta reb à vocation d'être utilisé juste pour le parsing rapide,
+	    mais est-ce ompatible avec le point du dessus?
+
+		Sauf si on arrive à se passer de représentation en arbre par la suite
+		IL FAUT une classe générique pour les infos de structures... à réfléchir
+	"""
+
+	mtype = {
+		'R8' : "double",
+		'R4' : "float",
+		'Z4' : "int32_t",
+		'N1' : "uint8_t",
+		'Z1' : "int8_t",
+	}
+
+	def __init__(self, elf_pth) :
 		self.t_lst = [time.time(),]
 		
 		self.top = self.load(elf_pth)
 		self.chrono("elftools.get_top_DIE()")
 
 		self.r_map = collections.defaultdict(dict)
-		self.s_map = dict() # useless, could be removed
+		self.s_map = dict()
 
 		self.typedef_map = dict()
 		self.variable_map = dict()
 		self.base_map = dict()
 
+		self.default_name = None
+
 		self.parse()
 		self.chrono("parse()")
 
-		self.dump(name, mapping_pth)
-		self.chrono("total()")
+	def run(self, name, mapping_pth, is_relative=True, is_compact=True) :
 
-	def dump(self, name, mapping_pth) :
+		save_dir = mapping_pth.parent
+		
+		(save_dir / "r_map.json").save(self.r_map, verbose=True)
+		(save_dir / "s_map.json").save(self.s_map, verbose=True)
+
+		(save_dir / "typedef_map.json").save(self.typedef_map, verbose=True)
+		(save_dir / "variable_map.json").save(self.variable_map, verbose=True)
+		(save_dir / "base_map.json").save(self.base_map, verbose=True)
+
+		self.default_name = name
 
 		def as_array(shape) :
-			return ''.join(f'[{s+1}]' for s in shape) if isinstance(shape, tuple) else ''
+			return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
 
 		u = MetaReb(name)
-		for m_lst in self.iter_structure(name) :
+
+		for m_lst in self.walk(name) :
+			# print(m_lst)
 			p_lst = [m[0] for m in m_lst[:-1] if m[0] is not None]
 			p_lst.append(m_lst[-1][0] + as_array(m_lst[-1][1]))
 			u.push('.'.join(p_lst), m_lst[-1][2], m_lst[-1][3])
 		u.sizeof = self.sizeof
 		self.chrono("dump()")
 
-		# u.dump(mapping_pth, False, False)
-		u.dump(mapping_pth, True, True)
+		u.dump(mapping_pth.with_suffix(".debug.tsv"), False, False)
+		u.dump(mapping_pth, is_relative, is_compact)
 
-	def iter_structure(self, name) :
+		mapping_pth.with_suffix(".debug.json").save(u._m, verbose=True)
+		
+		self.chrono("total()")
+
+		return u
+
+	def get_ident(self, name) :
 		# name can either be the name of a global variable or a the name of a typedef
-
 		if name in self.variable_map :
-			cident, ctype = self.variable_map[name]
+			pident = self.variable_map[name]
 		elif name in self.typedef_map :
-			cident, ctype = self.typedef_map[name], name
+			pident = self.typedef_map[name]
 		else :
 			raise ValueError
 
-		self.sizeof = self.r_map[cident].size
+		if pident in self.s_map :
+			# print(f"S_MAP {pident} -> {self.s_map[pident]}")
+			pident = self.s_map[pident]
+		while pident in self.r_map and isinstance(self.r_map[pident], (Typedef, Pointer)) :
+			# print(f"R_MAP {pident} -> {self.r_map[pident][0]}")
+			pident = self.r_map[pident].type
+		
+		return pident
 
-		yield from self._walk([(None, cident, ctype, 0),])
+	def walk(self, name=None, max_depth=None, follow_pointer=False) :
+		pident = self.get_ident(self.default_name if name is None else name)
+
+		self.sizeof = self.r_map[pident].size
+
+		yield from self._walk(pident, list(), max_depth, follow_pointer)
 
 	def to_base(self, q) :
 		while isinstance(q, Typedef) :
 			q = self.r_map[q.type]
 		return q
 
-	def _walk(self, m_lst, depth=0) :
+	def _walk(self, pident, m_lst, max_depth, follow_pointer, depth=0) : 
+		if m_lst :
+			pname, pcount, ptype, poffset = m_lst[-1]
+		else :
+			pname, pcount, ptype, poffset = None, None, None, 0
 
-		pname, pident, ptype, poffset = m_lst[-1]
 		q = self.r_map[pident]
 
 		match q :
 			case Base() :
-				m_lst[-1] = (pname, None, q.mtype, poffset)
+				m_lst[-1] = (pname, 1, q.mtype, poffset)
 				yield m_lst
 			case Typedef() :
-				m_lst[-1] = (pname, q.type, q.name, poffset)
-				yield from self._walk(m_lst)
+				# print("TYPEDEF", pname, depth, max_depth, max_depth is None or depth <= max_depth)
+				m_lst[-1] = (pname, 1, q.name, poffset)
+				yield from self._walk(q.type, m_lst, max_depth, depth+1)
 			case Structure() :
-				for m in self.r_map[m_lst[-1][1]].detail :
-					yield from self._walk(m_lst + [(m.name, m.type, None, poffset + m.offset),], depth+1)
+				# print("STRUCT ", pname, depth, max_depth, max_depth is None or depth <= max_depth)
+				if max_depth is None or depth <= max_depth :
+					for m in self.r_map[pident].detail :
+						yield from self._walk(m.type, m_lst + [(m.name, 1, None, poffset + m.offset),], max_depth, follow_pointer, depth+1)
+				else :
+					yield m_lst
 			case Pointer() :
-				m_lst[-1] = (pname, self.r_map[q.type].name, f"P{q.size}", poffset)
-				yield m_lst
+				# self.r_map[q.type].name
+				if follow_pointer :
+					while pident in self.r_map and isinstance(self.r_map[pident], (Typedef, Pointer)) :
+						# print(f"R_MAP {pident} -> {self.r_map[pident][0]}")
+						pident = self.r_map[pident].type
+					for m in self.r_map[pident].detail :
+						yield from self._walk(m.type, m_lst + [(m.name + '*', 1, None, poffset + m.offset),], max_depth, follow_pointer, depth+1)
+				else :
+					m_lst[-1] = (pname, 0, f"P{q.size}", poffset)
+					yield m_lst
 			case Array() :
 				m_lst[-1] = (pname, q.shape, self.to_base(self.r_map[q.type]).mtype, poffset)
 				yield m_lst
@@ -134,7 +199,7 @@ class ParserElfTools() :
 			try :
 				getattr(self, func)(child)
 				if 'DW_AT_sibling' in child.attributes :
-					self.s_map[child.offset] = child.attributes['DW_AT_sibling'].value
+					self.s_map[child.attributes['DW_AT_sibling'].value] = child.offset
 			except AttributeError :
 				print(f"unknown: {func}")
 
@@ -158,7 +223,7 @@ class ParserElfTools() :
 		u_lst = list()
 		for i, child in enumerate(die.iter_children()) :
 			if 'DW_AT_upper_bound' in child.attributes :
-				u_lst.append(child.attributes['DW_AT_upper_bound'].value)
+				u_lst.append(child.attributes['DW_AT_upper_bound'].value + 1)
 			else :
 				print(child)
 		p = Array(
@@ -197,8 +262,3 @@ class ParserElfTools() :
 			m_lst
 		)
 		self.r_map[die.offset] = p
-
-if __name__ == '__main__':
-
-	print("ELF_IMPORT ::", sys.argv)
-	u = ParserElfTools(Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3]))

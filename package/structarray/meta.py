@@ -81,18 +81,22 @@ class MetaReb(MetaGeneric) :
 	""" un gestionnaire des méta données pour les enregistrements .reb """
 	
 	def __init__(self, name=None, sizeof=None) :
-		self._m = collections.OrderedDict()
-
+		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
+		
 		self.name = name
 		self.sizeof = sizeof
 
 	def push(self, name, mtype, addr) :
 		self._m[name] = (mtype, addr)
 
-	def __iter__(self) :
+	def iter_nop(self) :
 		for name, (mtype, addr) in self._m.items() :
 			if not mtype.startswith('P') :
 				yield name
+
+	def __iter__(self) :
+		for name, (mtype, addr) in self._m.items() :
+			yield name, mtype, addr
 		
 	def load(self, pth) :
 		pth = Path(pth).resolve()
@@ -176,7 +180,7 @@ class MetaReb(MetaGeneric) :
 				name = (f"{q}/" if q else '') + '.'.join(n_lst[q:])
 				p_lst = n_lst
 			if is_relative :
-				element_nbr = int(re.match(r'.*?\[(?P<size>\d+)\]', name).group('size')) if name.endswith(']') else 1
+				element_nbr = (int(re.match(r'.*?\[(?P<size>\d+)\]', name).group('size')) - 1) if name.endswith(']') else 1
 
 				if s_lst :
 					padding = addr - prev
@@ -225,7 +229,7 @@ class MetaReb(MetaGeneric) :
 		elif mode == 'regexp' :
 			pass
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
-		return [var for var in self if rec.search(var) is not None]
+		return [var for var in self.iter_nop() if rec.search(var) is not None]
 
 
 def expand_name_gen() :
