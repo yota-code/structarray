@@ -55,7 +55,7 @@ class ElfParser() :
 		self.chrono("elftools.get_top_DIE()")
 
 		self.r_map = collections.defaultdict(dict)
-		self.s_map = dict()
+		self.s_map = dict() # liste des symboles de haut niveau
 
 		self.typedef_map = dict()
 		self.variable_map = dict()
@@ -187,6 +187,7 @@ class ElfParser() :
 			self.chrono("elftools.get_dwarf_info()")
 
 		for unit in self.info.iter_CUs() :
+			print(unit, unit.get_top_DIE())
 			return unit.get_top_DIE()
 
 	def parse(self) :
@@ -200,8 +201,16 @@ class ElfParser() :
 				getattr(self, func)(child)
 				if 'DW_AT_sibling' in child.attributes :
 					self.s_map[child.attributes['DW_AT_sibling'].value] = child.offset
-			except AttributeError :
-				print(f"unknown: {func}")
+			except (AttributeError, KeyError) :
+				print(f"ERROR::{func}::{child}")
+
+
+		Path("r_map.json").save(self.r_map, verbose=True)
+		Path("s_map.json").save(self.s_map, verbose=True)
+
+		Path("typedef_map.json").save(self.typedef_map, verbose=True)
+		Path("variable_map.json").save(self.variable_map, verbose=True)
+		Path("base_map.json").save(self.base_map, verbose=True)
 
 	def _parse_base_type(self, die) :
 		p = Base(
@@ -233,6 +242,7 @@ class ElfParser() :
 		self.r_map[die.offset] = p
 
 	def _parse_pointer_type(self, die) :
+		print("RAAAH", die, die.attributes)
 		p = Pointer(
 			die.attributes['DW_AT_type'].value,
 			die.attributes['DW_AT_byte_size'].value,
@@ -262,3 +272,8 @@ class ElfParser() :
 			m_lst
 		)
 		self.r_map[die.offset] = p
+
+
+	def _parse_subprogram(self, die) :
+		# on veut pas traiter les sous programmes
+		pass
