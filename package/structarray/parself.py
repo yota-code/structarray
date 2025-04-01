@@ -205,7 +205,6 @@ class ElfParser() :
 			except (AttributeError, KeyError) :
 				print(f"ERROR::{func}::{child}")
 
-
 		Path("r_map.json").save(self.r_map, verbose=True)
 		Path("s_map.json").save(self.s_map, verbose=True)
 
