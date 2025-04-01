@@ -102,6 +102,7 @@ class ElfParser() :
 		return u
 
 	def get_ident(self, name) :
+		print(f"get_ident {name}")
 		# name can either be the name of a global variable or a the name of a typedef
 		if name in self.variable_map :
 			pident = self.variable_map[name]

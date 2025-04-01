@@ -193,6 +193,7 @@ class PlotSA() :
 						plt.plot(self.t_arr, y_arr, format, ** m)
 					y_lst.append(y_arr)
 				else :
+					print(self.sa.meta)
 					print(f"{name} not found")
 					print('\n'.join(self.sa.meta.search(name)))
 				print(m)
@@ -209,7 +210,6 @@ class PlotSA() :
 			except ValueError :
 				pass
 
-		
 			plt.grid()
 			plt.legend()
 
@@ -235,7 +235,7 @@ if __name__ == '__main__' :
 	data_pth = (p.data).resolve()
 
 	if p.meta is None :
-		meta_pth = (p.data.parent / "mapping.tsv")
+		meta_pth = Path("context_map.tsv")
 	else :
 		meta_pth = (p.meta).resolve()
 
