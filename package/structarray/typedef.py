@@ -7,12 +7,6 @@ faire un arbre de structure, les enumérer, trouver les offset etc.
 
 """
 
-
-class StructDef() :
-	def 
-
-
-
 class DebugInfo() :
 	def __init__(self) :
 		self.global_map = dict()
