@@ -23,7 +23,7 @@ Typedef = collections.namedtuple('Typedef', ['type', 'alias'])
 Array = collections.namedtuple('Array', ['type', 'shape'])
 Structure = collections.namedtuple('Structure', ['size', 'detail'])
 Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
-Variable = collections.namedtuple('Variable', ['name', 'type'])
+Variable = collections.namedtuple('Variable', ['type', 'name'])
 
 class Elf2Tree() :
 	"""
@@ -66,16 +66,10 @@ class Elf2Tree() :
 			self.parse(top)
 			self.chrono("parse({top})")
 
+		Path("r_map.json").save(self.r_map)
+		Path("s_map.json").save(self.s_map)
+
 	def run(self, name, mapping_pth, is_relative=True, is_compact=True) :
-
-		save_dir = mapping_pth.parent
-		
-		(save_dir / "r_map.json").save(self.r_map, verbose=True)
-		(save_dir / "s_map.json").save(self.s_map, verbose=True)
-
-		(save_dir / "typedef_map.json").save(self.typedef_map, verbose=True)
-		(save_dir / "variable_map.json").save(self.variable_map, verbose=True)
-		(save_dir / "base_map.json").save(self.base_map, verbose=True)
 
 		self.default_name = name
 
@@ -210,7 +204,7 @@ class Elf2Tree() :
 	def _parse_base_type(self, die) :
 		p = Base(
 			die.attributes['DW_AT_name'].value.decode('utf8'),
-			f"{die_encoding_str[die.attributes['DW_AT_encoding'].value]}{die.attributes['DW_AT_byte_size'].value}"
+			(die_encoding_str[die.attributes['DW_AT_encoding'].value], die.attributes['DW_AT_byte_size'].value)
 		)
 		self.r_map[die.offset] = p
 
@@ -245,8 +239,8 @@ class Elf2Tree() :
 	def _parse_variable(self, die) :
 		if 'DW_AT_name' in die.attributes :
 			p = Variable(
-				die.attributes['DW_AT_name'].value.decode('utf8')
 				die.attributes['DW_AT_type'].value,
+				die.attributes['DW_AT_name'].value.decode('utf8')
 			)
 			self.r_map[die.offset] = p
 

@@ -54,6 +54,7 @@ class PlotSA() :
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
 
 	def run(self) :
+		r_lst = list()
 		while True :
 			ans = input(">>> ").strip()
 			if not ans :

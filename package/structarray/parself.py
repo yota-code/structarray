@@ -63,20 +63,21 @@ class ElfParser() :
 
 		self.default_name = None
 
-		self.parse()
+		for top in self.load(elf_pth) :
+			self.parse(top)
+			self.chrono(f"parse({top.attributes['DW_AT_name'].value.decode('utf8')})")
+
 		self.chrono("parse()")
 
+		Path("r_map.json").save(self.r_map, verbose=True)
+		Path("s_map.json").save(self.s_map, verbose=True)
+
+		Path("typedef_map.json").save(self.typedef_map, verbose=True)
+		Path("variable_map.json").save(self.variable_map, verbose=True)
+		Path("base_map.json").save(self.base_map, verbose=True)
+
 	def run(self, name, mapping_pth, is_relative=True, is_compact=True) :
-
-		save_dir = mapping_pth.parent
 		
-		(save_dir / "r_map.json").save(self.r_map, verbose=True)
-		(save_dir / "s_map.json").save(self.s_map, verbose=True)
-
-		(save_dir / "typedef_map.json").save(self.typedef_map, verbose=True)
-		(save_dir / "variable_map.json").save(self.variable_map, verbose=True)
-		(save_dir / "base_map.json").save(self.base_map, verbose=True)
-
 		self.default_name = name
 
 		def as_array(shape) :
@@ -188,29 +189,21 @@ class ElfParser() :
 			self.chrono("elftools.get_dwarf_info()")
 
 		for unit in self.info.iter_CUs() :
-			print(unit, unit.get_top_DIE())
-			return unit.get_top_DIE()
+			yield unit.get_top_DIE()
 
-	def parse(self) :
-		if not self.top.has_children :
+	def parse(self, top) :
+		if not top.has_children :
 			raise ValueError
 
-		for i, child in enumerate(self.top.iter_children()) :
+		for i, child in enumerate(top.iter_children()) :
 			tag = child.tag.removeprefix('DW_TAG_')
 			func = f"_parse_{tag}"
 			try :
 				getattr(self, func)(child)
 				if 'DW_AT_sibling' in child.attributes :
 					self.s_map[child.attributes['DW_AT_sibling'].value] = child.offset
-			except (AttributeError, KeyError) :
+			except AttributeError :
 				print(f"ERROR::{func}::{child}")
-
-		Path("r_map.json").save(self.r_map, verbose=True)
-		Path("s_map.json").save(self.s_map, verbose=True)
-
-		Path("typedef_map.json").save(self.typedef_map, verbose=True)
-		Path("variable_map.json").save(self.variable_map, verbose=True)
-		Path("base_map.json").save(self.base_map, verbose=True)
 
 	def _parse_base_type(self, die) :
 		p = Base(
@@ -222,7 +215,7 @@ class ElfParser() :
 
 	def _parse_typedef(self, die) :
 		p = Typedef(
-			die.attributes['DW_AT_type'].value,
+			die.attributes['DW_AT_type'].value if 'DW_AT_type' in die.attributes else None,
 			die.attributes['DW_AT_name'].value.decode('utf8')
 		)
 		self.r_map[die.offset] = p
@@ -242,21 +235,40 @@ class ElfParser() :
 		self.r_map[die.offset] = p
 
 	def _parse_pointer_type(self, die) :
-		print("RAAAH", die, die.attributes)
 		p = Pointer(
-			die.attributes['DW_AT_type'].value,
+			die.attributes['DW_AT_type'].value if 'DW_AT_type' in die.attributes else None,
 			die.attributes['DW_AT_byte_size'].value,
 		)
 		self.r_map[die.offset] = p
 
-	def _parse_variable(self, die) :
+
+	def _parse_const_type(self, die) :
 		if 'DW_AT_name' in die.attributes :
-			p = Typedef(
+			p = Variable(
 				die.attributes['DW_AT_type'].value,
 				die.attributes['DW_AT_name'].value.decode('utf8')
 			)
 			self.r_map[die.offset] = p
 			self.variable_map[p.name] = p.type
+
+	def _parse_variable(self, die) :
+		if 'DW_AT_name' in die.attributes :
+			p = Variable(
+				die.attributes['DW_AT_type'].value,
+				die.attributes['DW_AT_name'].value.decode('utf8')
+			)
+			self.r_map[die.offset] = p
+			self.variable_map[p.name] = p.type
+
+	def _parse_volatile_type(self, die) :
+		if 'DW_AT_name' in die.attributes :
+			p = Variable(
+				die.attributes['DW_AT_type'].value,
+				die.attributes['DW_AT_name'].value.decode('utf8')
+			)
+			self.r_map[die.offset] = p
+			self.variable_map[p.name] = p.type
+
 
 	def _parse_structure_type(self, die) :
 		m_lst = list()
@@ -264,16 +276,29 @@ class ElfParser() :
 			if child.tag == 'DW_TAG_member' :
 				m_lst.append(Member(
 					child.attributes['DW_AT_type'].value,
-					child.attributes['DW_AT_name'].value.decode('utf8'),
+					child.attributes['DW_AT_name'].value.decode('utf8') if ('DW_AT_name' in child.attributes) else None,
 					child.attributes['DW_AT_data_member_location'].value,
 				))
 		p = Structure(
-			die.attributes['DW_AT_byte_size'].value,
+			die.attributes['DW_AT_byte_size'].value if 'DW_AT_byte_size' in die.attributes else None,
 			m_lst
 		)
 		self.r_map[die.offset] = p
 
+	def _parse_enumeration_type(self, die) :
+		pass
+
+	def _parse_union_type(self, die) :
+		pass
 
 	def _parse_subprogram(self, die) :
-		# on veut pas traiter les sous programmes
 		pass
+
+	def _parse_subroutine_type(self, die) :
+		pass
+
+if __name__ == "__main__" :
+
+	elf_pth = Path(sys.argv[1])
+	name = sys.argv[2].strip()
+	u = ElfParser(elf_pth).run(name, Path("context.tsv"))

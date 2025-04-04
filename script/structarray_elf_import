@@ -60,7 +60,7 @@ class ParserElfTools() :
 		u.sizeof = self.sizeof
 		self.chrono("dump()")
 
-		# u.dump(mapping_pth, False, False)
+		u.dump(mapping_pth.with_suffix('.full.tsv'), False, False)
 		u.dump(mapping_pth, True, True)
 
 	def iter_structure(self, name) :
