@@ -95,8 +95,8 @@ class MetaReb(MetaGeneric) :
 				yield name
 
 	def __iter__(self) :
-		for name, (mtype, addr) in self._m.items() :
-			yield name, mtype, addr
+		for name, (mtype, offset) in self._m.items() :
+			yield name, mtype, offset
 		
 	def load(self, pth) :
 		pth = Path(pth).resolve()
@@ -221,6 +221,9 @@ class MetaReb(MetaGeneric) :
 				print(f"{name} is not aligned: size={sizeof_map[ctype]} offeset={offset}")
 				return False
 		return True
+
+	def __contains__(self, key) :
+		return key in self._m
 	
 	def search(self, pattern, mode='blob') :
 		# print(f"StructArray.search({pattern}, {mode})")
