@@ -18,7 +18,6 @@ class TypeTree() :
 		self.struct_map = dict() # name of the structure -> list of (member name, member type, member offset)
 		self.array_map = dict() # name of the array -> (item type, item number)
 
-
 	def _to_json(self) :
 		return {
 			'basic' : self.basic_set,

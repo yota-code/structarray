@@ -7,6 +7,7 @@ readelf -wi *.o
 
 import collections
 import time
+import warnings
 
 from cc_pathlib import Path
 import sys
@@ -46,9 +47,13 @@ class ElfParser() :
 		'Z4' : "int32_t",
 		'N1' : "uint8_t",
 		'Z1' : "int8_t",
+		'N4' : "uint32_t",
 	}
 
 	def __init__(self, elf_pth) :
+
+		warnings.warn("this class is deprecated, please migrate to next ElfParser() in elf_2_tree", DeprecationWarning, stacklevel=2)
+
 		self.t_lst = [time.time(),]
 		
 		self.top = self.load(elf_pth)

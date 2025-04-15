@@ -25,7 +25,7 @@ Structure = collections.namedtuple('Structure', ['size', 'detail'])
 Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
 Variable = collections.namedtuple('Variable', ['type', 'name'])
 
-class Elf2Tree() :
+class ElfParser() :
 	"""
 	TODO:
 	    si on a un tableau de structure, y a des trucs qui pourraient
@@ -46,6 +46,7 @@ class Elf2Tree() :
 		'Z4' : "int32_t",
 		'N1' : "uint8_t",
 		'Z1' : "int8_t",
+		'N4' : "uint32_t",
 	}
 
 	def __init__(self, elf_pth) :
@@ -66,8 +67,8 @@ class Elf2Tree() :
 			self.parse(top)
 			self.chrono("parse({top})")
 
-		Path("r_map.json").save(self.r_map)
-		Path("s_map.json").save(self.s_map)
+		Path("r_map.json").save(self.r_map, verbose=True)
+		Path("s_map.json").save(self.s_map, verbose=True)
 
 	def run(self, name, mapping_pth, is_relative=True, is_compact=True) :
 
