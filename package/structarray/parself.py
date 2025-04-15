@@ -8,6 +8,7 @@ readelf -wi *.o
 import collections
 import time
 import warnings
+import dataclasses
 
 from cc_pathlib import Path
 import sys
@@ -18,13 +19,54 @@ from elftools.elf.elffile import ELFFile
 
 die_encoding_str = 'xyNwRZZNN'
 
-Base = collections.namedtuple('Base', ['name', 'mtype'])
-Pointer = collections.namedtuple('Pointer', ['type', 'size'])
-Typedef = collections.namedtuple('Typedef', ['type', 'name'])
-Array = collections.namedtuple('Array', ['type', 'shape'])
-Structure = collections.namedtuple('Structure', ['size', 'detail'])
-Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
-Variable = collections.namedtuple('Variable', ['type', 'name'])
+if False :
+	Base = collections.namedtuple('Base', ['name', 'mtype', 'msize'])
+	Pointer = collections.namedtuple('Pointer', ['type', 'size'])
+	Typedef = collections.namedtuple('Typedef', ['type', 'name'])
+	Array = collections.namedtuple('Array', ['type', 'shape'])
+	Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
+	Structure = collections.namedtuple('Structure', ['size', 'detail'])
+	Variable = collections.namedtuple('Variable', ['type', 'name'])
+else :
+	@dataclasses.dataclass
+	class Base() :
+		name: str
+		mtype: str
+		msize: int
+
+	@dataclasses.dataclass
+	class Pointer() :
+		type: int
+		size: int
+
+	@dataclasses.dataclass
+	class Typedef() :
+		type: int
+		name: str
+
+	@dataclasses.dataclass
+	class Array() :
+		type: int
+		shape: tuple[int]
+
+	@dataclasses.dataclass
+	class Member() :
+		type: int
+		name: str
+		offset: int
+
+	@dataclasses.dataclass
+	class Structure() :
+		size: int
+		detail: list[Member]
+
+		def _to_json(self) :
+			return {f"@Structure(size={self.size}, detail=...)" : self.detail}
+
+	@dataclasses.dataclass
+	class Variable() :
+		type: int
+		name: str
 
 class ElfParser() :
 	"""
@@ -54,7 +96,7 @@ class ElfParser() :
 
 		warnings.warn("this class is deprecated, please migrate to next ElfParser() in elf_2_tree", DeprecationWarning, stacklevel=2)
 
-		self.t_lst = [time.time(),]
+		self._time_lst = [time.time(),]
 		
 		self.top = self.load(elf_pth)
 		self.chrono("elftools.get_top_DIE()")
@@ -179,8 +221,8 @@ class ElfParser() :
 				raise ValueError(m_lst, q)
 
 	def chrono(self, label) :
-		self.t_lst.append(time.time())
-		print(f"{self.t_lst[-1] - self.t_lst[-2]:7.3f} /{self.t_lst[-1] - self.t_lst[0]:7.3f} :: {label}") 
+		self._time_lst.append(time.time())
+		print(f"{self._time_lst[-1] - self._time_lst[-2]:7.3f} /{self._time_lst[-1] - self._time_lst[0]:7.3f} :: {label}") 
 
 	def load(self, pth) :
 		with Path(pth).open('rb') as fid :
@@ -213,7 +255,8 @@ class ElfParser() :
 	def _parse_base_type(self, die) :
 		p = Base(
 			die.attributes['DW_AT_name'].value.decode('utf8'),
-			f"{die_encoding_str[die.attributes['DW_AT_encoding'].value]}{die.attributes['DW_AT_byte_size'].value}"
+			die_encoding_str[die.attributes['DW_AT_encoding'].value],
+			die.attributes['DW_AT_byte_size'].value
 		)
 		self.r_map[die.offset] = p
 		self.base_map[p.name] = p.mtype
@@ -273,7 +316,6 @@ class ElfParser() :
 			)
 			self.r_map[die.offset] = p
 			self.variable_map[p.name] = p.type
-
 
 	def _parse_structure_type(self, die) :
 		m_lst = list()
