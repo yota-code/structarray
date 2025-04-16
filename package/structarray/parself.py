@@ -87,9 +87,9 @@ class ElfParser() :
 		'R8' : "double",
 		'R4' : "float",
 		'Z4' : "int32_t",
-		'N1' : "uint8_t",
-		'Z1' : "int8_t",
 		'N4' : "uint32_t",
+		'Z1' : "int8_t",
+		'N1' : "uint8_t",
 	}
 
 	def __init__(self, elf_pth) :
