@@ -6,11 +6,10 @@ readelf -wi *.o
 """
 
 import collections
+import sys
 import time
-import dataclasses
 
 from cc_pathlib import Path
-import sys
 
 from structarray.meta import MetaReb
 
@@ -18,56 +17,15 @@ from elftools.elf.elffile import ELFFile
 
 die_encoding_str = 'xyNwRZZNN'
 
-if False :
-	Base = collections.namedtuple('Base', ['name', 'mtype', 'msize'])
-	Pointer = collections.namedtuple('Pointer', ['type', 'size'])
-	Typedef = collections.namedtuple('Typedef', ['type', 'name'])
-	Array = collections.namedtuple('Array', ['type', 'shape'])
-	Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
-	Structure = collections.namedtuple('Structure', ['size', 'detail'])
-	Variable = collections.namedtuple('Variable', ['type', 'name'])
-else :
-	@dataclasses.dataclass
-	class Base() :
-		name: str
-		mtype: str
-		msize: int
+Base = collections.namedtuple('Base', ['name', 'mtype'])
+Pointer = collections.namedtuple('Pointer', ['type', 'size'])
+Typedef = collections.namedtuple('Typedef', ['type', 'alias'])
+Array = collections.namedtuple('Array', ['type', 'shape'])
+Structure = collections.namedtuple('Structure', ['size', 'detail'])
+Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
+Variable = collections.namedtuple('Variable', ['type', 'name'])
 
-	@dataclasses.dataclass
-	class Pointer() :
-		type: int
-		size: int
-
-	@dataclasses.dataclass
-	class Typedef() :
-		type: int
-		name: str
-
-	@dataclasses.dataclass
-	class Array() :
-		type: int
-		shape: tuple[int]
-
-	@dataclasses.dataclass
-	class Member() :
-		type: int
-		name: str
-		offset: int
-
-	@dataclasses.dataclass
-	class Structure() :
-		size: int
-		detail: list[Member]
-
-		def _to_json(self) :
-			return {f"@Structure(size={self.size}, detail=...)" : self.detail}
-
-	@dataclasses.dataclass
-	class Variable() :
-		type: int
-		name: str
-
-class ElfParser() :
+class Elf2Tree() :
 	"""
 	TODO:
 	    si on a un tableau de structure, y a des trucs qui pourraient
@@ -91,11 +49,10 @@ class ElfParser() :
 	}
 
 	def __init__(self, elf_pth) :
-		self.t_lst = [time.time(),]
-		
-		self.top = self.load(elf_pth)
-		self.chrono("elftools.get_top_DIE()")
+		self.time_lst = [time.time(),]
 
+		self.u = TypeTree()
+		
 		self.r_map = collections.defaultdict(dict)
 		self.s_map = dict() # liste des symboles de haut niveau
 
@@ -107,19 +64,13 @@ class ElfParser() :
 
 		for top in self.load(elf_pth) :
 			self.parse(top)
-			self.chrono(f"parse({top.attributes['DW_AT_name'].value.decode('utf8')})")
+			self.chrono("parse({top})")
 
-		self.chrono("parse()")
-
-		Path("r_map.json").save(self.r_map, verbose=True)
-		Path("s_map.json").save(self.s_map, verbose=True)
-
-		Path("typedef_map.json").save(self.typedef_map, verbose=True)
-		Path("variable_map.json").save(self.variable_map, verbose=True)
-		Path("base_map.json").save(self.base_map, verbose=True)
+		Path("r_map.json").save(self.r_map)
+		Path("s_map.json").save(self.s_map)
 
 	def run(self, name, mapping_pth, is_relative=True, is_compact=True) :
-		
+
 		self.default_name = name
 
 		def as_array(shape) :
@@ -216,8 +167,8 @@ class ElfParser() :
 				raise ValueError(m_lst, q)
 
 	def chrono(self, label) :
-		self.t_lst.append(time.time())
-		print(f"{self.t_lst[-1] - self.t_lst[-2]:7.3f} /{self.t_lst[-1] - self.t_lst[0]:7.3f} :: {label}") 
+		self.time_lst.append(time.time())
+		print(f"{self.time_lst[-1] - self.time_lst[-2]:7.3f} /{self.time_lst[-1] - self.time_lst[0]:7.3f} :: {label}") 
 
 	def load(self, pth) :
 		with Path(pth).open('rb') as fid :
@@ -231,10 +182,11 @@ class ElfParser() :
 			self.chrono("elftools.get_dwarf_info()")
 
 		for unit in self.info.iter_CUs() :
+			# print(unit, unit.get_top_DIE())
 			yield unit.get_top_DIE()
 
 	def parse(self, top) :
-		if not top.has_children :
+		if not self.top.has_children :
 			raise ValueError
 
 		for i, child in enumerate(top.iter_children()) :
@@ -244,25 +196,24 @@ class ElfParser() :
 				getattr(self, func)(child)
 				if 'DW_AT_sibling' in child.attributes :
 					self.s_map[child.attributes['DW_AT_sibling'].value] = child.offset
-			except AttributeError :
+			except (AttributeError, KeyError) :
 				print(f"ERROR::{func}::{child}")
+
+		Path("r_map.json").save(self.r_map, verbose=True)
 
 	def _parse_base_type(self, die) :
 		p = Base(
 			die.attributes['DW_AT_name'].value.decode('utf8'),
-			die_encoding_str[die.attributes['DW_AT_encoding'].value],
-			die.attributes['DW_AT_byte_size'].value
+			(die_encoding_str[die.attributes['DW_AT_encoding'].value], die.attributes['DW_AT_byte_size'].value)
 		)
 		self.r_map[die.offset] = p
-		self.base_map[p.name] = p.mtype
 
 	def _parse_typedef(self, die) :
 		p = Typedef(
-			die.attributes['DW_AT_type'].value if 'DW_AT_type' in die.attributes else None,
+			die.attributes['DW_AT_type'].value,
 			die.attributes['DW_AT_name'].value.decode('utf8')
 		)
 		self.r_map[die.offset] = p
-		self.typedef_map[p.name] = p.type
 
 	def _parse_array_type(self, die) :
 		u_lst = list()
@@ -270,7 +221,7 @@ class ElfParser() :
 			if 'DW_AT_upper_bound' in child.attributes :
 				u_lst.append(child.attributes['DW_AT_upper_bound'].value + 1)
 			else :
-				print(child)
+				print("error parsing array:", child)
 		p = Array(
 			die.attributes['DW_AT_type'].value,
 			tuple(u_lst),
@@ -278,21 +229,12 @@ class ElfParser() :
 		self.r_map[die.offset] = p
 
 	def _parse_pointer_type(self, die) :
+		print("RAAAH", die, die.attributes)
 		p = Pointer(
-			die.attributes['DW_AT_type'].value if 'DW_AT_type' in die.attributes else None,
+			die.attributes['DW_AT_type'].value,
 			die.attributes['DW_AT_byte_size'].value,
 		)
 		self.r_map[die.offset] = p
-
-
-	def _parse_const_type(self, die) :
-		if 'DW_AT_name' in die.attributes :
-			p = Variable(
-				die.attributes['DW_AT_type'].value,
-				die.attributes['DW_AT_name'].value.decode('utf8')
-			)
-			self.r_map[die.offset] = p
-			self.variable_map[p.name] = p.type
 
 	def _parse_variable(self, die) :
 		if 'DW_AT_name' in die.attributes :
@@ -301,16 +243,6 @@ class ElfParser() :
 				die.attributes['DW_AT_name'].value.decode('utf8')
 			)
 			self.r_map[die.offset] = p
-			self.variable_map[p.name] = p.type
-
-	def _parse_volatile_type(self, die) :
-		if 'DW_AT_name' in die.attributes :
-			p = Variable(
-				die.attributes['DW_AT_type'].value,
-				die.attributes['DW_AT_name'].value.decode('utf8')
-			)
-			self.r_map[die.offset] = p
-			self.variable_map[p.name] = p.type
 
 	def _parse_structure_type(self, die) :
 		m_lst = list()
@@ -318,29 +250,20 @@ class ElfParser() :
 			if child.tag == 'DW_TAG_member' :
 				m_lst.append(Member(
 					child.attributes['DW_AT_type'].value,
-					child.attributes['DW_AT_name'].value.decode('utf8') if ('DW_AT_name' in child.attributes) else None,
+					child.attributes['DW_AT_name'].value.decode('utf8'),
 					child.attributes['DW_AT_data_member_location'].value,
 				))
 		p = Structure(
-			die.attributes['DW_AT_byte_size'].value if 'DW_AT_byte_size' in die.attributes else None,
+			die.attributes['DW_AT_byte_size'].value,
 			m_lst
 		)
 		self.r_map[die.offset] = p
 
-	def _parse_enumeration_type(self, die) :
-		pass
-
-	def _parse_union_type(self, die) :
-		pass
 
 	def _parse_subprogram(self, die) :
+		# on veut pas traiter les sous programmes
 		pass
 
-	def _parse_subroutine_type(self, die) :
-		pass
 
-if __name__ == "__main__" :
-
-	elf_pth = Path(sys.argv[1])
-	name = sys.argv[2].strip()
-	u = ElfParser(elf_pth).run(name, Path("context.tsv"))
+if __name__ == '__main__' :
+	u = Elf2Tree(Path(sys.argv[1]))
