@@ -39,6 +39,10 @@ else :
 		oid: int
 		sizeof: int
 
+		@property
+		def letter(self) :
+			return "P"
+
 	@dataclasses.dataclass
 	class Typedef() :
 		oid: int
@@ -122,29 +126,23 @@ class ElfParser() :
 		# 	w_lst.append(self.expand_struct(m_lst))
 		# Path("walk.tsv").save(w_lst)
 
-	def run(self, name, mapping_pth, is_relative=True, is_compact=True) :
+	def get_meta(self, name, dump_as=None) :
 
-		self.default_name = name
+		oid = self.get_root(name)
 
 		def as_array(shape) :
 			return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
 
-		u = MetaReb(name)
+		u = MetaReb(self.r_map[oid].alias, self.to_base(self.r_map[oid]).sizeof)
 
-		for m_lst in self.walk(name) :
-			# print(m_lst)
-			p_lst = [m[0] for m in m_lst[:-1] if m[0] is not None]
-			p_lst.append(m_lst[-1][0] + as_array(m_lst[-1][1]))
-			u.push('.'.join(p_lst), m_lst[-1][2], m_lst[-1][3])
-		u.sizeof = self.sizeof
+		for m_lst in self.walk(oid) :
+			p_lst = [obj.name for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
+			u.push('.'.join(p_lst), f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
+
 		self.chrono("dump()")
 
-		u.dump(mapping_pth.with_suffix(".debug.tsv"), False, False)
-		u.dump(mapping_pth, is_relative, is_compact)
-
-		mapping_pth.with_suffix(".debug.json").save(u._m, verbose=True)
-		
-		self.chrono("total()")
+		if dump_as is not None :
+			u.dump(dump_as, False, False)
 
 		return u
 
@@ -176,7 +174,7 @@ class ElfParser() :
 
 	def to_base(self, q) :
 		while isinstance(q, Typedef) :
-			q = self.r_map[q.type]
+			q = self.r_map[q.oid]
 		return q
 
 	def expand(self, m_lst) :
@@ -241,13 +239,15 @@ class ElfParser() :
 
 		assert isinstance(obj, Typedef)
 
-		return oid, list(), obj, 0
+		return oid
 
-	def walk(self, name, max_depth=None, follow_pointer=False) :
+	def walk(self, oid, max_depth=None, follow_pointer=False) :
 
 		# TODO: au lieu de mettre un simple oid, on peut mettre un o_lst qui cumule la liste des oid traversés... ou alors juste le un champ oid type
 
-		yield from self._walk([self.get_root(name),], max_depth, follow_pointer)
+		obj = self.r_map[oid]
+
+		yield from self._walk([(oid, list(), obj, 0),], max_depth, follow_pointer)
 
 	def _walk(self, m_lst, max_depth, follow_pointer, depth=0) :
 		

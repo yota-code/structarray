@@ -45,7 +45,8 @@ class PlotSA() :
 	def load(self) :
 		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
 
-		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time'))
+		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time_ms'))
+
 		if time_lst :
 			self.t_arr = self.sa[time_lst[0][1]]
 		else :
