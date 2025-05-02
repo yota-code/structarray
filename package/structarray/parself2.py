@@ -80,15 +80,6 @@ else :
 
 class ElfParser() :
 
-	mtype = {
-		'R8' : "double",
-		'R4' : "float",
-		'Z4' : "int32_t",
-		'N4' : "uint32_t",
-		'Z1' : "int8_t",
-		'N1' : "uint8_t",
-	}
-
 	def __init__(self, elf_pth) :
 		self._time_lst = [time.time(),]
 
@@ -126,7 +117,7 @@ class ElfParser() :
 		# 	w_lst.append(self.expand_struct(m_lst))
 		# Path("walk.tsv").save(w_lst)
 
-	def get_meta(self, name, dump_as=None) :
+	def get_meta(self, name) :
 
 		oid = self.get_root(name)
 
@@ -138,11 +129,6 @@ class ElfParser() :
 		for m_lst in self.walk(oid) :
 			p_lst = [obj.name for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
 			u.push('.'.join(p_lst), f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
-
-		self.chrono("dump()")
-
-		if dump_as is not None :
-			u.dump(dump_as, False, False)
 
 		return u
 
