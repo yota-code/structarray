@@ -97,12 +97,12 @@ class ElfParser() :
 			self.parse(top)
 			self.chrono(f"parse(\x1b[33m{top.attributes['DW_AT_name'].value.decode('utf8')}\x1b[0m)")
 
-		Path("r_map.json").save(self.r_map, verbose=True)
-		Path("s_map.json").save(self.s_map, verbose=True)
-		Path("p_map.json").save(self.p_map, verbose=True)
-		Path("typedef_map.json").save(self.typedef_map, verbose=True)
-		Path("variable_map.json").save(self.variable_map, verbose=True)
-		Path("base_map.json").save(self.base_map, verbose=True)
+		# Path("r_map.json").save(self.r_map, verbose=True)
+		# Path("s_map.json").save(self.s_map, verbose=True)
+		# Path("p_map.json").save(self.p_map, verbose=True)
+		# Path("typedef_map.json").save(self.typedef_map, verbose=True)
+		# Path("variable_map.json").save(self.variable_map, verbose=True)
+		# Path("base_map.json").save(self.base_map, verbose=True)
 
 		# w_lst = list()
 		# for i, m_lst in enumerate(self.walk('_C_MfcAfcs')) :
