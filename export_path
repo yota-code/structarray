@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+STRUCTARRAY_root_DIR=$(dirname $(realpath ${BASH_SOURCE[0]:-$0}))
+
+export PATH=$STRUCTARRAY_root_DIR/script:$PATH
+export PYTHONPATH=$STRUCTARRAY_root_DIR/package:$PYTHONPATH
+
+if type -t chell_path_cleanup &> /dev/null
+then
+	chell_path_cleanup
+fi
+
+hash -r
