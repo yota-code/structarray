@@ -34,6 +34,9 @@ def ispi(line) :
 	return ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name or 'drift' in name) and 'psidot' not in name and 'psiddot' not in name
 
 class PlotSA() :
+
+	period = 0.1
+
 	def __init__(self, data_pth, meta_pth, bookmark_dir) :
 		self.data_pth = data_pth
 		self.meta_pth = meta_pth
@@ -44,18 +47,10 @@ class PlotSA() :
 
 	def load(self) :
 		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
-
-		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time_ms'))
-
-		if time_lst :
-			self.t_arr = self.sa[time_lst[0][1]]
-		else :
-			self.t_arr = np.arange(len(self.sa))
-
+		self.t_arr = np.arange(len(self.sa)) * self.period
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
 
 	def run(self) :
-		r_lst = list()
 		while True :
 			ans = input(">>> ").strip()
 			if not ans :
@@ -96,8 +91,7 @@ class PlotSA() :
 							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
 						y_val = (y_val + 360.0) % 360.0
 						y_val = np.where(y_val > 180.0, y_val - 360.0, y_val)
-
-						
+					
 					print(f"{name} = {y_val}")
 
 			elif ans.startswith('#') :
@@ -195,7 +189,6 @@ class PlotSA() :
 						plt.plot(self.t_arr, y_arr, format, ** m)
 					y_lst.append(y_arr)
 				else :
-					print(self.sa.meta)
 					print(f"{name} not found")
 					print('\n'.join(self.sa.meta.search(name)))
 				print(m)
@@ -212,6 +205,7 @@ class PlotSA() :
 			except ValueError :
 				pass
 
+		
 			plt.grid()
 			plt.legend()
 
@@ -225,7 +219,7 @@ if __name__ == '__main__' :
 
 	print(bookmark_dir)
 
-	n_lst = '0123456789abcdefijklmnpqrstuvxyz'
+	n_lst = '0123456789abcdefgjklmnpqrstuvxyz'
 
 	parser = argparse.ArgumentParser(description='Convert a meta (*.sam.tsv) and data (*.sad.bin) file into a tsv file')
 
@@ -237,7 +231,7 @@ if __name__ == '__main__' :
 	data_pth = (p.data).resolve()
 
 	if p.meta is None :
-		meta_pth = Path("context_map.tsv")
+		meta_pth = (p.data.parent / "mapping.tsv")
 	else :
 		meta_pth = (p.meta).resolve()
 

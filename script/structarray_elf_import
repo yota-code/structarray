@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""
+le moyen le plus rapide de récupérer le .debug_info:
+readelf -wi *.o
+"""
+
+# à REFACTORER en utilisant parself
+
+import collections
+import pprint
+import time
+
+from cc_pathlib import Path
+import sys
+
+from structarray.meta import MetaReb
+
+from elftools.elf.elffile import ELFFile
+
+die_encoding_str = 'xyNwRZZNN'
+
+Base = collections.namedtuple('Base', ['name', 'mtype'])
+Pointer = collections.namedtuple('Pointer', ['type', 'size'])
+Typedef = collections.namedtuple('Typedef', ['type', 'name'])
+Array = collections.namedtuple('Array', ['type', 'shape'])
+Structure = collections.namedtuple('Structure', ['size', 'detail'])
+Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
+Variable = collections.namedtuple('Variable', ['type', 'name'])
+
+class ParserElfTools() :
+	def __init__(self, elf_pth, name, mapping_pth) :
+		self.t_lst = [time.time(),]
+		
+		self.top = self.load(elf_pth)
+		self.chrono("elftools.get_top_DIE()")
+
+		self.r_map = collections.defaultdict(dict)
+		self.s_map = dict() # useless, could be removed
+
+		self.typedef_map = dict()
+		self.variable_map = dict()
+		self.base_map = dict()
+
+		self.parse()
+		self.chrono("parse()")
+
+		self.dump(name, mapping_pth)
+		self.chrono("total()")
+
+	def dump(self, name, mapping_pth) :
+
+		def as_array(shape) :
+			return ''.join(f'[{s+1}]' for s in shape) if isinstance(shape, tuple) else ''
+
+		u = MetaReb(name)
+		for m_lst in self.iter_structure(name) :
+			p_lst = [m[0] for m in m_lst[:-1] if m[0] is not None]
+			p_lst.append(m_lst[-1][0] + as_array(m_lst[-1][1]))
+			u.push('.'.join(p_lst), m_lst[-1][2], m_lst[-1][3])
+		u.sizeof = self.sizeof
+		self.chrono("dump()")
+
+		u.dump(mapping_pth.with_suffix('.full.tsv'), False, False)
+		u.dump(mapping_pth, True, True)
+
+	def iter_structure(self, name) :
+		# name can either be the name of a global variable or a the name of a typedef
+
+		if name in self.variable_map :
+			cident, ctype = self.variable_map[name]
+		elif name in self.typedef_map :
+			cident, ctype = self.typedef_map[name], name
+		else :
+			raise ValueError
+
+		self.sizeof = self.r_map[cident].size
+
+		yield from self._walk([(None, cident, ctype, 0),])
+
+	def to_base(self, q) :
+		while isinstance(q, Typedef) :
+			q = self.r_map[q.type]
+		return q
+
+	def _walk(self, m_lst, depth=0) :
+
+		pname, pident, ptype, poffset = m_lst[-1]
+		q = self.r_map[pident]
+
+		match q :
+			case Base() :
+				m_lst[-1] = (pname, None, q.mtype, poffset)
+				yield m_lst
+			case Typedef() :
+				m_lst[-1] = (pname, q.type, q.name, poffset)
+				yield from self._walk(m_lst)
+			case Structure() :
+				for m in self.r_map[m_lst[-1][1]].detail :
+					yield from self._walk(m_lst + [(m.name, m.type, None, poffset + m.offset),], depth+1)
+			case Pointer() :
+				m_lst[-1] = (pname, self.r_map[q.type].name, f"P{q.size}", poffset)
+				yield m_lst
+			case Array() :
+				m_lst[-1] = (pname, q.shape, self.to_base(self.r_map[q.type]).mtype, poffset)
+				yield m_lst
+			case _ :
+				raise ValueError(m_lst, q)
+
+	def chrono(self, label) :
+		self.t_lst.append(time.time())
+		print(f"{self.t_lst[-1] - self.t_lst[-2]:7.3f} /{self.t_lst[-1] - self.t_lst[0]:7.3f} :: {label}") 
+
+	def load(self, pth) :
+		with Path(pth).open('rb') as fid :
+			elffile = ELFFile(fid)
+			self.chrono("elftools.ELFFile()")
+
+			if not elffile.has_dwarf_info() :
+				raise ValueError
+
+			self.info = elffile.get_dwarf_info(relocate_dwarf_sections=False, follow_links=False)
+			self.chrono("elftools.get_dwarf_info()")
+
+		for unit in self.info.iter_CUs() :
+			return unit.get_top_DIE()
+
+	def parse(self) :
+		if not self.top.has_children :
+			raise ValueError
+
+		for i, child in enumerate(self.top.iter_children()) :
+			tag = child.tag.removeprefix('DW_TAG_')
+			func = f"_parse_{tag}"
+			try :
+				getattr(self, func)(child)
+				if 'DW_AT_sibling' in child.attributes :
+					self.s_map[child.offset] = child.attributes['DW_AT_sibling'].value
+			except AttributeError :
+				print(f"unknown: {func}")
+
+	def _parse_base_type(self, die) :
+		p = Base(
+			die.attributes['DW_AT_name'].value.decode('utf8'),
+			f"{die_encoding_str[die.attributes['DW_AT_encoding'].value]}{die.attributes['DW_AT_byte_size'].value}"
+		)
+		self.r_map[die.offset] = p
+		self.base_map[p.name] = p.mtype
+
+	def _parse_typedef(self, die) :
+		p = Typedef(
+			die.attributes['DW_AT_type'].value,
+			die.attributes['DW_AT_name'].value.decode('utf8')
+		)
+		self.r_map[die.offset] = p
+		self.typedef_map[p.name] = p.type
+
+	def _parse_array_type(self, die) :
+		u_lst = list()
+		for i, child in enumerate(die.iter_children()) :
+			if 'DW_AT_upper_bound' in child.attributes :
+				u_lst.append(child.attributes['DW_AT_upper_bound'].value)
+			else :
+				print(child)
+		p = Array(
+			die.attributes['DW_AT_type'].value,
+			tuple(u_lst),
+		)
+		self.r_map[die.offset] = p
+
+	def _parse_pointer_type(self, die) :
+		p = Pointer(
+			die.attributes['DW_AT_type'].value,
+			die.attributes['DW_AT_byte_size'].value,
+		)
+		self.r_map[die.offset] = p
+
+	def _parse_variable(self, die) :
+		if 'DW_AT_name' in die.attributes :
+			p = Typedef(
+				die.attributes['DW_AT_type'].value,
+				die.attributes['DW_AT_name'].value.decode('utf8')
+			)
+			self.r_map[die.offset] = p
+			self.variable_map[p.name] = p.type
+
+	def _parse_structure_type(self, die) :
+		m_lst = list()
+		for i, child in enumerate(die.iter_children()) :
+			if child.tag == 'DW_TAG_member' :
+				m_lst.append(Member(
+					child.attributes['DW_AT_type'].value,
+					child.attributes['DW_AT_name'].value.decode('utf8'),
+					child.attributes['DW_AT_data_member_location'].value,
+				))
+		p = Structure(
+			die.attributes['DW_AT_byte_size'].value,
+			m_lst
+		)
+		self.r_map[die.offset] = p
+
+if __name__ == '__main__':
+
+	print("ELF_IMPORT ::", sys.argv)
+	u = ParserElfTools(Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3]))

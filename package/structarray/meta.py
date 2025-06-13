@@ -35,7 +35,6 @@ ntype_map = { # types numpy
 	'R8' : "float64",
 }
 
-
 def compact_name(v_lst) :
 	# validated
 	# remove duplicate parts from the variable names
@@ -72,23 +71,32 @@ def expand_name(r_lst) :
 class MetaGeneric() :
 	""" decrit les adresses d'un blob binaire
 	TODO : tout remettre la dedans, seuls les loader changent suivant le format
-	et même MetaParse devrait être ici
+	et même MetaParse devrait être ici...
+	ou pas, on devrait avoir un parseur par type de données d'entrées
 	"""
 	def __getitem__(self, key) :
 		return self._m[key]
 
 class MetaReb(MetaGeneric) :
+	""" un gestionnaire des méta données pour les enregistrements .reb """
 	
-	def __init__(self) :
-		self._m = collections.OrderedDict()
+	def __init__(self, name=None, sizeof=None) :
+		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
+		
+		self.name = name
+		self.sizeof = sizeof
 
-		self.name = None
-		self.sizeof = None
+	def push(self, name, mtype, addr) :
+		self._m[name] = (mtype, addr)
 
-	def __iter__(self) :
+	def iter_nop(self) :
 		for name, (mtype, addr) in self._m.items() :
 			if not mtype.startswith('P') :
 				yield name
+
+	def __iter__(self) :
+		for name, (mtype, offset) in self._m.items() :
+			yield name, mtype, offset
 		
 	def load(self, pth) :
 		pth = Path(pth).resolve()
@@ -99,7 +107,6 @@ class MetaReb(MetaGeneric) :
 			raise FileNotFoundError(f"{pth} does not exists")
 		
 		self._m = collections.OrderedDict()
-		self._v = list()
 
 		obj = pth.load()
 		
@@ -111,7 +118,9 @@ class MetaReb(MetaGeneric) :
 		return self
 
 	def _load_addr(self, obj) :
-		is_relative = len(obj[0]) == 2 # or ( len(obj[0]) == 3 and int(obj[0][2]) == 0 )
+		""" si la première ligne des addresses ne contient que 2 champs,
+		on considère que c'est un fichier décrit en relatif """
+		is_relative = len(obj[0]) == 2
 
 		addr = 0
 		for line in obj :
@@ -123,6 +132,7 @@ class MetaReb(MetaGeneric) :
 				raise ValueError(f"malformed line, {line}")
 			
 			if '/' in name :
+				# si y a un / c'est que le nom est compact
 				c, sep, z = name.partition('/')
 				try :
 					name = '.'.join(prev.split('.')[:int(c)]) + '.' + z
@@ -144,7 +154,7 @@ class MetaReb(MetaGeneric) :
 		if not pth.suffix == '.tsv' :
 			raise ValueError
 		if self.sizeof is None :
-			raise ValueError
+			raise ValueError("self.sizeof is not defined !")
 		
 		s_lst = [
 			[self.name, self.sizeof],
@@ -169,19 +179,24 @@ class MetaReb(MetaGeneric) :
 					q += 1
 				name = (f"{q}/" if q else '') + '.'.join(n_lst[q:])
 				p_lst = n_lst
-
 			if is_relative :
+				element_nbr = (int(re.match(r'.*?\[(?P<size>\d+)\]', name).group('size')) - 1) if name.endswith(']') else 1
+
 				if s_lst :
-					padding = addr - prev - int(s_lst[-1][1][1:])
+					padding = addr - prev
+					# assert 0 <= padding < 7
 					if padding != 0 :
 						s_lst[-1].append(padding)
+
 				s_lst.append([name, mtype,])
-				prev = addr
+
+				element_size = int(s_lst[-1][1][1:])
+				prev = addr + (element_size * element_nbr)
 			else :
 				s_lst.append([name, mtype, addr])
 
 		if is_relative :
-			padding = self.sizeof - prev - int(s_lst[-1][1][1:])
+			padding = self.sizeof - prev
 			if padding != 0 :
 				s_lst[-1].append(padding)
 
@@ -206,6 +221,9 @@ class MetaReb(MetaGeneric) :
 				print(f"{name} is not aligned: size={sizeof_map[ctype]} offeset={offset}")
 				return False
 		return True
+
+	def __contains__(self, key) :
+		return key in self._m
 	
 	def search(self, pattern, mode='blob') :
 		# print(f"StructArray.search({pattern}, {mode})")
@@ -214,7 +232,7 @@ class MetaReb(MetaGeneric) :
 		elif mode == 'regexp' :
 			pass
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
-		return [var for var in self if rec.search(var) is not None]
+		return [var for var in self.iter_nop() if rec.search(var) is not None]
 
 
 def expand_name_gen() :

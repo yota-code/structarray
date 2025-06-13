@@ -6,8 +6,9 @@ from cc_pathlib import Path
 
 import structarray.info
 
-u = structarray.info.StructInfo(Path(sys.argv[1]), Path(sys.argv[2]))
+u = structarray.info.MetaParser(Path(sys.argv[1]))
 
-u.parse(sys.argv[3])
+u.parse(sys.argv[2])
 u.save_relative(Path("mapping.tsv"))
 u.save_absolute(Path("address.tsv"))
+u.save(Path("okokok.tsv"))
