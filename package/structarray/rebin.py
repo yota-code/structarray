@@ -65,7 +65,7 @@ class RebHandler() :
 		if self.end_of_file :
 			print(f"! possible incomplete block at the end of data, file will be truncated at {self.end_of_file}")
 
-		if 2**32 <= self.data_len :
+		if False : # 2**32 <= self.data_len :
 			self.data = self.data_pth # direct file access mode for files of more than 4 GiBytes
 			if not self.cache_disabled :
 				try :
@@ -142,9 +142,9 @@ class RebHandler() :
 		self.extract_lst = list()
 		
 	def extract(self, start=None, stop=None) :
-		for k in self.meta :
-			if k not in self.extract_map :
-				self.extract_map[k] = self[k][start:stop]
+		for name in self.meta.iter_nop() :
+			if name not in self.extract_map :
+				self.extract_map[name] = np.array(self[name][start:stop])
 		return self.extract_map
 
 	def get_stack(self) :
@@ -174,6 +174,7 @@ class RebHandler() :
 
 	def debug(self, pth) :
 		self.extract()
+
 		stack = self.get_stack()
 		header = stack[0]
 		has_error = False
@@ -182,10 +183,6 @@ class RebHandler() :
 		for n, line in enumerate(stack[1:]) :
 			print(f"---  {n}")
 			for i, item in enumerate(line) :
-				if header[i] in [
-					'_C_3_upmv_core._C_1_C__root__._C_1_C_goaround._C_1_C_goaround_ver._L115_upmv_app'
-				] :
-					continue
 				if math.isnan(item) :
 					print(f"NAN \x1b[31m{header[i]}\x1b[0m")
 					has_error = True
