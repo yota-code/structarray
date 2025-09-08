@@ -80,11 +80,11 @@ class MetaGeneric() :
 class MetaReb(MetaGeneric) :
 	""" un gestionnaire des méta données pour les enregistrements .reb """
 	
-	def __init__(self, name=None, sizeof=None) :
+	def __init__(self, name=None, sizeof=None, default_padding=8) :
 		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
 		
 		self.name = name
-		self.sizeof = sizeof
+		self.sizeof = ((sizeof // default_padding) + 1) * default_padding if sizeof % default_padding else sizeof
 
 	def push(self, name, mtype, addr) :
 		self._m[name] = (mtype, addr)
@@ -111,7 +111,8 @@ class MetaReb(MetaGeneric) :
 		obj = pth.load()
 		
 		line = obj.pop(0)
-		self.name, self.sizeof = line[0], int(line[1])
+		name, sizeof = line[0], int(line[1])
+		self.__init__(name, sizeof)
 		
 		self._load_addr(obj)
 
