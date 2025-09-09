@@ -84,7 +84,7 @@ class MetaReb(MetaGeneric) :
 		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
 		
 		self.name = name
-		self.sizeof = ((sizeof // default_padding) + 1) * default_padding if sizeof % default_padding else sizeof
+		self.sizeof = sizeof if sizeof is None  or sizeof % default_padding else (((sizeof // default_padding) + 1) * default_padding)
 
 	def push(self, name, mtype, addr) :
 		self._m[name] = (mtype, addr)
