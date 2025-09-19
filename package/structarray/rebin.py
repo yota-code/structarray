@@ -42,19 +42,22 @@ class RebHandler() :
 
 		self.array_len = 0
 		
-		# the following is deprecated
+		# the following is deprecated, replaced by meta
 		self.extract_map = dict()
 		self.extract_lst = list()
 
 	def __len__(self) :
 		return self.array_len
+
+	def __iter__(self) :
+		for name in self.meta.iter_nop() :
+			yield name, self[name]
 	
 	def load(self, data_pth, meta_pth=None) :
-
 		self.data_pth = Path(data_pth).resolve()
 		assert self.data_pth.suffix == '.reb'
 
-		self.meta_pth = self.data_pth.parent / "mapping.tsv" if meta_pth is None else Path(meta_pth).resolve()
+		self.meta_pth = self.data_pth.parent / "context_map.tsv" if meta_pth is None else Path(meta_pth).resolve()
 		self.meta.load(self.meta_pth)
 
 		self.data_len = self.data_pth.stat().st_size
@@ -196,12 +199,12 @@ class RebHandler() :
 		self.to_listing(pth.with_suffix('.1.tsv'), n-1)
 
 	def to_rez(self) :
-
-		""" en deux passes ? la première repère les vecteurs constants ou identiques 
+		"""
+		Le rez est un fichier archivé, ultra compact.
+		La compression se fait en deux passes ? la première repère les vecteurs constants ou identiques 
 		la deuxième fourre tout dans un hdf5 ? mais ça fait lire le fichier 2 fois
 		
 		ou alors on stocke dans des fichiers temporaires pour chaque type
-
 		"""
 
 		import brotli
@@ -214,19 +217,19 @@ class RebHandler() :
 
 		archive_pth = self.data_pth.with_suffix('.rez')
 
-		try :
-			import hdf5plugin
+		# try :
+		# 	import hdf5plugin
 
-			h5py_opt = dict(
-				hdf5plugin.Blosc2(cname='zstd', clevel=9, filters=hdf5plugin.Blosc2.SHUFFLE | hdf5plugin.Blosc2.DELTA)
-			)
-		except :
-			h5py_opt = {
-				'compression' : "gzip",
-				'compression_opts' : 9,
-				'shuffle' : True,
-				# 'fletcher32' : True,
-			}
+		# 	h5py_opt = dict(
+		# 		hdf5plugin.Blosc2(cname='zstd', clevel=9, filters=hdf5plugin.Blosc2.SHUFFLE | hdf5plugin.Blosc2.DELTA)
+		# 	)
+		# except :
+		h5py_opt = {
+			'compression' : "gzip",
+			'compression_opts' : 9,
+			'shuffle' : True,
+			'fletcher32' : True,
+		}
 
 		print(h5py_opt)
 
@@ -239,7 +242,7 @@ class RebHandler() :
 			archive_pth.unlink()
 
 		e_map = dict()
-		for c in ['R8', 'R4', 'Z4', 'Z2', 'Z1', 'N4', 'N2', 'N1'] :
+		for c in stype_map :
 			i_lst = [i for i, v in enumerate(v_lst) if self.meta[v][0] == c]
 			print(f"{c} {0:7d} / {len(i_lst)}")
 			if i_lst :
@@ -273,7 +276,6 @@ class RebHandler() :
 				with h5py.File(archive_pth, 'a', libver="latest") as obj :
 					w = np.vstack(m)
 					print(f"\x1b[A\x1b[K{c} {len(i_lst):7d} / {len(i_lst)} => {w.shape[0]} rows")
-					print("RAAAH", w.shape)
 					obj.create_dataset('/' + c, data=w, ** h5py_opt)
 
 		f_lst = [str(self.array_len),] # on doit garder array_len dans les méta données parce qu'il se peut que TOUS les vecteurs soient constants
@@ -294,3 +296,23 @@ class RebHandler() :
 		print(f"\noriginal: {data_size + meta_size:15d} bytes ({meta_size:8d} meta)\n archive: {archive_size:15d} bytes ({len(meta_zip):8d} meta)\n => archive takes {100.0 * archive_size / (data_size + meta_size):0.5}% of original")
 
 		return archive_pth
+
+	def to_hdf5(self) :
+		""" for compatibility with matlab, let's keep it simple """
+
+		import h5py
+
+		h5py_opt = {
+			'compression' : "gzip",
+			'compression_opts' : 9,
+			'shuffle' : True,
+			'fletcher32' : True,
+		}
+
+		archive_pth = self.data_pth.with_suffix('.hdf5')
+		archive_pth.unlink(missing_ok=True)
+
+		with h5py.File(archive_pth, 'a', libver="latest") as obj :
+			for i, (name, data) in enumerate(self) :
+				print(f"\x1b[A\x1b[K{int(round(100.0 * i / len(self.meta))):3d}% {name}", flush=True)
+				obj.create_dataset(f'/{name}', data=data, ** h5py_opt)

@@ -94,7 +94,7 @@ class ElfParser() :
 
 	def __init__(self, elf_pth) :
 
-		warnings.warn("this class is deprecated, please migrate to next ElfParser() in elf_2_tree", DeprecationWarning, stacklevel=2)
+		warnings.warn("this class is deprecated, please migrate to next ElfParser() in parseelf2", DeprecationWarning, stacklevel=2)
 
 		self._time_lst = [time.time(),]
 		

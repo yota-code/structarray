@@ -54,7 +54,7 @@ def compact_name(v_lst) :
 
 def expand_name(r_lst) :
 	# validated
-	# undo the compaction and give back the original names
+	# undo the compaction and give back the original names and offset
 	v_lst = list()
 	p_lst = list()
 	for r in r_lst :
@@ -90,6 +90,7 @@ class MetaReb(MetaGeneric) :
 		self._m[name] = (mtype, addr)
 
 	def iter_nop(self) :
+		# TODO renomer ? nop c'est nul
 		for name, (mtype, addr) in self._m.items() :
 			if not mtype.startswith('P') :
 				yield name
@@ -97,8 +98,11 @@ class MetaReb(MetaGeneric) :
 	def __iter__(self) :
 		for name, (mtype, offset) in self._m.items() :
 			yield name, mtype, offset
+
+	def __len__(self) :
+		return len(self._m)
 		
-	def load(self, pth) :
+	def load(self, pth=None) :
 		pth = Path(pth).resolve()
 
 		if pth.suffix != '.tsv' :
