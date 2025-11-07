@@ -6,6 +6,7 @@ import math
 import os
 import readline
 import sys
+import traceback
 
 from cc_pathlib import Path
 
@@ -13,6 +14,7 @@ import structarray
 
 import numpy as np
 import matplotlib.pyplot as plt
+import mplcursors
 
 def clean_label(k_map) :
 	s_map = {k : '.'.join(v).lstrip('_') for k, v in k_map.items()}
@@ -57,74 +59,79 @@ class PlotSA() :
 	def run(self) :
 		r_lst = list()
 		while True :
-			ans = input(">>> ").strip()
-			if not ans :
-				continue
-			if ans.startswith('!') :
-				if ans.startswith('!q') :
-					sys.exit(0)
-				if ans.startswith('!r') :
-					self.load()
-			elif ans.startswith("@") :
-				bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
-				if bookmark_pth.is_file() :
-					p_lst = bookmark_pth.load()
-					self.plot(p_lst, ans[1:])
-				else :
-					print(f"file not found: {bookmark_pth}")
-					print('\n'.join(sorted(p.fname for p in bookmark_dir)))
-
-			elif ans.startswith('&') :
-				if ans == '&' :
-					ans = '&0'
-				try :
-					if '.' in ans[1:] :
-						print("time")
-						n = np.where(self.t_arr == float(ans[1:]))[0]
+			try:
+				ans = input(">>> ").strip()
+				if not ans :
+					continue
+				if ans.startswith('!') :
+					if ans.startswith('!q') :
+						sys.exit(0)
+					if ans.startswith('!r') :
+						self.load()
+				elif ans.startswith("@") :
+					bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
+					if bookmark_pth.is_file() :
+						p_lst = bookmark_pth.load()
+						self.plot(p_lst, ans[1:].replace("_", " ").title().strip())
 					else :
-						print("index")
-						n = int(ans[1:])
-				except ValueError :
-					return
-				print(n)
-				# n = min(self.sa.length - 1, n)
-				
-				for name in r_lst :
-					y_val = self.sa[name][n]
-					if ispi(name) :
-						if self.sa.meta[name][0] == 'Z4' :
-							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-						y_val = (y_val + 360.0) % 360.0
-						y_val = np.where(y_val > 180.0, y_val - 360.0, y_val)
+						print(f"file not found: {bookmark_pth}")
+						print('\n'.join(sorted(p.fname for p in bookmark_dir)))
 
-						
-					print(f"{name} = {y_val}")
+				elif ans.startswith('&') :
+					if ans == '&' :
+						ans = '&0'
+					try :
+						if '.' in ans[1:] :
+							print("time")
+							n = np.where(self.t_arr == float(ans[1:]))[0]
+						else :
+							print("index")
+							n = int(ans[1:])
+					except ValueError :
+						return
+					print(n)
+					# n = min(self.sa.length - 1, n)
+					
+					for name in r_lst :
+						y_val = self.sa[name][n]
+						if ispi(name) :
+							if self.sa.meta[name][0] == 'Z4' :
+								y_val = 360.0 * y_val.astype(np.double) / 0x100000000
+							y_val = (y_val + 360.0) % 360.0
+							y_val = np.where(y_val > 180.0, y_val - 360.0, y_val)
 
-			elif ans.startswith('#') :
-				if ans == '#' :
-					ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
-				print(ans)
-				p_lst = list()
-				for p in ans[1:].split(';') :
-					g_lst = list()
-					for g in p.split() :
-						try :
-							g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
-						except :
-							print(g, n_lst)
-							raise
-					p_lst.append(g_lst)
-				self.plot(p_lst)
-			elif ans.startswith('?') :
-				r_lst = self.sa.meta.search(ans[1:], mode='regexp')
-				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
-				if len(r_lst) >= 32 :
-					print('...')
-			else : # default to blob research mode
-				r_lst = self.sa.meta.search(ans)
-				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
-				if len(r_lst) >= 32 :
-					print('...')
+							
+						print(f"{name} = {y_val}")
+
+				elif ans.startswith('#') :
+					if ans == '#' :
+						ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
+					print(ans)
+					p_lst = list()
+					for p in ans[1:].split(';') :
+						g_lst = list()
+						for g in p.split() :
+							try :
+								g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
+							except :
+								print(g, n_lst)
+								raise
+						p_lst.append(g_lst)
+					self.plot(p_lst)
+				elif ans.startswith('?') :
+					r_lst = self.sa.meta.search(ans[1:], mode='regexp')
+					print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
+					if len(r_lst) >= 32 :
+						print('...')
+				else : # default to blob research mode
+					r_lst = self.sa.meta.search(ans)
+					print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
+					if len(r_lst) >= 32 :
+						print('...')
+			except Exception as e: 
+				print("FATAL error occured \n ",e)
+				print(traceback.format_exc())
+				print("--------------------------------------")
 
 	def plot(self, p_lst, title=None) :
 
@@ -135,12 +142,12 @@ class PlotSA() :
 			fig.suptitle(title)
 		else :
 			fig = plt.figure()
-
+		
 		if isinstance(p_lst[0], dict) :
 			meta = p_lst.pop(0)
 		else :
 			meta = dict()
-
+		
 		if 'col' in meta :
 			n_col = meta['col']
 			n_row = int(math.ceil(len(p_lst) / n_col))
@@ -149,6 +156,8 @@ class PlotSA() :
 
 		k_map = dict()
 		for g_lst in p_lst :
+			if isinstance(g_lst[0], dict) :
+				g_lst = g_lst[1:]
 			for name, color, opacity, width, format in g_lst :
 				k_map[name] = name.split('.')
 		k_map = clean_label(k_map)
@@ -163,8 +172,14 @@ class PlotSA() :
 				q = plt.subplot(n_row, n_col, i+1, sharex=z)
 				if i+1 < len(p_lst) :
 					plt.setp(q.get_xticklabels(), visible=False)
-
 			y_lst = list()
+			
+			# get figure parameters
+			if isinstance(g_lst[0], dict) :
+				fig_param = g_lst.pop(0)
+			else :
+				fig_param = dict()
+			q.update(fig_param)
 
 			for name, color, opacity, width, format in g_lst :
 				m = dict()
@@ -222,7 +237,6 @@ class PlotSA() :
 if __name__ == '__main__' :
 
 	bookmark_dir = Path(os.environ.get("STRUCTARRAY_bookmark_DIR", "")).resolve()
-
 	print(bookmark_dir)
 
 	n_lst = '0123456789abcdefijklmnpqrstuvxyz'
