@@ -17,15 +17,16 @@ import matplotlib.pyplot as plt
 import mplcursors
 
 def clean_label(k_map) :
+
 	s_map = {k : '.'.join(v).lstrip('_') for k, v in k_map.items()}
 	try :
 		if len(k_map) > 1 :
-			while True :
-				k_set = {v[0] for k, v in k_map.items()}
-				if len(k_set) == len(k_map) :
-					k_map = {k : v[1:] for k, v in k_map.items()}
-				else :
-					break
+				while True :
+					k_set = {v[0] for k, v in k_map.items()}
+					if len(k_set) == len(k_map) :
+						k_map = {k : v[1:] for k, v in k_map.items()}
+					else :
+						break
 
 		return {k : '.'.join(v[-3:]).lstrip('_') for k, v in k_map.items()}
 	except :
@@ -42,7 +43,7 @@ class PlotSA() :
 		self.bookmark_dir = bookmark_dir
 
 		self.load()
-		self.run()
+		#self.run()
 
 	def load(self) :
 		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
@@ -132,10 +133,24 @@ class PlotSA() :
 				print("FATAL error occured \n ",e)
 				print(traceback.format_exc())
 				print("--------------------------------------")
+			
+	def report(self,b_pth) :
+		"""
+        Generates and displays plots for all JSON bookmark files in a directory.
+		"""
+		json_files = [pos_json for pos_json in os.listdir(b_pth) if pos_json.endswith('.json')]
+		for book in json_files:
+			bookmark_pth = b_pth / book
+			if bookmark_pth.is_file() and not os.path.islink(bookmark_pth) :
+				p_lst = bookmark_pth.load()
+				self.plot(p_lst, book.replace("_", " ").replace(".json", "").title().strip(), True)
+			else :
+				print(f"file not found: {bookmark_pth}")
+				print('\n'.join(sorted(p.fname for p in bookmark_dir)))
+		plt.show()
 
-	def plot(self, p_lst, title=None) :
+	def plot(self, p_lst, title=None, cleanlbl=False) :
 
-		print(json.dumps(p_lst, indent='\t'))
 		print(json.dumps(p_lst, indent='\t'))
 		
 		#get figure meta
@@ -166,7 +181,10 @@ class PlotSA() :
 			if isinstance(g_lst[0], dict) :
 				g_lst = g_lst[1:]
 			for name, color, opacity, width, format in g_lst :
-				k_map[name] = name.split('.')
+				if(cleanlbl):
+					k_map[name] = [name.split('.')[-1]]
+				else:
+					k_map[name] = name.split('.')
 		k_map = clean_label(k_map)
 
 		for i, g_lst in enumerate(p_lst) :
@@ -240,7 +258,6 @@ class PlotSA() :
 		# fig.tight_layout()
 		plt.show(block=False)
 
-
 if __name__ == '__main__' :
 
 	bookmark_dir = Path(os.environ.get("STRUCTARRAY_bookmark_DIR", "")).resolve()
@@ -252,6 +269,7 @@ if __name__ == '__main__' :
 
 	parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
 	parser.add_argument('meta', metavar='META', type=Path, nargs='?', default=None, help='the meta (*.tsv) file')
+	parser.add_argument('book', metavar='BOOK', type=Path, nargs='?', default=None, help='folder with books')
 
 	p = parser.parse_args()
 
@@ -262,6 +280,8 @@ if __name__ == '__main__' :
 	else :
 		meta_pth = (p.meta).resolve()
 
-	PlotSA(data_pth, meta_pth, bookmark_dir).run()
-
-
+	if p.book is None:
+		book_pth = bookmark_dir
+	else:
+		book_pth = (p.book).resolve()
+	PlotSA(data_pth, meta_pth, bookmark_dir).report(book_pth)
