@@ -306,7 +306,6 @@ class RebHandler() :
 			'compression' : "gzip",
 			'compression_opts' : 9,
 			'shuffle' : True,
-			'fletcher32' : True,
 		}
 
 		archive_pth = self.data_pth.with_suffix('.hdf5')
