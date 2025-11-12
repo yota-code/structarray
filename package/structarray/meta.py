@@ -7,33 +7,21 @@ import re
 
 from cc_pathlib import Path
 
-sizeof_map = { # size of types
-	'N1' : 1,
-	'N2' : 2,
-	'N4' : 4,
-	'N8' : 8,
-	'Z1' : 1,
-	'Z2' : 2,
-	'Z4' : 4,
-	'Z8' : 8,
-	'R4' : 4,
-	'R8' : 8,
-	'P4' : 4,
-	'P8' : 8,
-}
+from structarray.common import *
 
-ntype_map = { # types numpy
-	'Z1' : "int8",
-	'Z2' : "int16",
-	'Z4' : "int32",
-	'Z8' : "int64",
-	'N1' : "uint8",
-	'N2' : "uint16",
-	'N4' : "uint32",
-	'N8' : "uint64",
-	'R4' : "float32",
-	'R8' : "float64",
-}
+class MetaCache() :
+	""" module level cache system
+	attention ! ce code n'est compatible avec du multithread ni du multiprocess
+	"""
+	def __init__(self) :
+		self._m = dict()
+
+	def __getitem__(self, pth:Path) :
+		if pth not in self._m :
+			self._m[pth] = MetaHandler(pth)
+		return self._m[pth]
+
+get_meta = MetaCache()
 
 def compact_name(v_lst) :
 	# validated
@@ -51,7 +39,6 @@ def compact_name(v_lst) :
 		p_lst = n_lst
 	return r_lst
 
-
 def expand_name(r_lst) :
 	# validated
 	# undo the compaction and give back the original names
@@ -68,56 +55,35 @@ def expand_name(r_lst) :
 		p_lst = n_lst
 	return v_lst
 
-class MetaGeneric() :
-	""" decrit les adresses d'un blob binaire
-	TODO : tout remettre la dedans, seuls les loader changent suivant le format
-	et même MetaParse devrait être ici...
-	ou pas, on devrait avoir un parseur par type de données d'entrées
-	"""
-	def __getitem__(self, key) :
-		return self._m[key]
-
-class MetaReb(MetaGeneric) :
+class MetaHandler() :
 	""" un gestionnaire des méta données pour les enregistrements .reb """
 	
-	def __init__(self, name=None, sizeof=None) :
-		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
-		
-		self.name = name
-		self.sizeof = sizeof
-
-	def push(self, name, mtype, addr) :
-		self._m[name] = (mtype, addr)
-
-	def iter_nop(self) :
-		for name, (mtype, addr) in self._m.items() :
-			if not mtype.startswith('P') :
-				yield name
-
-	def __iter__(self) :
-		for name, (mtype, offset) in self._m.items() :
-			yield name, mtype, offset
-		
-	def load(self, pth) :
-		pth = Path(pth).resolve()
-
-		if pth.suffix != '.tsv' :
-			raise ValueError("mapping must be a tsv file")
-		if not pth.is_file() :
-			raise FileNotFoundError(f"{pth} does not exists")
-		
+	def __init__(self, meta_pth:Path=None) :
 		self._m = collections.OrderedDict()
 
-		obj = pth.load()
+		if meta_pth is not None :
+			self.load(meta_pth)
+
+	def load(self, meta_pth) :
+		self.meta_pth = Path(meta_pth).resolve(strict=True)
+
+		assert self.meta_pth.suffix == '.tsv'
+
+		self._m = collections.OrderedDict()
+
+		obj = self.meta_pth.load()
 		
 		line = obj.pop(0)
 		self.name, self.sizeof = line[0], int(line[1])
 		
-		self._load_addr(obj)
+		self._parse_address(obj)
 
-		return self
+		print(f"LOADING META :: {self.meta_pth} => {self.name} {self.sizeof}bytes")
 
-	def _load_addr(self, obj) :
+	def __getitem__(self, key) :
+		return self._m[key]
+
+	def _parse_address(self, obj) :
 		""" si la première ligne des addresses ne contient que 2 champs,
 		on considère que c'est un fichier décrit en relatif """
 		is_relative = len(obj[0]) == 2
@@ -147,6 +113,18 @@ class MetaReb(MetaGeneric) :
 			addr += value + sizeof_map[mtype]
 
 			prev = name
+
+	def push(self, name, mtype, addr) :
+		self._m[name] = (mtype, addr)
+
+	def iter_nop(self) :
+		for name, (mtype, addr) in self._m.items() :
+			if not mtype.startswith('P') :
+				yield name
+
+	def __iter__(self) :
+		for name, (mtype, offset) in self._m.items() :
+			yield name, mtype, offset
 
 	def dump(self, pth, is_relative=True, is_compact=False) :
 		pth = Path(pth).resolve()
@@ -225,10 +203,10 @@ class MetaReb(MetaGeneric) :
 	def __contains__(self, key) :
 		return key in self._m
 	
-	def search(self, pattern, mode='blob') :
+	def search(self, pattern, mode='globex') :
 		# print(f"StructArray.search({pattern}, {mode})")
-		if mode == 'blob':
-			pattern = pattern.replace('.', '\\.').replace('*', '.*')
+		if mode == 'globex':
+			pattern = globex_to_regex(pattern)
 		elif mode == 'regexp' :
 			pass
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
@@ -250,44 +228,47 @@ def expand_name_gen() :
 		p_lst = n_lst
 
 
-z_map = {
-	'inf' : math.inf,
-	'nan' : math.nan,
-	'-inf' : -math.inf
-}
 
-class MetaRez(MetaGeneric) :
-	def __init__(self) :
-		self._m = collections.OrderedDict()
 
-	def load(self, meta_zip) :
-		import brotli
 
-		self._m.clear()
+# z_map = {
+# 	'inf' : math.inf,
+# 	'nan' : math.nan,
+# 	'-inf' : -math.inf
+# }
 
-		meta_bin = brotli.decompress(meta_zip)
-		meta_txt = meta_bin.decode('ascii')
-		meta_lst = meta_txt.splitlines()
+# class MetaRez(MetaGeneric) :
+# 	def __init__(self) :
+# 		self._m = collections.OrderedDict()
 
-		self.array_len = int(meta_lst.pop(0))
+# 	def load(self, meta_zip) :
+# 		import brotli
 
-		exp = expand_name_gen()
-		next(exp)
+# 		self._m.clear()
 
-		for line in meta_lst :
-			r, value = line.split('\t')
-			v = exp.send(r)
-			m = value[:2]
-			z = value[2]
-			try :
-				b = ast.literal_eval(value[3:])
-			except ValueError :
-				try :
-					b = float(value[3:])
-				except :
-					raise
-			self._m[v] = (m, z, b)
+# 		meta_bin = brotli.decompress(meta_zip)
+# 		meta_txt = meta_bin.decode('ascii')
+# 		meta_lst = meta_txt.splitlines()
 
-		print('\n'.join(list(self._m)[:20]))
+# 		self.array_len = int(meta_lst.pop(0))
 
-		return self
+# 		exp = expand_name_gen()
+# 		next(exp)
+
+# 		for line in meta_lst :
+# 			r, value = line.split('\t')
+# 			v = exp.send(r)
+# 			m = value[:2]
+# 			z = value[2]
+# 			try :
+# 				b = ast.literal_eval(value[3:])
+# 			except ValueError :
+# 				try :
+# 					b = float(value[3:])
+# 				except :
+# 					raise
+# 			self._m[v] = (m, z, b)
+
+# 		print('\n'.join(list(self._m)[:20]))
+
+# 		return self
