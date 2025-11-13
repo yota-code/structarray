@@ -221,7 +221,7 @@ class PlotSA() :
 
 if __name__ == '__main__' :
 
-	bookmark_dir = Path(os.environ["STRUCTARRAY_bookmark_DIR"]).resolve()
+	bookmark_dir = Path(os.environ.get("STRUCTARRAY_bookmark_DIR", "")).resolve()
 
 	print(bookmark_dir)
 
@@ -237,7 +237,7 @@ if __name__ == '__main__' :
 	data_pth = (p.data).resolve()
 
 	if p.meta is None :
-		meta_pth = Path("context_map.tsv")
+		meta_pth = Path("context_map.tsv").resolve()
 	else :
 		meta_pth = (p.meta).resolve()
 

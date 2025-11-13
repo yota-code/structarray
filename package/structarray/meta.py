@@ -18,7 +18,7 @@ class MetaCache() :
 
 	def __getitem__(self, pth:Path) :
 		if pth not in self._m :
-			self._m[pth] = MetaHandler(pth)
+			self._m[pth] = MetaHandler().load(pth)
 		return self._m[pth]
 
 get_meta = MetaCache()
@@ -41,7 +41,7 @@ def compact_name(v_lst) :
 
 def expand_name(r_lst) :
 	# validated
-	# undo the compaction and give back the original names
+	# undo the compaction and give back the original names and offset
 	v_lst = list()
 	p_lst = list()
 	for r in r_lst :
@@ -58,13 +58,13 @@ def expand_name(r_lst) :
 class MetaHandler() :
 	""" un gestionnaire des méta données pour les enregistrements .reb """
 	
-	def __init__(self, meta_pth:Path=None) :
-		self._m = collections.OrderedDict()
+	def __init__(self, name=None, sizeof=None) :
+		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
+		
+		self.name = name
+		self.sizeof = sizeof
 
-		if meta_pth is not None :
-			self.load(meta_pth)
-
-	def load(self, meta_pth) :
+	def load(self, meta_pth:Path=None) :
 		self.meta_pth = Path(meta_pth).resolve(strict=True)
 
 		assert self.meta_pth.suffix == '.tsv'
@@ -74,11 +74,21 @@ class MetaHandler() :
 		obj = self.meta_pth.load()
 		
 		line = obj.pop(0)
-		self.name, self.sizeof = line[0], int(line[1])
+		name, sizeof = line[0], int(line[1])
+		self.__init__(name, sizeof)
 		
 		self._parse_address(obj)
 
-		print(f"LOADING META :: {self.meta_pth} => {self.name} {self.sizeof}bytes")
+		print(f"LOADING META :: {self.meta_pth} => {self.name} {self.sizeof} bytes")
+
+		return self
+
+	def __len__(self) :
+		return len(self._m)
+
+	def __iter__(self) :
+		for name, (mtype, offset) in self._m.items() :
+			yield name, mtype, offset
 
 	def __getitem__(self, key) :
 		return self._m[key]
@@ -122,10 +132,6 @@ class MetaHandler() :
 			if not mtype.startswith('P') :
 				yield name
 
-	def __iter__(self) :
-		for name, (mtype, offset) in self._m.items() :
-			yield name, mtype, offset
-
 	def dump(self, pth, is_relative=True, is_compact=False) :
 		pth = Path(pth).resolve()
 
@@ -140,6 +146,15 @@ class MetaHandler() :
 		s_lst += self._dump_addr(is_relative, is_compact)
 
 		pth.save(s_lst)
+
+	def iter_name(self, is_compact=False) :
+		# retourne les noms dans l'ordre compactés ou non
+		pass
+
+	def iter_prop(self, is_relative) :
+		# retourne les offsets (et les types) dans l'ordre, relatifs ou non
+		pass
+
 
 	def _dump_addr(self, is_relative, is_compact) :
 

@@ -23,5 +23,5 @@ for p_data in p.data :
 	else :
 		meta_pth = Path(p.meta).resolve()
 
-	u = structarray.StructArray(meta_pth, data_pth)
+	u = structarray.RebHandler().load(data_pth, meta_pth)
 	u.debug(data_pth.with_suffix('.debug.tsv'))

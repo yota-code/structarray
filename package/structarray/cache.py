@@ -10,6 +10,13 @@ class CacheHandler() :
 	- lines which have the same hash will not be duplicated
 	"""
 
+	h5py_opt = {
+		'compression' : "gzip",
+		'compression_opts' : 9,
+		'shuffle' : True,
+		# 'fletcher32' : True,
+	}
+
 	def __init__(self, cache_pth) :
 
 		self.hdf_pth = cache_pth.resolve()

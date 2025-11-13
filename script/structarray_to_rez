@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+import sys
+
+import structarray
+
+u = structarray.DataHandler(sys.argv[1])
+
+import structarray.rezip
+
+structarray.rezip.reb_to_rez(u)

@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+
+import sys
+
+from pathlib import Path
+
+u = 375444
+v = ((375444 // 8) + 1) * 8
+
+print(u, '->', v)
+
+pth = Path(sys.argv[1]).resolve()
+src = pth.read_bytes()
+
+dst = list()
+
+while src :
+	print("tutu")
+	b = src[:u]
+	src = src[u:]
+	dst.append(b + b'\0'*4)
+
+pth.with_suffix('.repad.reb').write_bytes(b''.join(dst))
+
