@@ -28,6 +28,13 @@ La première ligne du fichier contient:
 La taille du bloc en revanche peut-être légèrement supérieure. Si celle-ci n'est
 pas un multiple de 8 le bloc devra être paddé.
 
+Les noms de champs possèdent deux formes, une forme complète et une forme compacte.
+
+Pour la forme complète, le chemin d'une variable est celui des sous-champs des
+structures imbriquées, sérapés par de point (.), tel qu'on y accèderai en C.
+
+
+
 
 ## futurologie
 
