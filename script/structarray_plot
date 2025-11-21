@@ -203,7 +203,7 @@ class PlotSA() :
 			for g in g_lst :
 				m = dict()
 				gn = 1.0
-				os = 0.0
+				ofs = 0.0
 				format = None
 				if(len(g)==1):
 					name = g[0]
@@ -221,7 +221,9 @@ class PlotSA() :
 						if 'gain' in sig_param :
 							gn = sig_param['gain']
 						if 'offset' in sig_param :
-							os = sig_param['offset']
+							ofs = sig_param['offset']
+							if isinstance(ofs,str):
+								ofs = self.sa[ofs]								
 				if name.startswith('*') :
 					try :
 						name = self.sa.meta.search(name[1:], mode='blob')[0]
@@ -237,10 +239,10 @@ class PlotSA() :
 						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
 						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 					if format is None :
-						plt.plot(self.t_arr, gn*y_arr+os, ** m)
+						plt.plot(self.t_arr, gn*y_arr+ofs, ** m)
 					else :
-						plt.plot(self.t_arr, gn*y_arr+os, format, ** m)
-					y_lst.append(gn*y_arr+os)
+						plt.plot(self.t_arr, gn*y_arr+ofs, format, ** m)
+					y_lst.append(gn*y_arr+ofs)
 					#mplcursors.cursor()
 				else :
 					print(self.sa.meta)
