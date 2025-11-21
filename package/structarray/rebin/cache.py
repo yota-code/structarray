@@ -4,7 +4,7 @@ import hashlib
 
 import h5py
 
-class CacheHandler() :
+class CacheRebin() :
 
 	""" simple cache function, with a single optimisation :
 	- lines which have the same hash will not be duplicated

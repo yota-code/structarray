@@ -75,8 +75,8 @@ class DataRebin() :
 		if self.use_cache :
 			self.data = None
 			try :
-				from structarray.cache import CacheHandler
-				self.cache = CacheHandler(self.data_pth.with_suffix('.__cache__.hdf5'))
+				from structarray.rebin.cache import CacheRebin
+				self.cache = CacheRebin(self.data_pth.with_suffix('.__cache__.hdf5'))
 			except ModuleNotFoundError :
 				self.cache = dict()
 		else :
