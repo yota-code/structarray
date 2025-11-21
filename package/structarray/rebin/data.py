@@ -8,6 +8,7 @@ import mmap
 import os
 import re
 import struct
+import time
 
 import numpy as np
 
@@ -69,6 +70,8 @@ class DataRebin() :
 
 		assert self.data_len % self.block_len == 0
 
+		start_clock = time.perf_counter_ns()
+
 		if self.use_cache :
 			self.data = None
 			try :
@@ -83,6 +86,9 @@ class DataRebin() :
 				else :
 					# in all cases, self.data shall expose a buffer-like interface
 					raise NotImplementedError("really ? use mmap !")
+
+		stop_clock = time.perf_counter_ns()
+		self.load_time = stop_clock - start_clock
 
 		print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
 

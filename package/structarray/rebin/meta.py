@@ -4,6 +4,7 @@ import ast
 import collections
 import math
 import re
+import time
 
 from cc_pathlib import Path
 
@@ -70,14 +71,14 @@ class MetaRebin(MetaGeneric) :
 
 	def load(self, meta_pth:Path=None) :
 
-		print("LOAD")
-
 		self.meta_pth = Path(meta_pth).resolve(strict=True)
 		print(f"LOADING meta :: {self.meta_pth}")
 
 		assert self.meta_pth.suffix == '.tsv'
 
 		self._m.clear()
+
+		start_clock = time.perf_counter_ns()
 
 		obj = self.meta_pth.load()
 		
@@ -87,7 +88,10 @@ class MetaRebin(MetaGeneric) :
 		
 		self._parse_address(obj)
 
-		print(f" => {self.name} {self.sizeof} bytes")
+		stop_clock = time.perf_counter_ns()
+		self.load_time = stop_clock - start_clock
+
+		print(f" => {self.name} {self.sizeof} bytes.")
 
 		return self
 

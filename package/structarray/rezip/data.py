@@ -2,6 +2,7 @@
 
 import collections
 import json
+import time
 
 import brotli
 import h5py
@@ -36,8 +37,14 @@ class DataRezip() :
 	def _load(self) :
 		assert self.data_pth.suffix == '.rez'
 
+		print(f"LOADING hdf5 :: {self.data_pth}")
+
+		start_clock = time.perf_counter_ns()
 		with h5py.File(self.data_pth, 'r', libver="latest") as obj :
 			self.meta.load(obj.attrs['%meta%'])
+		stop_clock = time.perf_counter_ns()
+
+		self.load_time = stop_clock - start_clock
 
 		return self
 
