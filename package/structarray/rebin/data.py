@@ -13,10 +13,11 @@ import numpy as np
 
 from cc_pathlib import Path
 
-import structarray.meta
+import structarray.rebin.meta
+
 from structarray.common import *
 
-class DataHandler() :
+class DataRebin() :
 	"""
 	this class aims to handle a single .reb file.
 	a .reb file is the native structarray file, it only consists in raw C structures dumped directly and successively into a file
@@ -26,21 +27,30 @@ class DataHandler() :
 	use_cache = False
 	use_mmap = True
 
-	def __init__(self, data_pth, meta=None) :
+	def __init__(self, data_pth:Path, meta=None) :
+		"""
+		data_pth must point to an existing .reb file
+		meta can either be:
+		    - a meta_pth which point to a valid context
+		    - an existing MetaRebin object
+		    - or None, in which case, the handler try to open a context_map.tsv
+		      or compact_map.tsv file in the same directory
+		"""
 
 		self.data_pth = Path(data_pth).resolve(strict=True)
 
 		match meta :
 			case Path() | str() :
-				self.meta = structarray.meta.get_meta[Path(meta).resolve(strict=True)]
-			case structarray.meta.MetaHandler() :
+				self.meta = structarray.rebin.meta._cached_meta[Path(meta).resolve(strict=True)]
+			case structarray.rebin.meta.MetaRebin() :
 				self.meta = meta
 			case _ :
 				# si meta n'est pas passé on essaie d'ouvrir un fichier meta à côté du fichier data
 				for k in ["context_map.tsv", "compact_map.tsv"] :
 					pth = (self.data_pth.parent / k).resolve()
 					if pth.is_file() :
-						self.meta = structarray.meta.get_meta[pth]
+						self.meta = structarray.rebin.meta._cached_meta[pth]
+						break
 
 		self._load_data()
 		
@@ -55,7 +65,7 @@ class DataHandler() :
 		# nombre de blocs
 		self.vector_len = self.data_len // self.meta.sizeof
 
-		print(f"LOADING DATA :: {self.data_pth} => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes\n")
+		print(f"LOADING data :: {self.data_pth}")
 
 		assert self.data_len % self.block_len == 0
 
@@ -74,6 +84,8 @@ class DataHandler() :
 					# in all cases, self.data shall expose a buffer-like interface
 					raise NotImplementedError("really ? use mmap !")
 
+		print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
+
 		return self
 
 	def __len__(self) :
@@ -90,7 +102,6 @@ class DataHandler() :
 			# les données sont alignées, on peut utiliser l'astuce ultime !
 			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
 			arr.shape = (width, height)
-
 			return arr[:, int(offset) // sizeof_map[ctype]]
 		else :
 			# sinon il faut les ramasser une par une à la petite cuillère

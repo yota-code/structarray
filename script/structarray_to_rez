@@ -2,10 +2,6 @@
 
 import sys
 
-import structarray
+import structarray.rezip.convert
 
-u = structarray.DataHandler(sys.argv[1])
-
-import structarray.rezip
-
-structarray.rezip.reb_to_rez(u)
+structarray.rezip.convert.to_rez(sys.argv[1])

@@ -4,10 +4,9 @@ import sys
 
 import numpy as np
 
+import structarray.rebin
 
-import structarray
-
-u = structarray.DataHandler(sys.argv[1])
+u = structarray.rebin.DataRebin(sys.argv[1], "data/compact_map.tsv")
 t = u["time_ms"] / 1000.0
 tf = u["_L33_MfcPflight.data.gps.position_velocity.time_of_fix"]
 Vz = u["_L33_MfcPflight.data.gps.position_velocity.vertical_velocity"] / 60.0 # en ft/min -> ft/sec
@@ -17,8 +16,6 @@ Zz = np.cumsum(Vz) * (t[1] - t[0]) + Zm[0]
 
 import matplotlib.pyplot as plt
 import mplcursors
-
-print((1965.7 - 2005.8) / (3857.71 - 3864.82))
 
 plt.subplot(2,1,1)
 plt.plot(tf, Vz, '+--')

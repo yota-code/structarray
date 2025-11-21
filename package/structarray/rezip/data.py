@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import collections
+import json
+
+import brotli
+import h5py
+
+try :
+	import hdf5plugin
+except ImportError :
+	pass
+
+
+import numpy as np
+
+from cc_pathlib import Path
+
+import structarray.rezip.meta
+from structarray.common import *
+
+"""
+.rez or rezip formats are compact binary files based on hdf5
+
+the mapping is embedded under a compact and compressed form
+"""
+
+class DataRezip() :
+	def __init__(self, data_pth:Path) :
+		self.data_pth = Path(data_pth).resolve(strict=True)
+
+		self.meta = structarray.rezip.meta.MetaRezip()
+
+		self._load()
+
+	def _load(self) :
+		assert self.data_pth.suffix == '.rez'
+
+		with h5py.File(self.data_pth, 'r', libver="latest") as obj :
+			self.meta.load(obj.attrs['%meta%'])
+
+		return self
+
+	def __getitem__(self, name) :
+		m, z, b = self.meta[name]
+		if z == '=' :
+			return np.ones((self.meta.array_len,), dtype=ntype_map[m]) * b
+		elif z == '@' :
+			with h5py.File(self.data_pth, 'r', libver="latest") as obj :
+				return obj[m][b,:]
+		else :
+			raise ValueError

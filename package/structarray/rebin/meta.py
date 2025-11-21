@@ -9,6 +9,8 @@ from cc_pathlib import Path
 
 from structarray.common import *
 
+from structarray.meta import MetaGeneric
+
 class MetaCache() :
 	""" module level cache system
 	attention ! ce code n'est compatible avec du multithread ni du multiprocess
@@ -18,10 +20,10 @@ class MetaCache() :
 
 	def __getitem__(self, pth:Path) :
 		if pth not in self._m :
-			self._m[pth] = MetaHandler().load(pth)
+			self._m[pth] = MetaRebin().load(pth)
 		return self._m[pth]
 
-get_meta = MetaCache()
+_cached_meta = MetaCache()
 
 def compact_name(v_lst) :
 	# validated
@@ -67,11 +69,15 @@ class MetaRebin(MetaGeneric) :
 		self.sizeof = sizeof
 
 	def load(self, meta_pth:Path=None) :
+
+		print("LOAD")
+
 		self.meta_pth = Path(meta_pth).resolve(strict=True)
+		print(f"LOADING meta :: {self.meta_pth}")
 
 		assert self.meta_pth.suffix == '.tsv'
 
-		self._m = collections.OrderedDict()
+		self._m.clear()
 
 		obj = self.meta_pth.load()
 		
@@ -81,50 +87,43 @@ class MetaRebin(MetaGeneric) :
 		
 		self._parse_address(obj)
 
-		print(f"LOADING META :: {self.meta_pth} => {self.name} {self.sizeof} bytes")
+		print(f" => {self.name} {self.sizeof} bytes")
 
 		return self
 
-	def __len__(self) :
-		return len(self._m)
+	# def __len__(self) :
+	# 	return len(self._m)
 
-	def __iter__(self) :
-		for name, (mtype, offset) in self._m.items() :
-			yield name, mtype, offset
+	# def __iter__(self) :
+	# 	for name, (mtype, offset) in self._m.items() :
+	# 		yield name, mtype, offset
 
-	def __getitem__(self, key) :
-		return self._m[key]
+	# def __getitem__(self, key) :
+	# 	return self._m[key]
 
 	def _parse_address(self, obj) :
 		""" si la première ligne des addresses ne contient que 2 champs,
 		on considère que c'est un fichier décrit en relatif """
 		is_relative = len(obj[0]) == 2
 
+		proc = self._proc_name_expand()
+		next(proc)
+
 		addr = 0
 		for line in obj :
 			if len(line) == 2 :
-				name, mtype, value = * line, 0
+				name, mtype, value = line[0], line[1], 0
 			elif len(line) == 3 :
 				name, mtype, value = line[0], line[1], int(line[2])
 			else :
 				raise ValueError(f"malformed line, {line}")
-			
-			if '/' in name :
-				# si y a un / c'est que le nom est compact
-				c, sep, z = name.partition('/')
-				try :
-					name = '.'.join(prev.split('.')[:int(c)]) + '.' + z
-				except :
-					print(prev, z)
-					print(prev.split('.')[:int(c)])
-					raise ValueError
 
+			path = proc.send(name)
+			
 			addr = addr if is_relative else value
-			self._m[name] = (mtype, addr)
+			self._m[path] = (mtype, addr)
 
 			addr += value + sizeof_map[mtype]
-
-			prev = name
 
 	def push(self, name, mtype, addr) :
 		self._m[name] = (mtype, addr)
@@ -157,9 +156,7 @@ class MetaRebin(MetaGeneric) :
 		# retourne les offsets (et les types) dans l'ordre, relatifs ou non
 		pass
 
-
 	def _dump_addr(self, is_relative, is_compact) :
-
 		s_lst = list()
 		p_lst = list()
 

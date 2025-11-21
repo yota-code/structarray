@@ -7,23 +7,25 @@ import matplotlib.pyplot as plt
 
 from cc_pathlib import Path
 
-from structarray.rebin import RebHandler
-from structarray.rezip import RezHandler
+from structarray.rebin import DataRebin
+from structarray.rezip import DataRezip
 
 reb_pth = Path(sys.argv[1]).resolve()
-reb = RebHandler().load(reb_pth)
-rez_pth = reb.to_rez()
-rez = RezHandler().load(rez_pth)
+reb = DataRebin(reb_pth)
+rez_pth = reb_pth.with_suffix('.rez')
+rez = DataRezip(rez_pth)
 
-for name in reb.meta :
-	a = reb[name]
-	b = rez[name]
+for k, v in reb.meta :
+	if v[0].startswith('P') :
+		continue
+	a = reb[k]
+	b = rez[k]
 	if not ((a == b) | (np.isnan(a) & np.isnan(b))).all() :
-		print(reb.meta[name])
+		print(reb.meta[k])
 		print(a, a.dtype)
-		print(rez.meta[name])
+		print(rez.meta[k])
 		print(b, b.dtype)
-		print(name)
+		print(k)
 		plt.plot(a)
 		plt.plot(b)
 		plt.show()

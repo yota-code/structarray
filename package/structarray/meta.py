@@ -13,7 +13,9 @@ from abc import ABC, abstractmethod
 
 class MetaGeneric(ABC) :
 	"""
-	maintient un dictionnaire dont les clés sont:
+	Classe abstrate pour le gestionnaire de méta données
+
+	Une class meta maintient un dictionnaire (self._m) dont les clés sont:
 	  * La clé: le chemin (complet, pas de version compacte ici)
 	  * la valeur: un truc (le truc est implémenté dans les sous classes)
 	gère la compaction / décompaction des noms
@@ -23,17 +25,8 @@ class MetaGeneric(ABC) :
 	Le reste est délégué
 	"""
 	block_align = 8
-
-	@abstractmethod
-    def load(self) :
-		pass
-
-	@abstractmethod
-    def dump(self) :
-		pass
 	
 	def __init__(self, name, sizeof) :
-		print("ahbahoui")
 		self._m = collections.OrderedDict() # chemin complet séparé par des points -> truc
 		
 		self.name = name
@@ -58,26 +51,36 @@ class MetaGeneric(ABC) :
 			return (((self.meta.sizeof // 8) + 1) * 8)
 		return self.sizeof
 
-	def _flow_name_compact(self) :
+	def _proc_name_compact(self) :
 		""" iterateur instancié au début et appelé avec .send() pour avoir les valeurs suivantes
 		il faut l'appeler dans l'ordre sinon ça n'a aucun sens
 		"""
 		p_lst = list()
-		for k in self._m :
+		k = yield None
+		while True :
 			n_lst = k.split('.')
 			q = 0
 			for p, n in zip(p_lst, n_lst) :
 				if p != n :
 					break
 				q += 1
-			yield (f"{q}/" if q else '') + '.'.join(n_lst[q:])
+			k = yield (f"{q}/" if q else '') + '.'.join(n_lst[q:])
 			p_lst = n_lst
-		return r_lst
 
-	def _flow_name_expand(self) :
+	def _proc_name_expand(self) :
 		""" iterateur instancié au début et appelé avec .send() pour avoir les valeurs suivantes
 		il faut l'appeler dans l'ordre sinon ça n'a aucun sens
 		"""
-		pass
+		p_lst = list()
+		r = yield None
+		while True :
+			if '/' in r :
+				c, sep, z = r.partition('/')
+				n_lst = p_lst[:int(c)] + z.split('.')
+				r = yield '.'.join(n_lst)
+			else :
+				n_lst = r.split('.')
+				r = yield r
+			p_lst = n_lst
 
 
