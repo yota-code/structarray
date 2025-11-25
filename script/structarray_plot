@@ -223,7 +223,9 @@ class PlotSA() :
 						if 'offset' in sig_param :
 							ofs = sig_param['offset']
 							if isinstance(ofs,str):
-								ofs = self.sa[ofs]								
+								ofs = self.sa[ofs]	
+						if 'format' in sig_param :
+							format = sig_param['format']							
 				if name.startswith('*') :
 					try :
 						name = self.sa.meta.search(name[1:], mode='blob')[0]
