@@ -46,7 +46,7 @@ class DataRebin() :
 			case structarray.rebin.meta.MetaRebin() :
 				self.meta = meta
 			case _ :
-				# si meta n'est pas passé on essaie d'ouvrir un fichier meta à côté du fichier data
+				# si meta=None, on essaie d'ouvrir un fichier meta à côté du fichier data
 				for k in ["context_map.tsv", "compact_map.tsv"] :
 					pth = (self.data_pth.parent / k).resolve()
 					if pth.is_file() :

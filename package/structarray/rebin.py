@@ -34,6 +34,8 @@ def glob_to_regex(s) :
 
 class RebHandler() :
 
+	DEPRECATED CODE !!! use: structarray.open() instead, handlers are moved to rebin/ and rezip/ folders
+
 	def __init__(self, cache_disabled=False) :
 		self.meta = MetaReb()
 		self.data = None

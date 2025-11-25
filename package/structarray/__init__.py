@@ -9,5 +9,5 @@ def open(data:Path, meta:Path=None) :
 	if data.suffix == '.reb' :
 		return structarray.rebin.DataRebin(data, meta)
 	elif data.suffix == '.rez' :
-		return structarray.rebin.DataRezip(data)
+		return structarray.rezip.DataRezip(data)
 	

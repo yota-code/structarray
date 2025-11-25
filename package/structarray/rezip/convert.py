@@ -2,8 +2,6 @@
 
 import collections
 
-import h5py
-
 import numpy as np
 
 from cc_pathlib import Path
@@ -11,11 +9,8 @@ from cc_pathlib import Path
 import structarray.rebin.data
 
 def to_rez(data, meta=None) :
-	""" en deux passes ? la première repère les vecteurs constants ou identiques 
-	la deuxième fourre tout dans un hdf5 ? mais ça fait lire le fichier 2 fois
-	
-	ou alors on stocke dans des fichiers temporaires pour chaque type
-
+	""" 
+	Converti un fichier .reb en fichier .rez
 	"""
 
 	p = "\x1b[A\x1b[K"

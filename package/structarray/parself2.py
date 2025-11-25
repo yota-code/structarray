@@ -11,72 +11,61 @@ import time
 
 from cc_pathlib import Path
 
-from structarray.meta import MetaReb
-
 from elftools.elf.elffile import ELFFile
 
 die_encoding_str = 'xyNwRZZNN'
 
-if False :
-	Base = collections.namedtuple('Base', ['name', 'letter', 'sizeof'])
-	Pointer = collections.namedtuple('Pointer', ['oid', 'sizeof'])
-	Typedef = collections.namedtuple('Typedef', ['oid', 'alias'])
-	Array = collections.namedtuple('Array', ['oid', 'shape'])
-	Structure = collections.namedtuple('Structure', ['sizeof', 'detail'])
-	Member = collections.namedtuple('Member', ['oid', 'name', 'offset'])
-	Variable = collections.namedtuple('Variable', ['oid', 'name'])
-else :
-	import dataclasses
+import dataclasses
 
-	@dataclasses.dataclass
-	class Base() :
-		name: str
-		letter: str
-		sizeof: int
+@dataclasses.dataclass
+class Base() :
+	name: str
+	letter: str
+	sizeof: int
 
-	@dataclasses.dataclass
-	class Pointer() :
-		oid: int
-		sizeof: int
+@dataclasses.dataclass
+class Pointer() :
+	oid: int
+	sizeof: int
 
-		@property
-		def letter(self) :
-			return "P"
+	@property
+	def letter(self) :
+		return "P"
 
-	@dataclasses.dataclass
-	class Typedef() :
-		oid: int
-		alias: str
+@dataclasses.dataclass
+class Typedef() :
+	oid: int
+	alias: str
 
-	@dataclasses.dataclass
-	class Array() :
-		oid: int
-		shape: tuple[int]
+@dataclasses.dataclass
+class Array() :
+	oid: int
+	shape: tuple[int]
 
-	@dataclasses.dataclass
-	class Member() :
-		oid: int
-		name: str
-		offset: int
+@dataclasses.dataclass
+class Member() :
+	oid: int
+	name: str
+	offset: int
 
-	@dataclasses.dataclass
-	class Structure() :
-		sizeof: int
-		detail: list[Member]
+@dataclasses.dataclass
+class Structure() :
+	sizeof: int
+	detail: list[Member]
 
-		def _to_json(self) :
-			return {f"@Structure(size={self.sizeof}, detail=...)" : self.detail}
+	def _to_json(self) :
+		return {f"@Structure(size={self.sizeof}, detail=...)" : self.detail}
 
-		def __str__(self) :
-			return f"Structure(size={self.sizeof}, detail=...)"
-			# return f"Structure(size={self.sizeof}, detail={", ".join(str(m.oid) for m in self.detail)})"
+	def __str__(self) :
+		return f"Structure(size={self.sizeof}, detail=...)"
+		# return f"Structure(size={self.sizeof}, detail={", ".join(str(m.oid) for m in self.detail)})"
 
-		__repr__ = __str__
+	__repr__ = __str__
 
-	@dataclasses.dataclass
-	class Variable() :
-		oid: int
-		name: str
+@dataclasses.dataclass
+class Variable() :
+	oid: int
+	name: str
 
 class ElfParser() :
 
@@ -124,11 +113,12 @@ class ElfParser() :
 		def as_array(shape) :
 			return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
 
-		u = MetaReb(self.r_map[oid].alias, self.to_base(self.r_map[oid]).sizeof)
+		from structarray.rebin.meta import MetaRebin
+		u = MetaRebin(self.r_map[oid].alias, self.to_base(self.r_map[oid]).sizeof)
 
 		for m_lst in self.walk(oid) :
 			p_lst = [obj.name for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
-			u.push('.'.join(p_lst), f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
+			u['.'.join(p_lst)] = (f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
 
 		return u
 
@@ -228,11 +218,8 @@ class ElfParser() :
 		return oid
 
 	def walk(self, oid, max_depth=None, follow_pointer=False) :
-
 		# TODO: au lieu de mettre un simple oid, on peut mettre un o_lst qui cumule la liste des oid traversés... ou alors juste le un champ oid type
-
 		obj = self.r_map[oid]
-
 		yield from self._walk([(oid, list(), obj, 0),], max_depth, follow_pointer)
 
 	def _walk(self, m_lst, max_depth, follow_pointer, depth=0) :

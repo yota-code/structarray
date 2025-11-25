@@ -45,6 +45,8 @@ class MetaParser() :
 		self.ctype_map = dict() # self.ctype_pth.load()
 		self.ctype_map['void*'] = 'P' + str(self.get_sizeof('void*'))
 
+		raise DeprecationWarning("complètement obsolète")
+
 	def _gdb(self, * cmd_lst, chunk_size=2**12, unlimited_size=False) :
 
 		cmd_lst = list(cmd_lst)

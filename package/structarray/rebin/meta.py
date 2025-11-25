@@ -95,16 +95,6 @@ class MetaRebin(MetaGeneric) :
 
 		return self
 
-	# def __len__(self) :
-	# 	return len(self._m)
-
-	# def __iter__(self) :
-	# 	for name, (mtype, offset) in self._m.items() :
-	# 		yield name, mtype, offset
-
-	# def __getitem__(self, key) :
-	# 	return self._m[key]
-
 	def _parse_address(self, obj) :
 		""" si la première ligne des addresses ne contient que 2 champs,
 		on considère que c'est un fichier décrit en relatif """
@@ -129,8 +119,8 @@ class MetaRebin(MetaGeneric) :
 
 			addr += value + sizeof_map[mtype]
 
-	def push(self, name, mtype, addr) :
-		self._m[name] = (mtype, addr)
+	# def push(self, name, mtype, addr) :
+	# 	self._m[name] = (mtype, addr)
 
 	def iter_nop(self) :
 		for name, (mtype, addr) in self._m.items() :
@@ -218,17 +208,7 @@ class MetaRebin(MetaGeneric) :
 				return False
 		return True
 
-	def __contains__(self, key) :
-		return key in self._m
 	
-	def search(self, pattern, mode='globex') :
-		# print(f"StructArray.search({pattern}, {mode})")
-		if mode == 'globex':
-			pattern = globex_to_regex(pattern)
-		elif mode == 'regexp' :
-			pass
-		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
-		return [var for var in self.iter_nop() if rec.search(var) is not None]
 
 
 def expand_name_gen() :

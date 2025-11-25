@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 
 class MetaGeneric(ABC) :
 	"""
-	Classe abstrate pour le gestionnaire de méta données
+	Classe abstraite pour le gestionnaire de méta données
 
 	Une class meta maintient un dictionnaire (self._m) dont les clés sont:
 	  * La clé: le chemin (complet, pas de version compacte ici)
@@ -37,6 +37,9 @@ class MetaGeneric(ABC) :
 
 	def __getitem__(self, key) :
 		return self._m[key]
+	
+	def __contains__(self, key) :
+		return key in self._m
 
 	def __len__(self) :
 		return len(self._m)
@@ -83,4 +86,12 @@ class MetaGeneric(ABC) :
 				r = yield r
 			p_lst = n_lst
 
+	def search(self, pattern, mode='globex') :
+		# print(f"StructArray.search({pattern}, {mode})")
+		if mode == 'globex':
+			pattern = globex_to_regex(pattern)
+		elif mode == 'regexp' :
+			pass
+		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
+		return [var for var in self.iter_nop() if rec.search(var) is not None]
 
