@@ -24,4 +24,4 @@ for p_data in p.data :
 		meta_pth = Path(p.meta).resolve()
 
 	u = structarray.RebHandler().load(data_pth, meta_pth)
-	u.debug(data_pth.with_suffix('.debug.tsv'))
+	u.debug()
