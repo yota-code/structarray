@@ -8,6 +8,8 @@ class CacheRebin() :
 
 	""" simple cache function, with a single optimisation :
 	- lines which have the same hash will not be duplicated
+
+	TODO: we could merge here the Rezip logic (with smart merge and handling of constant values)
 	"""
 
 	h5py_opt = {

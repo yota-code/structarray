@@ -14,14 +14,6 @@ parser.add_argument('--meta', metavar='META', type=Path, default=None, help='the
 
 p = parser.parse_args()
 
-for p_data in p.data :
-
-	data_pth = (p_data).resolve()
-
-	if p.meta is None :
-		meta_pth = (data_pth.parent / "mapping.tsv")
-	else :
-		meta_pth = Path(p.meta).resolve()
-
-	u = structarray.RebHandler().load(data_pth, meta_pth)
+for data_pth in p.data :
+	u = structarray.open(data_pth, p.meta)
 	u.debug()

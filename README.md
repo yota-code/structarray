@@ -26,15 +26,14 @@ La première ligne du fichier contient:
   en C)
 
 La taille du bloc en revanche peut-être légèrement supérieure. Si celle-ci n'est
-pas un multiple de 8 le bloc devra être paddé.
+pas un multiple de 8 le bloc *doit* être paddé.
 
 Les noms de champs possèdent deux formes, une forme complète et une forme compacte.
 
 Pour la forme complète, le chemin d'une variable est celui des sous-champs des
 structures imbriquées, sérapés par de point (.), tel qu'on y accèderai en C.
 
-
-
+/!\ si on veut ne pas afficher les pointeurs, comme ils sont souvent au début, il faut faire légèrement évoluer le format pour que puisse être correctement détecté si le fichier est en relatif ou en absolu...
 
 ## futurologie
 

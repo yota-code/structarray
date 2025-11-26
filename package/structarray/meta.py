@@ -48,6 +48,11 @@ class MetaGeneric(ABC) :
 		for k, v in self._m.items() :
 			yield k, v
 
+	def iter_nop(self) :
+		for key, value in self :
+			if not value[0].startswith('P') :
+				yield key
+
 	@property
 	def block_len(self) :
 		if self.sizeof % 8 :

@@ -5,6 +5,7 @@ le moyen le plus rapide de récupérer le .debug_info:
 readelf -wi *.o
 """
 
+import enum
 import collections
 import sys
 import time
@@ -66,6 +67,13 @@ class Structure() :
 class Variable() :
 	oid: int
 	name: str
+
+
+class PointerDo(enum.Enum):
+    HIDE = -1
+    DISPLAY = 0
+    FOLLOW = 1
+
 
 class ElfParser() :
 
@@ -217,12 +225,12 @@ class ElfParser() :
 
 		return oid
 
-	def walk(self, oid, max_depth=None, follow_pointer=False) :
+	def walk(self, oid, max_depth=None, pointer=PointerDo.DISPLAY) :
 		# TODO: au lieu de mettre un simple oid, on peut mettre un o_lst qui cumule la liste des oid traversés... ou alors juste le un champ oid type
 		obj = self.r_map[oid]
-		yield from self._walk([(oid, list(), obj, 0),], max_depth, follow_pointer)
+		yield from self._walk([(oid, list(), obj, 0),], max_depth, pointer)
 
-	def _walk(self, m_lst, max_depth, follow_pointer, depth=0) :
+	def _walk(self, m_lst, max_depth, pointer, depth=0) :
 		
 		# print("\t" + "-" * (depth+1) + "> " + f"{self.expand(m_lst)}", max_depth, depth)
 		# with Path("walk.raw").open('at') as fid :
@@ -244,10 +252,13 @@ class ElfParser() :
 				else :
 					yield m_lst
 			case Pointer() :
-				if follow_pointer :
-					yield from self._walk(m_lst + [(obj.oid, list(), self.r_map[obj.oid], offset),], max_depth, follow_pointer, depth)
-				else :
-					yield m_lst
+				match pointer :
+					case PointerDo.HIDE :
+						return
+					case PointerDo.DISPLAY :
+						yield m_lst
+					case PointerDo.FOLLOW :
+						yield from self._walk(m_lst + [(obj.oid, list(), self.r_map[obj.oid], offset),], max_depth, follow_pointer, depth)
 
 	# def walk_smart(self, name=None, max_depth=None, follow_pointer=False) :
 	# 	pident = self.get_oid(self.default_name if name is None else name)

@@ -36,16 +36,14 @@ def ispi(line) :
 	return ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name or 'drift' in name) and 'psidot' not in name and 'psiddot' not in name
 
 class PlotSA() :
-	def __init__(self, data_pth, meta_pth, bookmark_dir) :
-		self.data_pth = data_pth
-		self.meta_pth = meta_pth
+	def __init__(self, bookmark_dir) :
 		self.bookmark_dir = bookmark_dir
 
-		self.load()
-		self.run()
+	def load(self, data_pth, meta_pth=None) :
 
-	def load(self) :
-		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
+		self._reload_arg = (data_pth, meta_pth)
+
+		self.sa = structarray.open(data_pth, meta_pth)
 
 		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time_ms'))
 
@@ -55,6 +53,8 @@ class PlotSA() :
 			self.t_arr = np.arange(len(self.sa))
 
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
+
+		return self
 
 	def run(self) :
 		r_lst = list()
@@ -67,7 +67,7 @@ class PlotSA() :
 					if ans.startswith('!q') :
 						sys.exit(0)
 					if ans.startswith('!r') :
-						self.load()
+						self.load(* self._reload_arg)
 				elif ans.startswith("@") :
 					bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
 					if bookmark_pth.is_file() :
@@ -128,6 +128,9 @@ class PlotSA() :
 					print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
 					if len(r_lst) >= 32 :
 						print('...')
+
+			except EOFError :
+				break
 			except Exception as e: 
 				print("FATAL error occured \n ",e)
 				print(traceback.format_exc())
@@ -285,13 +288,6 @@ if __name__ == '__main__' :
 
 	p = parser.parse_args()
 
-	data_pth = (p.data).resolve()
-
-	if p.meta is None :
-		meta_pth = Path("context_map.tsv").resolve()
-	else :
-		meta_pth = (p.meta).resolve()
-
-	PlotSA(data_pth, meta_pth, bookmark_dir).run()
+	PlotSA(bookmark_dir).load(p.data, p.meta).run()
 
 

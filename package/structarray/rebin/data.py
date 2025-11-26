@@ -16,9 +16,10 @@ from cc_pathlib import Path
 
 import structarray.rebin.meta
 
+from structarray.data import DataGeneric
 from structarray.common import *
 
-class DataRebin() :
+class DataRebin(DataGeneric) :
 	"""
 	this class aims to handle a single .reb file.
 	a .reb file is the native structarray file, it only consists in raw C structures dumped directly and successively into a file
@@ -27,6 +28,7 @@ class DataRebin() :
 
 	use_cache = False
 	use_mmap = True
+	block_boundary = 8
 
 	def __init__(self, data_pth:Path, meta=None) :
 		"""
@@ -53,16 +55,16 @@ class DataRebin() :
 						self.meta = structarray.rebin.meta._cached_meta[pth]
 						break
 
-		self._load_data()
+		self._load()
 		
-	def _load_data(self) :
+	def _load(self) :
 
 		assert self.data_pth.suffix == '.reb'
 
 		# taille du fichier lui-même
 		self.data_len = self.data_pth.stat().st_size
 		# taille d'un bloc
-		self.block_len = (((self.meta.sizeof // 8) + 1) * 8) if (self.meta.sizeof % 8) != 0 else self.meta.sizeof
+		self.block_len = (((self.meta.sizeof // self.block_boundary) + 1) * self.block_boundary) if (self.meta.sizeof % self.block_boundary) != 0 else self.meta.sizeof
 		# nombre de blocs
 		self.vector_len = self.data_len // self.meta.sizeof
 

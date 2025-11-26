@@ -17,7 +17,9 @@ import numpy as np
 
 from cc_pathlib import Path
 
+from structarray.data import DataGeneric
 import structarray.rezip.meta
+
 from structarray.common import *
 
 """
@@ -26,13 +28,16 @@ from structarray.common import *
 the mapping is embedded under a compact and compressed form
 """
 
-class DataRezip() :
+class DataRezip(DataGeneric) :
 	def __init__(self, data_pth:Path) :
 		self.data_pth = Path(data_pth).resolve(strict=True)
 
 		self.meta = structarray.rezip.meta.MetaRezip()
 
 		self._load()
+
+	def __len__(self) :
+		return self.meta.array_len
 
 	def _load(self) :
 		assert self.data_pth.suffix == '.rez'

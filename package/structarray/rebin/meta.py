@@ -26,37 +26,37 @@ class MetaCache() :
 
 _cached_meta = MetaCache()
 
-def compact_name(v_lst) :
-	# validated
-	# remove duplicate parts from the variable names
-	r_lst = list()
-	p_lst = list()
-	for v in v_lst :
-		n_lst = v.split('.')
-		q = 0
-		for p, n in zip(p_lst, n_lst) :
-			if p != n :
-				break
-			q += 1
-		r_lst.append((f"{q}/" if q else '') + '.'.join(n_lst[q:]))
-		p_lst = n_lst
-	return r_lst
+# def compact_name(v_lst) :
+# 	# validated
+# 	# remove duplicate parts from the variable names
+# 	r_lst = list()
+# 	p_lst = list()
+# 	for v in v_lst :
+# 		n_lst = v.split('.')
+# 		q = 0
+# 		for p, n in zip(p_lst, n_lst) :
+# 			if p != n :
+# 				break
+# 			q += 1
+# 		r_lst.append((f"{q}/" if q else '') + '.'.join(n_lst[q:]))
+# 		p_lst = n_lst
+# 	return r_lst
 
-def expand_name(r_lst) :
-	# validated
-	# undo the compaction and give back the original names and offset
-	v_lst = list()
-	p_lst = list()
-	for r in r_lst :
-		if '/' in r :
-			c, sep, z = r.partition('/')
-			n_lst = p_lst[:int(c)] + z.split('.')
-			v_lst.append('.'.join(n_lst))
-		else :
-			v_lst.append(r)
-			n_lst = r.split('.')
-		p_lst = n_lst
-	return v_lst
+# def expand_name(r_lst) :
+# 	# validated
+# 	# undo the compaction and give back the original names and offset
+# 	v_lst = list()
+# 	p_lst = list()
+# 	for r in r_lst :
+# 		if '/' in r :
+# 			c, sep, z = r.partition('/')
+# 			n_lst = p_lst[:int(c)] + z.split('.')
+# 			v_lst.append('.'.join(n_lst))
+# 		else :
+# 			v_lst.append(r)
+# 			n_lst = r.split('.')
+# 		p_lst = n_lst
+# 	return v_lst
 
 from structarray.meta import MetaGeneric
 	
@@ -122,10 +122,6 @@ class MetaRebin(MetaGeneric) :
 	# def push(self, name, mtype, addr) :
 	# 	self._m[name] = (mtype, addr)
 
-	def iter_nop(self) :
-		for name, (mtype, addr) in self._m.items() :
-			if not mtype.startswith('P') :
-				yield name
 
 	def dump(self, pth, is_relative=True, is_compact=False) :
 		pth = Path(pth).resolve()
