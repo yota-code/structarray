@@ -177,28 +177,49 @@ class RebHandler() :
 		stack = [[k,] + list(self[k][s]) for k in self.extract_lst]
 		pth.save(stack)
 
-	def debug(self, pth) :
-		self.extract()
+	# def debug(self, pth) :
+	# 	self.extract()
 
-		stack = self.get_stack()
-		header = stack[0]
-		has_error = False
-		print("\x1b[31mNan\x1b[0m")
-		print("\x1b[32mInf\x1b[0m")
-		for n, line in enumerate(stack[1:]) :
-			print(f"---  {n}")
-			for i, item in enumerate(line) :
-				if math.isnan(item) :
-					print(f"NAN \x1b[31m{header[i]}\x1b[0m")
-					has_error = True
-				# if math.isinf(item) :
-				# 	print(f"INF \x1b[32m{header[i]}\x1b[0m")
-				# 	has_error = True
-			if has_error :
-				break
+	# 	stack = self.get_stack()
+	# 	header = stack[0]
+	# 	has_error = False
+	# 	print("\x1b[31mNan\x1b[0m")
+	# 	print("\x1b[32mInf\x1b[0m")
+	# 	for n, line in enumerate(stack[1:]) :
+	# 		print(f"---  {n}")
+	# 		for i, item in enumerate(line) :
+	# 			if math.isnan(item) :
+	# 				print(f"NAN \x1b[31m{header[i]}\x1b[0m")
+	# 				has_error = True
+	# 			# if math.isinf(item) :
+	# 			# 	print(f"INF \x1b[32m{header[i]}\x1b[0m")
+	# 			# 	has_error = True
+	# 		if has_error :
+	# 			break
 
-		self.to_listing(pth, n)
-		self.to_listing(pth.with_suffix('.1.tsv'), n-1)
+	# 	self.to_listing(pth, n)
+	# 	self.to_listing(pth.with_suffix('.1.tsv'), n-1)
+
+	def debug(self) :
+		r_map = {"nan": collections.defaultdict(set), "inf": collections.defaultdict(set)}
+		for name, (mtype, addr) in self.meta._m.items() :
+			if mtype[0] != "R" :
+				continue
+			y = self[name]
+			for k, f in [('nan', np.isnan), ('inf', np.isinf)] :
+				u = f(y)
+				p = u.nonzero()[0]
+				if 0 < p.size :
+					r_map[k][int(p[0])].add(name)
+
+		for k in r_map :
+			s_lst = list()
+			for p in sorted(r_map[k]) :
+				s_lst.append(f'@{p}')
+				for name in sorted(r_map[k][p]) :
+					s_lst.append(f'\t{name}')
+			if s_lst :
+				self.data_pth.with_suffix(f'.debug_{k}.tsv').write_text('\n'.join(s_lst))
 
 	def to_rez(self) :
 		"""
