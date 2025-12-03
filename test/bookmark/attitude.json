@@ -12,10 +12,14 @@
 		"ylabel" : "Alt (m)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_ALTARefM"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_ALTARefM",
+			{
+				"miny":-2,
+				"maxy":2
+			}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmCdtS._O3_S_UpmCdt.R_ZhC"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS._O3_S_UpmCdt.R_ZhC"
 		]
 	],
 	[
@@ -25,13 +29,17 @@
 		"ylabel" : "IAS (kt)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefIasS._O2_R_IasRef"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefIasS._O2_R_IasRef",
+			{
+				"miny":-5,
+				"maxy":5
+			}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmCdtS._O3_S_UpmCdt.R_ViC"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS._O3_S_UpmCdt.R_ViC"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmCdtS.R_Ias"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_Ias"
 		]
 	],
 	[
@@ -41,7 +49,11 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef",
+			{
+				"miny":-5,
+				"maxy":5
+			}
 		],
 		[
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_PsiC"
@@ -60,7 +72,7 @@
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_VvFpaRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmCdtS.R_VvBan"
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_VvBan"
 		]
 	],
 	[

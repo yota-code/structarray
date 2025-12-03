@@ -1,0 +1,105 @@
+[
+	
+	{
+	"col":3,
+	"size":[12,8],
+	"clean":true
+	},
+	[
+		{
+		"title":"Angle (deg)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._O0_S_StbToUpm.S_StbPitToUpm.R_PThetaRef"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Att.R_The"
+		]
+	],
+	[
+		{
+		"title":"Angle Rates (deg/s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbLogB._L1179_MfcAfcs.R_PThetaDRef"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_PitRate"
+		]
+	],
+	[
+		{
+		"title":"Acceleration (m/s^2)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS.S_UpmTraj.S_PitGspdCtrl.R_GxCom"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamax"
+		]
+	],
+	[
+		{
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._O0_S_StbToUpm.S_StbRolToUpm.R_RPhiRef"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Att.R_Phi"
+		]
+	],
+	[
+		{
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbLogB._L1180_MfcAfcs.R_RPhiDRef"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_RolRate"
+		]
+	],
+	[
+		{
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS.S_UpmTraj.S_RolGspdCtrl.R_GyCom"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamay"
+		]
+	],
+	[
+		{
+		"xlabel":"time (s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._O0_S_StbToUpm.R_YPsiRef"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Hdg.R_Psi"
+		]
+	],
+	[
+		{
+		"xlabel":"time (s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbYawB._C_1_StbYawHdgB.R_YPsiDRef"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_YawRate"
+		]
+	],
+	[
+		{
+		"xlabel":"time (s)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS.S_UpmTraj.R_GzCom"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamaz",
+			{"offset":1}
+		]
+	]
+]
