@@ -114,7 +114,7 @@ class ElfParser() :
 		# 	w_lst.append(self.expand_struct(m_lst))
 		# Path("walk.tsv").save(w_lst)
 
-	def get_meta(self, name) :
+	def get_meta(self, name, remove=None) :
 
 		oid = self.get_root(name)
 
@@ -126,7 +126,10 @@ class ElfParser() :
 
 		for m_lst in self.walk(oid) :
 			p_lst = [obj.name for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
-			u['.'.join(p_lst)] = (f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
+			key = '.'.join(p_lst)
+			if remove :
+				key = remove.sub('', key)
+			u[key] = (f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
 
 		return u
 
@@ -242,13 +245,13 @@ class ElfParser() :
 			case Base() :
 				yield m_lst
 			case Typedef() :
-				yield from self._walk(m_lst + [(obj.oid, t_lst + [oid,], self.r_map[obj.oid], offset),], max_depth, follow_pointer, depth)
+				yield from self._walk(m_lst + [(obj.oid, t_lst + [oid,], self.r_map[obj.oid], offset),], max_depth, pointer, depth)
 			case Member() :
-				yield from self._walk(m_lst + [(obj.oid, list(), self.r_map[obj.oid], offset),], max_depth, follow_pointer, depth+1)
+				yield from self._walk(m_lst + [(obj.oid, list(), self.r_map[obj.oid], offset),], max_depth, pointer, depth+1)
 			case Structure() :
 				if max_depth is None or depth <= max_depth :
 					for i, sub in enumerate(self.r_map[oid].detail) :
-						yield from self._walk(m_lst + [(f"{i}", t_lst, sub, offset + sub.offset),], max_depth, follow_pointer, depth)
+						yield from self._walk(m_lst + [(f"{i}", t_lst, sub, offset + sub.offset),], max_depth, pointer, depth)
 				else :
 					yield m_lst
 			case Pointer() :
@@ -258,7 +261,7 @@ class ElfParser() :
 					case PointerDo.DISPLAY :
 						yield m_lst
 					case PointerDo.FOLLOW :
-						yield from self._walk(m_lst + [(obj.oid, list(), self.r_map[obj.oid], offset),], max_depth, follow_pointer, depth)
+						yield from self._walk(m_lst + [(obj.oid, list(), self.r_map[obj.oid], offset),], max_depth, pointer, depth)
 
 	# def walk_smart(self, name=None, max_depth=None, follow_pointer=False) :
 	# 	pident = self.get_oid(self.default_name if name is None else name)
