@@ -7,292 +7,96 @@ import re
 
 from cc_pathlib import Path
 
-sizeof_map = { # size of types
-	'N1' : 1,
-	'N2' : 2,
-	'N4' : 4,
-	'N8' : 8,
-	'Z1' : 1,
-	'Z2' : 2,
-	'Z4' : 4,
-	'Z8' : 8,
-	'R4' : 4,
-	'R8' : 8,
-	'P4' : 4,
-	'P8' : 8,
-}
+from structarray.common import *
 
-ntype_map = { # types numpy
-	'Z1' : "int8",
-	'Z2' : "int16",
-	'Z4' : "int32",
-	'Z8' : "int64",
-	'N1' : "uint8",
-	'N2' : "uint16",
-	'N4' : "uint32",
-	'N8' : "uint64",
-	'R4' : "float32",
-	'R8' : "float64",
-}
+from abc import ABC, abstractmethod
 
-def compact_name(v_lst) :
-	# validated
-	# remove duplicate parts from the variable names
-	r_lst = list()
-	p_lst = list()
-	for v in v_lst :
-		n_lst = v.split('.')
-		q = 0
-		for p, n in zip(p_lst, n_lst) :
-			if p != n :
-				break
-			q += 1
-		r_lst.append((f"{q}/" if q else '') + '.'.join(n_lst[q:]))
-		p_lst = n_lst
-	return r_lst
-
-
-def expand_name(r_lst) :
-	# validated
-	# undo the compaction and give back the original names and offset
-	v_lst = list()
-	p_lst = list()
-	for r in r_lst :
-		if '/' in r :
-			c, sep, z = r.partition('/')
-			n_lst = p_lst[:int(c)] + z.split('.')
-			v_lst.append('.'.join(n_lst))
-		else :
-			v_lst.append(r)
-			n_lst = r.split('.')
-		p_lst = n_lst
-	return v_lst
-
-class MetaGeneric() :
-	""" decrit les adresses d'un blob binaire
-	TODO : tout remettre la dedans, seuls les loader changent suivant le format
-	et même MetaParse devrait être ici...
-	ou pas, on devrait avoir un parseur par type de données d'entrées
+class MetaGeneric(ABC) :
 	"""
-	def __getitem__(self, key) :
-		return self._m[key]
+	Classe abstraite pour le gestionnaire de méta données
 
-class MetaReb(MetaGeneric) :
-	""" un gestionnaire des méta données pour les enregistrements .reb """
+	Une class meta maintient un dictionnaire (self._m) dont les clés sont:
+	  * La clé: le chemin (complet, pas de version compacte ici)
+	  * la valeur: un truc (le truc est implémenté dans les sous classes)
+	gère la compaction / décompaction des noms
+	gère la recherche
+	gère name et sizeof, gère le calcul de block_len
+
+	Le reste est délégué
+	"""
+	block_align = 8
 	
-	def __init__(self, name=None, sizeof=None, default_padding=8) :
-		self._m = collections.OrderedDict() # chemin complet séparé par des points -> mtype, addr
+	def __init__(self, name, sizeof) :
+		self._m = collections.OrderedDict() # chemin complet séparé par des points -> truc
 		
 		self.name = name
-		self.sizeof = sizeof if (sizeof is None or (sizeof % default_padding) == 0) else (((sizeof // default_padding) + 1) * default_padding)
+		self.sizeof = sizeof
 
-	def push(self, name, mtype, addr) :
-		self._m[name] = (mtype, addr)
+	def __setitem__(self, key, value) :
+		self._m[key] = value
 
-	def iter_nop(self) :
-		# TODO renomer ? nop c'est nul
-		for name, (mtype, addr) in self._m.items() :
-			if not mtype.startswith('P') :
-				yield name
-
-	def __iter__(self) :
-		for name, (mtype, offset) in self._m.items() :
-			yield name, mtype, offset
+	def __getitem__(self, key) :
+		return self._m[key]
+	
+	def __contains__(self, key) :
+		return key in self._m
 
 	def __len__(self) :
 		return len(self._m)
-		
-	def load(self, pth=None) :
-		pth = Path(pth).resolve()
 
-		if pth.suffix != '.tsv' :
-			raise ValueError("mapping must be a tsv file")
-		if not pth.is_file() :
-			raise FileNotFoundError(f"{pth} does not exists")
-		
-		self._m = collections.OrderedDict()
+	def __iter__(self) :
+		for k, v in self._m.items() :
+			yield k, v
 
-		obj = pth.load()
-		
-		line = obj.pop(0)
-		name, sizeof = line[0], int(line[1])
-		self.__init__(name, sizeof)
-		
-		self._load_addr(obj)
+	def iter_nop(self) :
+		for key, value in self :
+			if not value[0].startswith('P') :
+				yield key
 
-		return self
+	@property
+	def block_len(self) :
+		if self.sizeof % 8 :
+			return (((self.meta.sizeof // 8) + 1) * 8)
+		return self.sizeof
 
-	def _load_addr(self, obj) :
-		""" si la première ligne des addresses ne contient que 2 champs,
-		on considère que c'est un fichier décrit en relatif """
-		is_relative = len(obj[0]) == 2
-
-		addr = 0
-		for line in obj :
-			if len(line) == 2 :
-				name, mtype, value = * line, 0
-			elif len(line) == 3 :
-				name, mtype, value = line[0], line[1], int(line[2])
-			else :
-				raise ValueError(f"malformed line, {line}")
-			
-			if '/' in name :
-				# si y a un / c'est que le nom est compact
-				c, sep, z = name.partition('/')
-				try :
-					name = '.'.join(prev.split('.')[:int(c)]) + '.' + z
-				except :
-					print(prev, z)
-					print(prev.split('.')[:int(c)])
-					raise ValueError
-
-			addr = addr if is_relative else value
-			self._m[name] = (mtype, addr)
-
-			addr += value + sizeof_map[mtype]
-
-			prev = name
-
-	def dump(self, pth, is_relative=True, is_compact=False) :
-		pth = Path(pth).resolve()
-
-		if not pth.suffix == '.tsv' :
-			raise ValueError
-		if self.sizeof is None :
-			raise ValueError("self.sizeof is not defined !")
-		
-		s_lst = [
-			[self.name, self.sizeof],
-		]
-		s_lst += self._dump_addr(is_relative, is_compact)
-
-		pth.save(s_lst)
-
-	def _dump_addr(self, is_relative, is_compact) :
-
-		s_lst = list()
+	def _proc_name_compact(self) :
+		""" iterateur instancié au début et appelé avec .send() pour avoir les valeurs suivantes
+		il faut l'appeler dans l'ordre sinon ça n'a aucun sens
+		"""
 		p_lst = list()
+		k = yield None
+		while True :
+			n_lst = k.split('.')
+			q = 0
+			for p, n in zip(p_lst, n_lst) :
+				if p != n :
+					break
+				q += 1
+			k = yield (f"{q}/" if q else '') + '.'.join(n_lst[q:])
+			p_lst = n_lst
 
-		prev = 0
-		for name, (mtype, addr) in self._m.items() :
-			if is_compact :
-				n_lst = name.split('.')
-				q = 0
-				for p, n in zip(p_lst, n_lst) :
-					if p != n :
-						break
-					q += 1
-				name = (f"{q}/" if q else '') + '.'.join(n_lst[q:])
-				p_lst = n_lst
-			if is_relative :
-				element_nbr = (int(re.match(r'.*?\[(?P<size>\d+)\]', name).group('size')) - 1) if name.endswith(']') else 1
-
-				if s_lst :
-					padding = addr - prev
-					# assert 0 <= padding < 7
-					if padding != 0 :
-						s_lst[-1].append(padding)
-
-				s_lst.append([name, mtype,])
-
-				element_size = int(s_lst[-1][1][1:])
-				prev = addr + (element_size * element_nbr)
+	def _proc_name_expand(self) :
+		""" iterateur instancié au début et appelé avec .send() pour avoir les valeurs suivantes
+		il faut l'appeler dans l'ordre sinon ça n'a aucun sens
+		"""
+		p_lst = list()
+		r = yield None
+		while True :
+			if '/' in r :
+				c, sep, z = r.partition('/')
+				n_lst = p_lst[:int(c)] + z.split('.')
+				r = yield '.'.join(n_lst)
 			else :
-				s_lst.append([name, mtype, addr])
+				n_lst = r.split('.')
+				r = yield r
+			p_lst = n_lst
 
-		if is_relative :
-			padding = self.sizeof - prev
-			if padding != 0 :
-				s_lst[-1].append(padding)
-
-		return s_lst
-		
-	def __eq__(self, other) :
-		for self_line, other_line  in zip(self._m.items(), other._m.items()) :
-			if self_line != other_line :
-				print("SELF ", self_line)
-				print("OTHER", other_line)
-				return False
-		return True
-	
-	def is_aligned(self, name) :
-		ctype, offset = self[name]
-		return offset % sizeof_map[ctype] == 0
-
-	def all_aligned(self) :
-		for name in self._m :
-			ctype, offset = self._m[name]
-			if offset % sizeof_map[ctype] != 0 :
-				print(f"{name} is not aligned: size={sizeof_map[ctype]} offeset={offset}")
-				return False
-		return True
-
-	def __contains__(self, key) :
-		return key in self._m
-	
-	def search(self, pattern, mode='blob') :
+	def search(self, pattern, mode='globex') :
 		# print(f"StructArray.search({pattern}, {mode})")
-		if mode == 'blob':
-			pattern = pattern.replace('.', '\\.').replace('*', '.*')
+		if mode == 'globex':
+			pattern = globex_to_regex(pattern)
 		elif mode == 'regexp' :
 			pass
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
 		return [var for var in self.iter_nop() if rec.search(var) is not None]
 
-
-def expand_name_gen() :
-	# validated
-	# undo the compaction and give back the original names
-	r = yield None
-	while True :
-		if '/' in r :
-			c, sep, z = r.partition('/')
-			n_lst = p_lst[:int(c)] + z.split('.')
-			r = yield '.'.join(n_lst)
-		else :
-			n_lst = r.split('.')
-			r = yield r
-		p_lst = n_lst
-
-
-z_map = {
-	'inf' : math.inf,
-	'nan' : math.nan,
-	'-inf' : -math.inf
-}
-
-class MetaRez(MetaGeneric) :
-	def __init__(self) :
-		self._m = collections.OrderedDict()
-
-	def load(self, meta_zip) :
-		import brotli
-
-		self._m.clear()
-
-		meta_bin = brotli.decompress(meta_zip)
-		meta_txt = meta_bin.decode('ascii')
-		meta_lst = meta_txt.splitlines()
-
-		self.array_len = int(meta_lst.pop(0))
-
-		exp = expand_name_gen()
-		next(exp)
-
-		for line in meta_lst :
-			r, value = line.split('\t')
-			v = exp.send(r)
-			m = value[:2]
-			z = value[2]
-			try :
-				b = ast.literal_eval(value[3:])
-			except ValueError :
-				try :
-					b = float(value[3:])
-				except :
-					raise
-			self._m[v] = (m, z, b)
-
-		print('\n'.join(list(self._m)[:20]))
-
-		return self

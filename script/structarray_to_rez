@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+import sys
+
+import structarray.rezip.convert
+
+structarray.rezip.convert.to_rez(sys.argv[1])

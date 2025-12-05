@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
-from structarray.rebin import RebHandler
-from structarray.info import MetaParser
+from cc_pathlib import Path
 
-import structarray.meta as meta
+import structarray.rebin
+import structarray.rezip
+
+def open(data:Path, meta:Path=None) :
+	if data.suffix == '.reb' :
+		return structarray.rebin.DataRebin(data, meta)
+	elif data.suffix == '.rez' :
+		return structarray.rezip.DataRezip(data)
+	

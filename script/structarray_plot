@@ -36,16 +36,14 @@ def ispi(line) :
 	return ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name or 'drift' in name) and 'psidot' not in name and 'psiddot' not in name
 
 class PlotSA() :
-	def __init__(self, data_pth, meta_pth, bookmark_dir) :
-		self.data_pth = data_pth
-		self.meta_pth = meta_pth
+	def __init__(self, bookmark_dir) :
 		self.bookmark_dir = bookmark_dir
 
-		self.load()
-		self.run()
+	def load(self, data_pth, meta_pth=None) :
 
-	def load(self) :
-		self.sa = structarray.RebHandler().load(self.data_pth, self.meta_pth)
+		self._reload_arg = (data_pth, meta_pth)
+
+		self.sa = structarray.open(data_pth, meta_pth)
 
 		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time_ms'))
 
@@ -55,6 +53,8 @@ class PlotSA() :
 			self.t_arr = np.arange(len(self.sa))
 
 		print(f'time: {self.t_arr[0]} .. {self.t_arr[-1]}')
+
+		return self
 
 	def run(self) :
 		r_lst = list()
@@ -67,7 +67,7 @@ class PlotSA() :
 					if ans.startswith('!q') :
 						sys.exit(0)
 					if ans.startswith('!r') :
-						self.load()
+						self.load(* self._reload_arg)
 				elif ans.startswith("@") :
 					bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
 					if bookmark_pth.is_file() :
@@ -75,7 +75,7 @@ class PlotSA() :
 						self.plot(p_lst, ans[1:].replace("_", " ").title().strip())
 					else :
 						print(f"file not found: {bookmark_pth}")
-						print('\n'.join(sorted(p.fname for p in bookmark_dir)))
+						print('\n'.join(sorted("@"+p.fname for p in bookmark_dir)))
 
 				elif ans.startswith('&') :
 					if ans == '&' :
@@ -112,7 +112,7 @@ class PlotSA() :
 						g_lst = list()
 						for g in p.split() :
 							try :
-								g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
+								g_lst.append([r_lst[n_lst.index(g)]])
 							except :
 								print(g, n_lst)
 								raise
@@ -128,6 +128,9 @@ class PlotSA() :
 					print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
 					if len(r_lst) >= 32 :
 						print('...')
+
+			except EOFError :
+				break
 			except Exception as e: 
 				print("FATAL error occured \n ",e)
 				print(traceback.format_exc())
@@ -143,7 +146,8 @@ class PlotSA() :
 			meta = p_lst.pop(0)
 		else :
 			meta = dict()
-		
+		cleanlbl = False
+
 		if 'col' in meta :
 			n_col = meta['col']
 			n_row = int(math.ceil(len(p_lst) / n_col))
@@ -151,6 +155,8 @@ class PlotSA() :
 			n_col, n_row = 1, len(p_lst)
 		if 'size' in meta :
 			size = tuple(meta['size'])
+		if 'clean' in meta:
+			cleanlbl = meta['clean']
 		else :
 			size = (8,6)
 			
@@ -165,8 +171,17 @@ class PlotSA() :
 		for g_lst in p_lst :
 			if isinstance(g_lst[0], dict) :
 				g_lst = g_lst[1:]
-			for name, color, opacity, width, format in g_lst :
-				k_map[name] = name.split('.')
+			for g in g_lst :
+				if(len(g)==1):
+					name = g[0]
+				else:
+					name, sig_param = g
+				#k_map[name] = name.split('.')
+				if(cleanlbl):
+					k_map[name] = [name.split('.')[-1]]
+				else:
+					k_map[name] = name.split('.')
+
 		k_map = clean_label(k_map)
 
 		for i, g_lst in enumerate(p_lst) :
@@ -188,15 +203,32 @@ class PlotSA() :
 				fig_param = dict()
 			q.update(fig_param)
 
-			for name, color, opacity, width, format in g_lst :
+			for g in g_lst :
 				m = dict()
-				m['label'] = k_map[name]
-				if color is not None :
-					m['color'] = color
-				if width is not None :
-					m['linewidth'] = width
-				if opacity is not None :
-					m['alpha'] = opacity
+				gn = 1.0
+				ofs = 0.0
+				format = None
+				if(len(g)==1):
+					name = g[0]
+					m['label'] = k_map[name]
+				else:
+					name, sig_param = g
+					m['label'] = k_map[name]
+					if isinstance(sig_param, dict) :
+						if 'color' in sig_param :
+							m['color'] = sig_param['color']
+						if 'width' in sig_param :
+							m['linewidth'] = sig_param['width']
+						if 'opacity' in sig_param :
+							m['alpha'] = sig_param['opacity']
+						if 'gain' in sig_param :
+							gn = sig_param['gain']
+						if 'offset' in sig_param :
+							ofs = sig_param['offset']
+							if isinstance(ofs,str):
+								ofs = self.sa[ofs]	
+						if 'format' in sig_param :
+							format = sig_param['format']							
 				if name.startswith('*') :
 					try :
 						name = self.sa.meta.search(name[1:], mode='blob')[0]
@@ -212,10 +244,11 @@ class PlotSA() :
 						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
 						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 					if format is None :
-						plt.plot(self.t_arr, y_arr, ** m)
+						plt.plot(self.t_arr, gn*y_arr+ofs, ** m)
 					else :
-						plt.plot(self.t_arr, y_arr, format, ** m)
-					y_lst.append(y_arr)
+						plt.plot(self.t_arr, gn*y_arr+ofs, format, ** m)
+					y_lst.append(gn*y_arr+ofs)
+					#mplcursors.cursor()
 				else :
 					print(self.sa.meta)
 					print(f"{name} not found")
@@ -255,13 +288,6 @@ if __name__ == '__main__' :
 
 	p = parser.parse_args()
 
-	data_pth = (p.data).resolve()
-
-	if p.meta is None :
-		meta_pth = Path("context_map.tsv").resolve()
-	else :
-		meta_pth = (p.meta).resolve()
-
-	PlotSA(data_pth, meta_pth, bookmark_dir).run()
+	PlotSA(bookmark_dir).load(p.data, p.meta).run()
 
 

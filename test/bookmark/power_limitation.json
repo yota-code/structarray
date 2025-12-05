@@ -1,0 +1,91 @@
+[
+	
+		{
+		"col":3,
+		"size":[12,8],
+	"clean":true
+		},
+	[
+			{
+		"title":"Fli Margin",
+		"xlabel":"time (s)",
+		"ylabel" : "degFli (°)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS.R_FliMrgn"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS._C_1_UpmFliVmsS._C_1_UpmFliVmsAeoMrgnS.R_DgDegFli"
+		]
+	],
+	[
+		{
+		"title":"Mrgn",
+		"xlabel":"time (s)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS._C_1_UpmFliVmsS.R_AeoTopMrgnC",
+			{
+				"gain":-1,
+				"offset":10
+			}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS._C_1_UpmFliVmsS.R_AeoMcpMrgnC",
+			{
+				"gain":-1,
+				"offset":10
+			}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS._C_1_UpmFliVmsS.R_AeoMrgnC",
+			{
+				"gain":-1,
+				"offset":10
+			}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS._C_1_UpmFliVmsS.R_DgFli"
+		]
+	],
+	[
+		{
+		"title":"R_Dg",
+		"xlabel":"time (s)",
+		"ylabel":null
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS.R_DgMaxAeo"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmColPitS._C_1_UpmColOutS._I14_R_Dg"
+		]
+	],
+	[
+		{
+		"title":"Trq",
+		"xlabel":"time (s)",
+		"ylabel":null
+		},
+		[
+			"_C_2_MfcAcqB._C_1_MfcAcqB_Sen._C_2_AcqVmsMfc.S_Eng1Trq1.Value_"
+		],
+		[
+			"_C_2_MfcAcqB._C_1_MfcAcqB_Sen._C_2_AcqVmsMfc.S_Eng1.N1Source1.Value_"
+		],
+		[
+			"_C_2_MfcAcqB._C_1_MfcAcqB_Sen._C_2_AcqVmsMfc.S_Eng1.TotSource1.Value_"
+		]
+	],
+	[
+		{
+		"title":"Protect",
+		"xlabel":"time (s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbColB._C_1_StbColCmdB.R_CPwrProtec"
+		]
+	]
+]
+
+
