@@ -1,9 +1,10 @@
 [
 	
 		{
-		"col":3,
-		"size":[12,8],
-	"clean":true
+			"title":"Power limitation",
+			"col":3,
+			"size":[12,8],
+			"clean":true
 		},
 	[
 			{

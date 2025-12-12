@@ -1,9 +1,10 @@
 [
 	
 		{
-		"col":3,
-		"size":[12,8],
-	"clean":true
+			"title":"Terrain Avoidance",
+			"col":3,
+			"size":[12,8],
+			"clean":true
 		},
 	[
 		[
@@ -39,6 +40,9 @@
 		],
 		[
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_VS"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_ALT"
 		]
 	],
 	[
@@ -81,15 +85,13 @@
 		"ylabel":"Fpa (%)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaFpaRef"
-		],
-		
-		[
 			"_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstFpa"
 		],
-		
 		[
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS.R_HcCurrFpa"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS.R_FpaRefMax"
 		]
 	]
 ]

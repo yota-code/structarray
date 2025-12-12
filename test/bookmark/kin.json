@@ -1,9 +1,10 @@
 [
 	
 	{
-	"col":4,
-	"size":[16,8],
-	"clean":true
+		"title":"Kinematics",
+		"col":4,
+		"size":[16,8],
+		"clean":true
 	},
 	[
 		{

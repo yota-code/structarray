@@ -1,31 +1,30 @@
 [
 	
 	{
-	"col":3,
-	"size":[12,8],
-	"clean":true
+		"title":"Attitude",
+		"col":3,
+		"size":[12,8],
+		"clean":true
 	},
 	[
 		{
 		"title":"Altitude",
-		"xlabel":"time (s)",
 		"ylabel" : "Alt (m)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_ALTARefM",
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr",
 			{
 				"miny":-2,
 				"maxy":2
 			}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS._O3_S_UpmCdt.R_ZhC"
+			"_C_1_RtmSchNomFctS._C_7_UpmS.S_UpmCdt.R_ZBiC"
 		]
 	],
 	[
 		{
 		"title":"Reference",
-		"xlabel":"time (s)",
 		"ylabel" : "IAS (kt)"
 		},
 		[
@@ -45,7 +44,6 @@
 	[
 		{
 		"title":"Heading",
-		"xlabel":"time (s)",
 		"ylabel" : "Degree (°)"
 		},
 		[
@@ -65,7 +63,6 @@
 	[
 		{
 		"title":"Vertical Speed",
-		"xlabel":"time (s)",
 		"ylabel" : "Velocity (ft/min)"
 		},
 		[
@@ -78,20 +75,18 @@
 	[
 		{
 		"title":"Flight Path Angle",
-		"xlabel":"time (s)",
 		"ylabel" : "Percent (%)"
 		},
 		[
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefPct_"
 		],
 		[
-			"_O5_tr_afcs_visu.R_FpaCurr"
+			"_C_2_MfcEmiB._C3_MfcEmiVisB.R_FpaCurr"
 		]
 	],
 	[
 		{
 		"title":"Ground Speed",
-		"xlabel":"time (s)",
 		"ylabel" : "Velocity (kt)"
 		},
 		[

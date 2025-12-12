@@ -154,6 +154,8 @@ class PlotSA() :
 			size = tuple(meta['size'])
 		if 'clean' in meta:
 			cleanlbl = meta['clean']
+		if 'title' in meta:
+			title = meta['title']
 		else :
 			size = (8,6)
 			
@@ -185,12 +187,12 @@ class PlotSA() :
 			if i == 0 :
 				z = plt.subplot(n_row, n_col, i+1)
 				q = z
-				if len(p_lst) > 1 :
-					plt.setp(z.get_xticklabels(), visible=False)
+				#if len(p_lst) > 1 :
+				#	plt.setp(z.get_xticklabels(), visible=False)
 			else :
 				q = plt.subplot(n_row, n_col, i+1, sharex=z)
-				if i+1 < len(p_lst) :
-					plt.setp(q.get_xticklabels(), visible=False)
+				#if i+1 < len(p_lst) :
+				#	plt.setp(q.get_xticklabels(), visible=False)
 			y_lst = list()
 			
 			# get figure parameters
@@ -284,7 +286,7 @@ class PlotSA() :
 			plt.grid()
 			plt.legend()
 
-		# fig.tight_layout()
+		fig.tight_layout()
 		plt.show(block=False)
 
 
