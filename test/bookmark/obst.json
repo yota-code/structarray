@@ -1,0 +1,91 @@
+[
+	
+		{
+			"title":"Terrain Obstacle",
+			"col":3,
+			"size":[12,8],
+			"clean":true
+		},
+	[
+		{
+		"title":"Distance to obstacle",
+		"xlabel":"time (s)"
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstDist"
+		]
+	],
+	[
+		{
+		"title":"Lon",
+		"xlabel":"time (s)"
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.I_ObstLon"
+		],
+		[
+			"S_AcqB.S_SenData.S_GpsRedChA.I_LonHel"
+		]
+	],
+	[
+		{
+		"title":"Lat",
+		"xlabel":"time (s)"
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.I_ObstLat"
+		],
+		[
+			"S_AcqB.S_SenData.S_GpsRedChA.I_LatHel"
+		]
+	],
+	[
+		{
+		"title":"Time to Obst",
+		"xlabel":"time (s)",
+		"ylabel":null
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.I_ObstEta"
+		]
+	],
+	[
+		{
+		"title":"Elevation",
+		"xlabel":"time (s)",
+		"ylabel":"altitude (m)"
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstAlt"
+		],
+		[
+			"_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_ZBiC"
+		]
+	],
+	[
+		{
+		"title":"Vertical Speed",
+		"xlabel":"time (s)",
+		"ylabel":"Vz (m/s)"
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstVz"
+		],
+		[
+			"_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_VzBiC"
+		]
+		
+	],
+	[
+		{
+		"title":"Flight Path Angle",
+		"xlabel":"time (s)",
+		"ylabel":"Fpa (%)"
+		},
+		[
+			"S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstFpa"
+		]
+	]
+]
+
+

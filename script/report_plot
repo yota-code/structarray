@@ -16,8 +16,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mplcursors
 
-data_pth = Path("jerruei.reb")
-meta_pth = Path("tutu.tsv")
+data_pth = Path("/home/local_data/x601969/record/pflight/MFCPFLIGHT/c28fd6e6ec1c2c66/20251217_163311.reb")
+meta_pth = Path("/dk/fdat18785/x601969/smartfly//source/mfcpflight_code/mapping/compact_map.tsv")
 
 def find_delay(signal1, signal2):
     """
