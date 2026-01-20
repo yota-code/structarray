@@ -257,7 +257,7 @@ class PlotSA() :
 						plt.plot(self.t_arr, gn*y_arr+ofs, ** m)
 					else :
 						plt.plot(self.t_arr, gn*y_arr+ofs, format, ** m)
-					if max_lim_y is not None:
+					if min_lim_y is not None:
 						plt.plot(self.t_arr, gn*y_arr+ofs+min_lim_y,'k--',label="min")
 					if max_lim_y is not None:
 						plt.plot(self.t_arr, gn*y_arr+ofs+max_lim_y,'k--',label="max")
