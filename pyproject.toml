@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "structarray"
+version = "2.0.1"
+authors = [
+  { name="yota", email="yota.news@gmail.com" },
+]
+description = "this package allow handling raw recording of C structures, manage mapping and access to the data"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "numpy",
+  "pyelftools",
+]
+
+[project.urls]
+Homepage = "https://github.com/yota-code/structarray"
+

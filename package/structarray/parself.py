@@ -24,8 +24,8 @@ if False :
 	Pointer = collections.namedtuple('Pointer', ['type', 'size'])
 	Typedef = collections.namedtuple('Typedef', ['type', 'name'])
 	Array = collections.namedtuple('Array', ['type', 'shape'])
-	Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
 	Structure = collections.namedtuple('Structure', ['size', 'detail'])
+	Member = collections.namedtuple('Member', ['type', 'name', 'offset'])
 	Variable = collections.namedtuple('Variable', ['type', 'name'])
 else :
 	@dataclasses.dataclass

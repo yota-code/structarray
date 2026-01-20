@@ -51,8 +51,8 @@ def rise_to_meta(rise_pth, var_name="UpmS", prefix="G_IO_Afcs._C_1_AfcsS1._C_3_R
 	
 	
 	u = MetaReb(var_name, size)
-	for m in m_lst :
-		u.push(* m)
+	for k, * v in m_lst :
+		u[k] = tuple(v)
 	u.dump(Path(out_name), True, True)
 	u.dump(Path("ABS" + out_name), False, False)
 	
