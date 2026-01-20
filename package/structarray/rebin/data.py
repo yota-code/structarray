@@ -47,14 +47,16 @@ class DataRebin(DataGeneric) :
 				self.meta = structarray.rebin.meta._cached_meta[Path(meta).resolve(strict=True)]
 			case structarray.rebin.meta.MetaRebin() :
 				self.meta = meta
-			case _ :
+			case None :
 				# si meta=None, on essaie d'ouvrir un fichier meta à côté du fichier data
 				for k in ["context_map.tsv", "compact_map.tsv"] :
 					pth = (self.data_pth.parent / k).resolve()
 					if pth.is_file() :
 						self.meta = structarray.rebin.meta._cached_meta[pth]
 						break
-
+			case _ :
+				raise ValueError("meta can't be loaded")
+				
 		self._load()
 		
 	def _load(self) :

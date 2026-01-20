@@ -68,7 +68,7 @@ def to_rez(data, meta=None) :
 					e_map[c][i] = ('@', j)
 					print(f"{p}{c} {n+1:7d} / {len(i_lst)} # {j} @ {v_lst[i]}")
 
-			Path(f"s_map.{c}.json").save(s)
+			# Path(f"s_map.{c}.json").save(s)
 			
 			if m :
 				with h5py.File(archive_pth, 'a', libver="latest") as obj :
@@ -90,7 +90,7 @@ def to_rez(data, meta=None) :
 			z, j = '', ''
 		f_lst.append(f'{r}\t{mtype}{z}{j}')
 
-	Path(archive_pth.with_suffix('.mez')).write_text('\n'.join(f_lst))
+	# Path(archive_pth.with_suffix('.mez')).write_text('\n'.join(f_lst))
 
 	with h5py.File(archive_pth, 'a', libver="latest") as obj :
 		meta_zip = brotli.compress('\n'.join(f_lst).encode('ascii'), mode=brotli.MODE_TEXT)
