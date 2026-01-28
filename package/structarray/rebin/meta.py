@@ -17,13 +17,13 @@ class MetaCache() :
 	attention ! ce code n'est compatible avec du multithread ni du multiprocess
 	"""
 	def __init__(self) :
-		self._m = dict()
+		self._m = collections.OrderedDict()
 
 	def __getitem__(self, pth:Path) :
 		if pth not in self._m :
 			self._m[pth] = MetaRebin().load(pth)
 		return self._m[pth]
-
+	
 _cached_meta = MetaCache()
 
 # def compact_name(v_lst) :

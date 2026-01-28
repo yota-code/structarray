@@ -101,6 +101,11 @@ class DataRebin(DataGeneric) :
 	def __len__(self) :
 		return self.vector_len
 	
+	def __iter__(self) :
+		""" return each pair of name : data which are not a pointer """
+		for key in self.meta.iter_nop() :
+			yield key, self[key]
+	
 	def _read_buffer(self, name) :
 
 		ctype, offset = self.meta[name]

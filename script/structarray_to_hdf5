@@ -13,5 +13,5 @@ parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) fi
 
 args = parser.parse_args()
 
-u = structarray.RebHandler().load(args.data, args.meta)
-u.to_hdf5()
+structarray.open(args.data, args.meta).to_hdf5()
+

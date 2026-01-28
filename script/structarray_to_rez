@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 
-import sys
+import argparse
+
+from cc_pathlib import Path
 
 import structarray.rezip.convert
 
-structarray.rezip.convert.to_rez(sys.argv[1])
+parser = argparse.ArgumentParser(description='Convert a meta (*.tsv) and data (*.reb) file into a highly compressed .rez file')
+
+parser.add_argument('--meta', '-m', metavar='META', default=None, type=Path, help='the meta (*.tsv) file')
+parser.add_argument('data', metavar='DATA', type=Path, help='the data (*.reb) file')
+
+args = parser.parse_args()
+
+structarray.rezip.convert.to_rez(args.data, args.meta)
