@@ -133,3 +133,13 @@ class DataRebin(DataGeneric) :
 		else :
 			return self._read_buffer(name)
 
+	def extract_structured_array(self, * c_lst) :
+		""" return an array whose dtype is a flat structure of each column passed in c_lst """
+		d_lst = [
+			(f"{i:05d}_{c.split('.')[-1]}", ntype_map[self.meta.get_type(c)]) for i, c in enumerate(c_lst)
+		]
+		z = np.empty((len(self),), dtype=d_lst)
+		for i, c in enumerate(c_lst) :
+			z[f"{i:05d}_{c.split('.')[-1]}"] = self[c]
+
+		return z

@@ -69,6 +69,10 @@ class MetaRebin(MetaGeneric) :
 		self.name = name
 		self.sizeof = sizeof
 
+	def get_type(self, name) :
+		mtype, addr = self._m[name]
+		return mtype
+
 	def load(self, meta_pth:Path=None) :
 
 		self.meta_pth = Path(meta_pth).resolve(strict=True)
@@ -121,7 +125,6 @@ class MetaRebin(MetaGeneric) :
 
 	# def push(self, name, mtype, addr) :
 	# 	self._m[name] = (mtype, addr)
-
 
 	def dump(self, pth, is_relative=True, is_compact=False) :
 		pth = Path(pth).resolve()
