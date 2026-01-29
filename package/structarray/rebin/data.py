@@ -71,7 +71,14 @@ class DataRebin(DataGeneric) :
 		self.vector_len = self.data_len // self.meta.sizeof
 
 		print(f"LOADING data :: {self.data_pth}")
-
+		
+		
+		if (self.data_len % self.block_len != 0):
+		    trunc_size = self.data_len - (self.data_len % self.block_len)
+		    print(f"truncate {self.data_pth} -s {trunc_size}")
+		else:
+		    print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
+		    
 		assert self.data_len % self.block_len == 0
 
 		start_clock = time.perf_counter_ns()
@@ -94,7 +101,7 @@ class DataRebin(DataGeneric) :
 		stop_clock = time.perf_counter_ns()
 		self.load_time = stop_clock - start_clock
 
-		print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
+		#print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
 
 		return self
 
