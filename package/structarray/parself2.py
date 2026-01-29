@@ -74,8 +74,9 @@ class PointerDo(enum.Enum):
     DISPLAY = 0
     FOLLOW = 1
 
-
 class ElfParser() :
+
+	debug = False
 
 	def __init__(self, elf_pth) :
 		self._time_lst = [time.time(),]
@@ -94,12 +95,13 @@ class ElfParser() :
 			self.parse(top)
 			self.chrono(f"parse(\x1b[33m{top.attributes['DW_AT_name'].value.decode('utf8')}\x1b[0m)")
 
-		# Path("r_map.json").save(self.r_map, verbose=True)
-		# Path("s_map.json").save(self.s_map, verbose=True)
-		# Path("p_map.json").save(self.p_map, verbose=True)
-		# Path("typedef_map.json").save(self.typedef_map, verbose=True)
-		# Path("variable_map.json").save(self.variable_map, verbose=True)
-		# Path("base_map.json").save(self.base_map, verbose=True)
+		if self.debug :
+			Path("r_map.json").save(self.r_map, verbose=True)
+			Path("s_map.json").save(self.s_map, verbose=True)
+			Path("p_map.json").save(self.p_map, verbose=True)
+			Path("typedef_map.json").save(self.typedef_map, verbose=True)
+			Path("variable_map.json").save(self.variable_map, verbose=True)
+			Path("base_map.json").save(self.base_map, verbose=True)
 
 		# w_lst = list()
 		# for i, m_lst in enumerate(self.walk('_C_MfcAfcs')) :
@@ -122,6 +124,7 @@ class ElfParser() :
 			return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
 
 		from structarray.rebin.meta import MetaRebin
+
 		u = MetaRebin(self.r_map[oid].alias, self.to_base(self.r_map[oid]).sizeof)
 
 		for m_lst in self.walk(oid) :
@@ -427,11 +430,15 @@ class ElfParser() :
 	def _parse_subroutine_type(self, die) :
 		pass
 
+	def _parse_const_type(self, die) :
+		pass
+
+
 if __name__ == '__main__' :
 	u = ElfParser(Path(sys.argv[1]))
 	p = 'unitest_context'
-	p = '_C_MfcAfcs'
-	p = 704033
+	# p = '_C_MfcAfcs'
+	# p = 704033
 
 	Path("walk_by_offset.tsv").save([m + [p, o]  for m, p, o in u.iter_by_offset(p)])
 
