@@ -1,0 +1,167 @@
+[
+	
+	{
+		"title":"Trajectory",
+		"col":3,
+		"size":[12,8],
+		"clean":true
+	},
+	[
+		{
+		"title":"Altitude",
+		"ylabel" : "Alt (m)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr",
+			{
+				"miny":-2,
+				"maxy":2
+			}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ZCom"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.S_UpmCdtBaroRh.R_ZbpM"
+		]
+	],
+	[
+		{
+		"title":"Reference",
+		"ylabel" : "IAS (kt)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefIasS._O2_R_IasRef",
+			{
+				"miny":-5,
+				"maxy":5
+			}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ViCom"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_Ias"
+		]
+	],
+	[
+		{
+		"title":"Heading",
+		"ylabel" : "Degree (°)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef",
+			{
+				"miny":-5,
+				"maxy":5
+			}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_TkCom"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_PsiC"
+		]
+	],
+	[
+		{
+		"title":"Vertical Speed",
+		"ylabel" : "Velocity (ft/min)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_VvFpaRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VzCom",
+            {"gain":196.85}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_VvBan"
+		]
+	],
+	[
+		{
+		"title":"Ground Speed",
+		"ylabel" : "Velocity (kt)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VxCom3Hov"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vx"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VyCom3Hov"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vy"
+		]
+	],
+	[
+		{
+		"title":"Ground Speed",
+		"ylabel" : "Velocity (kt)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_VsRefms"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VsCom"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vs"
+		]
+	],
+	[
+		{
+		"title":"GamaX",
+		"xlabel":"time (s)",
+		"ylabel" : "(m/s^2)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GxComGstcNom"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GxCom3Hov"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamax"
+		]
+	],
+	[
+		{
+		"title":"GamaY",
+		"xlabel":"time (s)",
+		"ylabel" : "(m/s^2)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GyComGstcNom"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GyCom3Hov"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamay"
+		]
+	],
+	[
+		{
+		"title":"Acceleration",
+		"xlabel":"time (s)",
+		"ylabel" : "(m/s^2)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GzCom"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamaz",
+			{"offset":1}
+		]
+	]
+]
