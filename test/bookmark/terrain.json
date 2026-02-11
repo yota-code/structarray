@@ -76,6 +76,9 @@
 		],
 		[
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.R_VzBiC_P"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_VvRefHiLim"
 		]
 	],
 	[
@@ -92,6 +95,9 @@
 		],
 		[
 			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS.R_HcCurrFpa"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefHiLim"
 		]
 	]
 ]

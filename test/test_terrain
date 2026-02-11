@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+"""
+    Plot terrain avoidance profile form afcs recorder data
+"""
 import argparse
 import json
 import math
@@ -16,142 +18,125 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mplcursors
 
-data_pth = Path("/mnt/afcs_data/record/afcs/MFCAFCS/d6d24f762d526dc0/20260109_160017.reb")
-meta_pth = Path("/dk/fdat18785/x601969/smartfly/source/mfc_conan/model/MfcAfcs/mapping/compact_map.d6d24f762d526dc0.tsv")
+data_pth = Path("/mnt/afcs_data/record/afcs/d36d5ab54c039c30/20260211_131135.rez")
 
 R_GeoCoordLsb = 0.009313225746
 R_GeoLatLonLsb = 8.381903172e-8
 
-def plot_geo_meters(lats, lons, altitudes, new_plot = None, scatter_plot = True):
+def plot_geo_meters(lats, lons, altitudes, label = None, new_plot = None, scatter_plot = True , pos_ref = None, offset = 0):
     """
     Plots geo-points on a 2D plane in meters relative to the start point.
     """
-    
+
     # Pick a reference point (the first point or the mean)
-    ref_lat = lats[0]
-    ref_lon = lons[0]
-    
+    if pos_ref is None:
+        ref_lat = lats[0]
+        ref_lon = lons[0]
+    else:
+        ref_lat = pos_ref[0]
+        ref_lon = pos_ref[1]
+
     # Project to Meters
     north_meters = (lats - ref_lat) * R_GeoCoordLsb
-    
+
     # X must be scaled by the cosine of the latitude
     cos_lat = np.cos(np.radians(ref_lat*R_GeoLatLonLsb))
     east_meters = (lons - ref_lon) * R_GeoCoordLsb * cos_lat
-    
+
     # 4. Create the Plot
     if new_plot is None:
         plt.figure(figsize=(10, 8))
-    
+
     # Using 'terrain' colormap for altitude
     if scatter_plot:
-        scatter = plt.scatter(east_meters, north_meters, c=altitudes, cmap='terrain', 
+        scatter = plt.scatter(east_meters, north_meters, c=altitudes, cmap='terrain',
                           edgecolors='black', linewidth=0.1, s=20)
         plt.colorbar(scatter, label='Altitude (m)')
+        plt.axis('equal')
     else:
-        plt.plot(east_meters, north_meters)
+        #plt.plot(east_meters, north_meters)
+        plt.plot(np.sqrt(east_meters**2+north_meters**2)+offset,altitudes, label=label)
+
     # Formatting
-    
-    plt.xlabel('East-West distance from start (meters)')
-    plt.ylabel('North-South distance from start (meters)')
+    plt.ylabel('Altitude (m)')
+    plt.xlabel('GPS distance from start (meters)')
     plt.title('Local Planar Projection (Equirectangular)')
     plt.grid(True, linestyle=':', alpha=0.7)
-    
-    # Ensure 1 meter on X is visually equal to 1 meter on Y
-    plt.axis('equal') 
-    
-    
+    plt.legend()
+
+
+
+
 
 if __name__ == '__main__' :
 
-	"""# Generating dummy data (e.g., a path in a mountainous region)
-	n_points = 100
-	sample_lons = np.linspace(5.0, 6.0, n_points)
-	sample_lats = np.linspace(45.0, 46.0, n_points) + np.sin(sample_lons * 10) * 0.1
-	sample_alts = np.linspace(500, 3000, n_points) # From 500m to 3000m
-		
-	plot_geo_points(sample_lats, sample_lons, sample_alts)"""
+    parser = argparse.ArgumentParser(description='Plot terrain data from afcs recorder')
+    parser.add_argument('data', metavar='DATA', default=data_pth, type=Path, help='the data (*.reb) file', nargs='?')
+    parser.add_argument('--comp', '-c', metavar='DATA2', default=None, type=Path, help='the data2 (*.reb) file to compare against')
 
-	print("data: ",data_pth)
-	print("meta: ",meta_pth)
+    p = parser.parse_args()
 
-	#load data
-	u = structarray.RebHandler().load(data_pth, meta_pth)
-	
-	#t = u["_L33_MfcPflight.timestamp"]
-	#plt.plot(t[1:] - t[:-1])
-	#plt.show()
-	
-	obstacle_lats = u["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLat"]/R_GeoLatLonLsb
-	obstacle_lons = u["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLon"]/R_GeoLatLonLsb
-	obstacle_alts = u["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstAlt"]
+    data_pth = Path(p.data).resolve()
+    map_id = str(data_pth).split('/')[-2]
+    meta_pth = Path(f"/dk/fdat18785/x601969/smartfly/source/mfc_conan/model/MfcAfcs/mapping/compact_map.{map_id}.tsv")
 
-	plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts)
+    print("data: ",data_pth)
+    print("meta: ",meta_pth)
+    if p.comp is not None:
+        data2_pth = Path(p.comp).resolve()
+        map2_id = str(data2_pth).split('/')[-2]
+        meta2_pth = Path(f"/dk/fdat18785/x601969/smartfly/source/mfc_conan/model/MfcAfcs/mapping/compact_map.{map2_id}.tsv")
+        print("data2: ",data2_pth)
+        print("meta2: ",meta2_pth)
 
-	aircraft_lats = u["S_AcqB.S_SenData.S_GpsRedChA.I_LatHel"]/R_GeoLatLonLsb
-	aircraft_lons = u["S_AcqB.S_SenData.S_GpsRedChA.I_LonHel"]/R_GeoLatLonLsb
-	aircraft_alts = u["_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_ZBiC"]
+    #load data
+    u = structarray.open(data_pth, meta_pth)
 
-	plot_geo_meters(aircraft_lats, aircraft_lons, aircraft_alts, new_plot=False, scatter_plot = False)
-	
-	plt.show()
-	"""
-	R_HtaAltaRef = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaAltaRef"
-	R_HtaVzRef = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaVzRef"
-	R_HtaFpaRef = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaFpaRef"
-	R_ObstFpa = "_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstFpa"
-	R_ObstVz = "_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstVz"
-	R_ObstAlt = "_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstAlt"
-	R_HcGs = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._I1_R_Vx"	
-	R_HcVz = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._I2_R_Vz"
-	R_HcAlt = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._I3_R_Z"
-	R_HcFpa = "_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS.R_HcCurrFpa"
+    #t = u["_L33_MfcPflight.timestamp"]
+    #plt.plot(t[1:] - t[:-1])
+    #plt.show()
 
-	fig0 = plt.figure(figsize = (8, 6))
-	fig0.suptitle(" Altitude ")
-	plt.plot(u[R_HtaAltaRef])
-	plt.plot(u[R_ObstAlt])
-	plt.plot(u[R_HcAlt])
-	
-	###############################################################################
-	#    Planche 1
-	###############################################################################
+    aircraft_lats = u["S_AcqB.S_SenData.S_GpsRedChA.I_LatHel"]
+    aircraft_lons = u["S_AcqB.S_SenData.S_GpsRedChA.I_LonHel"]
+    aircraft_alts = u["_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_ZBiC"]
 
-	fig1 = plt.figure(figsize=(8, 6))
-	fig1.suptitle(" TerrainAvoid ")	
-	# Creating a subfigure for the first and second row
-	gs = plt.GridSpec(1, 3)
-	gs.update(wspace=0.4, hspace=0.4)	
-	row0fig0     = fig1.add_subplot(gs[0, 0])
-	row0fig1     = fig1.add_subplot(gs[0, 1])
-	row0fig2     = fig1.add_subplot(gs[0, 2])	
-	ax = row0fig0
-	ax.set_title('Altitude')
-	ax.plot(u[R_HtaAltaRef], label="Ref")
-	ax.plot(u[R_ObstAlt],label="Obst")
-	ax.plot(u[R_HcAlt],label="Hc")
-	ax.grid()        
-	ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
-	#ax.set(xlabel=xlabel, ylabel=ylabel)
-	##letter_annotation(ax, -.25, 1, 'A')	
-	ax = row0fig1
-	ax.plot(u[R_HtaFpaRef],label="Ref")
-	ax.plot(u[R_ObstFpa],label="Obst")
-	ax.plot(u[R_HcFpa],label="Hc")
-	ax.set_title('FPA')
-	ax.grid()        
-	ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
-	#ax.set(xlabel=xlabel, ylabel=ylabel)
-	##letter_annotation(ax, -.25, 1, 'B')	
+    plot_geo_meters(aircraft_lats, aircraft_lons, aircraft_alts, label = "Hel", scatter_plot = False)
 
-	ax = row0fig2
-	ax.plot(u[R_HtaVzRef],label="Ref")
-	ax.plot(u[R_ObstVz],label="Obst")
-	ax.plot(u[R_HcVz],label="Hc")
-	ax.set_title('Vz')
-	ax.grid()        
-	ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
-	#ax.set(xlabel=xlabel, ylabel=ylabel)
-	#letter_annotation(ax, -.25, 1, 'C')	
-	plt.show()
-	"""
-	
+    #route_lats = u["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLat"]
+    #route_lons = u["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLon"]
+    #plot_geo_meters(route_lats, route_lons, aircraft_alts*0+aircraft_alts[0], new_plot=False, scatter_plot = False, pos_ref=(aircraft_lats[0],aircraft_lons[0]), offset = 0)
+
+    route_offset = u["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstDist"]
+    obstacle_lats = u["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLat"]
+    obstacle_lons = u["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLon"]
+    obstacle_alts = u["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstAlt"]
+
+    plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, label = "Terr", scatter_plot = False, pos_ref=(aircraft_lats[0],aircraft_lons[0]), offset = route_offset)
+
+    if(data2_pth is not None):
+        u2 = structarray.open(data2_pth, meta2_pth)
+
+        aircraft_lats = u2["S_AcqB.S_SenData.S_GpsRedChA.I_LatHel"]
+        aircraft_lons = u2["S_AcqB.S_SenData.S_GpsRedChA.I_LonHel"]
+        aircraft_alts = u2["_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_ZBiC"]
+
+        plot_geo_meters(aircraft_lats, aircraft_lons, aircraft_alts, label = "Hel2", new_plot=False, scatter_plot = False)
+
+        #route_lats = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLat"]
+        #route_lons = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLon"]
+        #plot_geo_meters(route_lats, route_lons, aircraft_alts*0+aircraft_alts[0], new_plot=False, scatter_plot = False, pos_ref=(aircraft_lats[0],aircraft_lons[0]), offset = 0)
+
+        route_offset = u2["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstDist"]
+        obstacle_lats = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLat"]
+        obstacle_lons = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLon"]
+        obstacle_alts = u2["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstAlt"]
+
+        plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, label = "Terr2", scatter_plot = False, pos_ref=(aircraft_lats[0],aircraft_lons[0]), offset = route_offset)
+        #plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, scatter_plot = False)#, pos_ref=(aircraft_lats[0],obstacle_lons[0]))
+
+
+
+
+    plt.show()
+
+

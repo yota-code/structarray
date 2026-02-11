@@ -43,15 +43,41 @@
 	],
 	[
 		{
-		"title":"Psi",
-		"ylabel" : "Degree (°)"
+		"title":"PitRate",
+		"xlabel":"time (s)",
+		"ylabel" : "Degree per sec (°/s)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Psi"
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_PitRate"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Psi",
-			{"format":"+-"}
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_PitRate"
+		]
+	],
+	[
+		{
+		"title":"RolRate",
+		"xlabel":"time (s)",
+		"ylabel" : "Degree per sec (°/s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_RolRate"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_RolRate"
+		]
+	],
+	[
+		{
+		"title":"YawRate",
+		"xlabel":"time (s)",
+		"ylabel" : "Degree per sec (°/s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_YawRate"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_YawRate"
 		]
 	],
 	[
@@ -80,41 +106,15 @@
 	],
 	[
 		{
-		"title":"YawRate",
-		"xlabel":"time (s)",
-		"ylabel" : "Degree per sec (°/s)"
+		"title":"Psi",
+		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_YawRate"
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Psi"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_YawRate"
-		]
-	],
-	[
-		{
-		"title":"PitRate",
-		"xlabel":"time (s)",
-		"ylabel" : "Degree per sec (°/s)"
-		},
-		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_PitRate"
-		],
-		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_PitRate"
-		]
-	],
-	[
-		{
-		"title":"RolRate",
-		"xlabel":"time (s)",
-		"ylabel" : "Degree per sec (°/s)"
-		},
-		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_RolRate"
-		],
-		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_RolRate"
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Psi",
+			{"format":"-"}
 		]
 	]
 ]
