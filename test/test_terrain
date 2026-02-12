@@ -18,7 +18,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mplcursors
 
-data_pth = Path("/mnt/afcs_data/record/afcs/d36d5ab54c039c30/20260211_131135.rez")
+data_pth = Path("/mnt/afcs_data/record/terrain/eval/20260211_142319.rez")
+data2_pth = None
 
 R_GeoCoordLsb = 0.009313225746
 R_GeoLatLonLsb = 8.381903172e-8
@@ -99,7 +100,7 @@ if __name__ == '__main__' :
     aircraft_lats = u["S_AcqB.S_SenData.S_GpsRedChA.I_LatHel"]
     aircraft_lons = u["S_AcqB.S_SenData.S_GpsRedChA.I_LonHel"]
     aircraft_alts = u["_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_ZBiC"]
-
+    init_pos_ref = (aircraft_lats[0],aircraft_lons[0])
     plot_geo_meters(aircraft_lats, aircraft_lons, aircraft_alts, label = "Hel", scatter_plot = False)
 
     #route_lats = u["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLat"]
@@ -111,7 +112,7 @@ if __name__ == '__main__' :
     obstacle_lons = u["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLon"]
     obstacle_alts = u["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstAlt"]
 
-    plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, label = "Terr", scatter_plot = False, pos_ref=(aircraft_lats[0],aircraft_lons[0]), offset = route_offset)
+    plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, label = "Terr", scatter_plot = False, pos_ref=init_pos_ref, offset = route_offset)
 
     if(data2_pth is not None):
         u2 = structarray.open(data2_pth, meta2_pth)
@@ -120,7 +121,7 @@ if __name__ == '__main__' :
         aircraft_lons = u2["S_AcqB.S_SenData.S_GpsRedChA.I_LonHel"]
         aircraft_alts = u2["_C_1_RtmSchNomFctS.S_CdtToMgm_P.R_ZBiC"]
 
-        plot_geo_meters(aircraft_lats, aircraft_lons, aircraft_alts, label = "Hel2", new_plot=False, scatter_plot = False)
+        plot_geo_meters(aircraft_lats, aircraft_lons, aircraft_alts, label = "Hel2", new_plot=False, scatter_plot = False, pos_ref=init_pos_ref)
 
         #route_lats = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLat"]
         #route_lons = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_RouteLon"]
@@ -131,7 +132,7 @@ if __name__ == '__main__' :
         obstacle_lons = u2["_C_1_RtmSchNomFctS.S_AcqObst.I_ObstLon"]
         obstacle_alts = u2["_C_1_RtmSchNomFctS.S_AcqObst.R_ObstAlt"]
 
-        plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, label = "Terr2", scatter_plot = False, pos_ref=(aircraft_lats[0],aircraft_lons[0]), offset = route_offset)
+        plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, label = "Terr2", scatter_plot = False, pos_ref=init_pos_ref, offset = route_offset)
         #plot_geo_meters(obstacle_lats, obstacle_lons, obstacle_alts, new_plot=False, scatter_plot = False)#, pos_ref=(aircraft_lats[0],obstacle_lons[0]))
 
 
