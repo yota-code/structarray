@@ -34,10 +34,10 @@ class DataRebin(DataGeneric) :
 		"""
 		data_pth must point to an existing .reb file
 		meta can either be:
-		    - a meta_pth which point to a valid context
-		    - an existing MetaRebin object
-		    - or None, in which case, the handler try to open a context_map.tsv
-		      or compact_map.tsv file in the same directory
+			- a meta_pth which point to a valid context
+			- an existing MetaRebin object
+			- or None, in which case, the handler try to open a context_map.tsv
+			  or compact_map.tsv file in the same directory
 		"""
 
 		self.data_pth = Path(data_pth).resolve(strict=True)
@@ -72,13 +72,17 @@ class DataRebin(DataGeneric) :
 
 		print(f"LOADING data :: {self.data_pth}")
 		
-		
-		if (self.data_len % self.block_len != 0):
-		    trunc_size = self.data_len - (self.data_len % self.block_len)
-		    print(f"truncate {self.data_pth} -s {trunc_size}")
+		if (self.data_len % self.block_len != 0) :
+			"""
+			TODO on devrait rajouter un -f pour si on veut vraiment ouvrir la version tronquée du fichier,
+			la cause numéro 1 de fichier pas à la bonne taille est un mismatch context / contenu
+			la cause numéro 2 est un enregistrement interrompu à la va vite
+			"""
+			trunc_size = self.data_len - (self.data_len % self.block_len)
+			print(f"truncate {self.data_pth} -s {trunc_size}")
 		else:
-		    print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
-		    
+			print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
+			
 		assert self.data_len % self.block_len == 0
 
 		start_clock = time.perf_counter_ns()
@@ -108,10 +112,6 @@ class DataRebin(DataGeneric) :
 	def __len__(self) :
 		return self.vector_len
 	
-	def __iter__(self) :
-		""" return each pair of name : data which are not a pointer """
-		for key in self.meta.iter_nop() :
-			yield key, self[key]
 	
 	def _read_buffer(self, name) :
 

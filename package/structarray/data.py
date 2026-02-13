@@ -6,6 +6,8 @@ from abc import ABC
 
 class DataGeneric(ABC) :
 
+	_time = None
+
 	def debug_unfinite(self) :
 		r_map = {"nan": collections.defaultdict(set), "inf": collections.defaultdict(set)}
 		for name, (mtype, addr) in self.meta._m.items() :
@@ -45,3 +47,21 @@ class DataGeneric(ABC) :
 			for i, (name, data) in enumerate(self) :
 				print(f"\x1b[A\x1b[K{int(round(100.0 * i / len(self.meta))):3d}% {name}", flush=True)
 				obj.create_dataset(f'/{name}', data=data, ** h5py_opt)
+
+	def __iter__(self) :
+		""" return each pair of name : data which are not a pointer equivalent of .items() """
+		for key in self.meta.iter_nop() :
+			yield key, self[key]
+
+	def __getitem__(self, name) :
+		pass # to be implemented
+
+	def __len__(self) :
+		pass # to be implemented
+
+	@property
+	def t(self) :
+		import numpy as np
+		
+		return np.arange(len(self)) if self._time is None else self[self._time]
+

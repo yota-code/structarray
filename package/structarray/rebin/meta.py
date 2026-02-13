@@ -207,9 +207,6 @@ class MetaRebin(MetaGeneric) :
 				return False
 		return True
 
-	
-
-
 def expand_name_gen() :
 	# validated
 	# undo the compaction and give back the original names

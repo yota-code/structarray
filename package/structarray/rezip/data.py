@@ -29,6 +29,7 @@ the mapping is embedded under a compact and compressed form
 """
 
 class DataRezip(DataGeneric) :
+	
 	def __init__(self, data_pth:Path) :
 		self.data_pth = Path(data_pth).resolve(strict=True)
 

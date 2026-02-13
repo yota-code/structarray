@@ -116,7 +116,7 @@ class ElfParser() :
 		# 	w_lst.append(self.expand_struct(m_lst))
 		# Path("walk.tsv").save(w_lst)
 
-	def get_meta(self, name, remove=None) :
+	def get_meta(self, name, cleanup=(lambda x: x)) :
 
 		oid = self.get_root(name)
 
@@ -128,10 +128,10 @@ class ElfParser() :
 		u = MetaRebin(self.r_map[oid].alias, self.to_base(self.r_map[oid]).sizeof)
 
 		for m_lst in self.walk(oid) :
-			p_lst = [obj.name for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
+			p_lst = [cleanup(obj.name) for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
 			key = '.'.join(p_lst)
-			if remove :
-				key = remove.sub('', key)
+			# if remove is not None :
+			# 	key = remove(key)
 			u[key] = (f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
 
 		return u

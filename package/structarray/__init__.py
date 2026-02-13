@@ -2,12 +2,17 @@
 
 from cc_pathlib import Path
 
-import structarray.rebin
-import structarray.rezip
-
 def open(data:Path, meta:Path=None) :
-	if data.suffix == '.reb' :
-		return structarray.rebin.DataRebin(data, meta)
-	elif data.suffix == '.rez' :
-		return structarray.rezip.DataRezip(data)
+	match data.suffix :
+		case '.reb' :
+			import structarray.rebin
+			return structarray.rebin.DataRebin(data, meta)
+		case '.rez' :
+			import structarray.rezip
+			return structarray.rezip.DataRezip(data)
+		case '.csv' :
+			import structarray.recsv
+			return structarray.recsv.DataReCsv(data)
+		case _ :
+			raise NotImplementedError(f"Unknown file type: {data.suffix}")
 	
