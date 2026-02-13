@@ -7,6 +7,7 @@ import os
 import readline
 import sys
 import traceback
+import csv
 
 from cc_pathlib import Path
 
@@ -15,6 +16,94 @@ import structarray
 import numpy as np
 import matplotlib.pyplot as plt
 import mplcursors
+
+def load_data(filename):
+    """Reads a semicolon-separated CSV and returns a dictionary."""
+    data_dict = {}
+    t0 = None
+    try:
+        with open(filename, mode='r', encoding='utf-8') as f:
+            reader = csv.reader(f, delimiter=',')
+            headers = [h for h in next(reader) if h.strip()]
+            next(reader)  # Skip units row
+            
+            for h in headers:
+                data_dict[h] = [] #np.array([])
+            
+            for row in reader:
+                #row_data = [val for val in row if val.strip()]
+                for i, val in enumerate(row):
+                    if i < len(headers):
+                        if i==0:
+                            ts = parse_to_seconds(val)
+                            if t0 is None : t0 = ts
+                            data_dict['Timestamp'].append(ts-t0)
+                            #np.append(data_dict['Timestamp'],(ts-t0))
+                        else:
+                            try:    
+                                data_dict[headers[i]].append(float(val))
+                                #np.append(data_dict[headers[i]],float(val))
+                            except ValueError:
+                                data_dict[headers[i]].append(0.0)
+                                #np.append(data_dict[headers[i]],0.0)
+            for h in headers:
+                data_dict[h] = np.array(data_dict[h])
+
+        return headers, data_dict
+    except FileNotFoundError:
+        print(f"Error: The file '{filename}' was not found.")
+        sys.exit(1)
+
+#### dirty modif from xw START
+import collections
+from datetime import datetime
+import re
+
+def parse_to_seconds(ts_str):
+    """Converts ISO timestamp to total seconds."""
+    base_ts, fraction = ts_str.split('.')
+    dt = datetime.strptime(f"{base_ts}.{fraction[:6]}", "%Y-%m-%dT%H:%M:%S.%f")
+    return dt.timestamp()
+
+class SACsv():
+	def __init__(self, csvdict=None) :
+		self.meta = MetaCsv(csvdict)	
+	def __len__(self) :
+		key0 = self.meta._m.keys()[0]
+		return len(self.meta._m[key0])
+	def __setitem__(self, key, value) :
+		self.meta._m[key] = value
+	def __getitem__(self, key) :
+		return self.meta._m[key]
+
+class MetaCsv():
+	""" un gestionnaire des méta données pour les enregistrements .csv """
+	def __init__(self, csvdict=None) :
+		self._m = collections.OrderedDict(csvdict)
+	def __setitem__(self, key, value) :
+		self._m[key] = value
+	def __getitem__(self, key) :
+		return self._m[key]
+	#def search(self,carac=None):
+	#	return [k for k in self._m.keys() if carac in k]
+	def __iter__(self) :
+		for k, v in self._m.items() :
+			yield k, v
+	def __contains__(self, key) :
+			return key in self._m
+	def iter_nop(self) :
+		for key, value in self :
+			yield key
+
+	def search(self, pattern, mode='globex') :
+		# print(f"StructArray.search({pattern}, {mode})")
+		#if mode == 'globex':
+		#	pattern = globex_to_regex(pattern)
+		#elif mode == 'regexp' :
+		#	pass
+		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
+		return [var for var in self.iter_nop() if rec.search(var) is not None]
+#### dirty modif from xw END
 
 def clean_label(k_map) :
 	s_map = {k : '.'.join(v).lstrip('_') for k, v in k_map.items()}
@@ -41,11 +130,15 @@ class PlotSA() :
 
 	def load(self, data_pth, meta_pth=None) :
 
-		self._reload_arg = (data_pth, meta_pth)
-
-		self.sa = structarray.open(data_pth, meta_pth)
-
-		time_lst = sorted((len(var), var) for var in self.sa.meta.search('time_ms'))
+		if(data_pth.suffix == '.csv'):
+			headers,data = load_data(data_pth)
+			self.sa = SACsv(data)
+			time_lst = sorted((len(var), var) for var in self.sa.meta.search('Timestamp'))
+		else:
+			self._reload_arg = (data_pth, meta_pth)
+			self.sa = structarray.open(data_pth, meta_pth)
+			
+			time_lst = sorted((len(var), var) for var in self.sa.meta.search('time_ms'))
 
 		if time_lst :
 			self.t_arr = self.sa[time_lst[0][1]]
