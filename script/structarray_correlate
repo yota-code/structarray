@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+import mmap
+import sys
+
+import numpy as np
+import scipy.signal
+
+import matplotlib.pyplot as plt
+
+from cc_pathlib import Path
+
+def escargot(s=1000, limit=None) :
+	yield s
+	i = 1
+	while i < s and (limit is not None and i < limit) :
+		yield s + i
+		yield s - i
+		i += 1
+
+pth = Path(sys.argv[1])
+
+
+s_map = dict()
+
+def score(a, b) :
+	return np.sum(a == b) / len(a)
+
+z = 3113912
+
+for s in escargot(z, limit=200) :
+	with pth.open('rb') as fid :
+		a = np.frombuffer(fid.read(s), dtype=np.uint8)
+		b = np.frombuffer(fid.read(s), dtype=np.uint8)
+
+	s_map[s] = score(a, b)
+
+k_lst = sorted(s_map)
+s_lst = [s_map[k] for k in k_lst]
+
+s_max = np.argmax(s_lst)
+print(k_lst[s_max])
+
+plt.axvline(z, color="tab:red")
+plt.axvline(k_lst[s_max], color="tab:green")
+plt.plot(k_lst, s_lst)
+plt.grid()
+plt.show()

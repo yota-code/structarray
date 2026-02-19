@@ -68,22 +68,13 @@ class DataRebin(DataGeneric) :
 		# taille d'un bloc
 		self.block_len = (((self.meta.sizeof // self.block_boundary) + 1) * self.block_boundary) if (self.meta.sizeof % self.block_boundary) != 0 else self.meta.sizeof
 		# nombre de blocs
-		self.vector_len = self.data_len // self.meta.sizeof
+		self.block_nbr = self.data_len // self.meta.sizeof
 
 		print(f"LOADING data :: {self.data_pth}")
 		
-		if (self.data_len % self.block_len != 0) :
-			"""
-			TODO on devrait rajouter un -f pour si on veut vraiment ouvrir la version tronquée du fichier,
-			la cause numéro 1 de fichier pas à la bonne taille est un mismatch context / contenu
-			la cause numéro 2 est un enregistrement interrompu à la va vite
-			"""
-			trunc_size = self.data_len - (self.data_len % self.block_len)
-			print(f"truncate {self.data_pth} -s {trunc_size}")
-		else:
-			print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
-			
-		assert self.data_len % self.block_len == 0
+		trunc_size = (self.data_len // self.block_nbr) * self.block_nbr if (self.data_len % self.block_len) != 0 else 0
+					
+		# assert self.data_len % self.block_len == 0
 
 		start_clock = time.perf_counter_ns()
 
@@ -94,24 +85,23 @@ class DataRebin(DataGeneric) :
 				self.cache = CacheRebin(self.data_pth.with_suffix('.__cache__.hdf5'))
 			except ModuleNotFoundError :
 				self.cache = dict()
-		else :
-			with self.data_pth.open('rb') as fid :
-				if self.use_mmap :
-					self.data = mmap.mmap(fid.fileno(), 0, prot=mmap.PROT_READ)
-				else :
-					# in all cases, self.data shall expose a buffer-like interface
-					raise NotImplementedError("really ? use mmap !")
+
+		with self.data_pth.open('rb') as fid :
+			if self.use_mmap :
+				self.data = mmap.mmap(fid.fileno(), trunc_size, prot=mmap.PROT_READ)
+			else :
+				# in all cases, self.data shall expose a buffer-like interface
+				raise NotImplementedError("really ? use mmap !")
 
 		stop_clock = time.perf_counter_ns()
 		self.load_time = stop_clock - start_clock
 
-		#print(f" => {self.data_len} bytes or {self.vector_len} blocks of {self.block_len} bytes")
+		print(f" => {self.data_len} bytes or {self.block_nbr} blocks of {self.block_len} bytes")
 
 		return self
 
 	def __len__(self) :
-		return self.vector_len
-	
+		return self.block_nbr
 	
 	def _read_buffer(self, name) :
 

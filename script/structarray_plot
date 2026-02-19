@@ -82,7 +82,7 @@ class PlotSA() :
 					try :
 						if '.' in ans[1:] :
 							print("time")
-							n = np.where(self.t_arr == float(ans[1:]))[0]
+							n = np.where(self.sa.t == float(ans[1:]))[0]
 						else :
 							print("index")
 							n = int(ans[1:])
@@ -256,13 +256,13 @@ class PlotSA() :
 						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
 						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 					if format is None :
-						plt.plot(self.t_arr, gn*y_arr+ofs, ** m)
+						plt.plot(self.sa.t, gn*y_arr+ofs, ** m)
 					else :
-						plt.plot(self.t_arr, gn*y_arr+ofs, format, ** m)
+						plt.plot(self.sa.t, gn*y_arr+ofs, format, ** m)
 					if min_lim_y is not None:
-						plt.plot(self.t_arr, gn*y_arr+ofs+min_lim_y,'k--',label="min")
+						plt.plot(self.sa.t, gn*y_arr+ofs+min_lim_y,'k--',label="min")
 					if max_lim_y is not None:
-						plt.plot(self.t_arr, gn*y_arr+ofs+max_lim_y,'k--',label="max")
+						plt.plot(self.sa.t, gn*y_arr+ofs+max_lim_y,'k--',label="max")
 					
 					
 					y_lst.append(gn*y_arr+ofs)
