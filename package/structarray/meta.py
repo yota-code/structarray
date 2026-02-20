@@ -24,7 +24,7 @@ class MetaGeneric(ABC) :
 
 	Le reste est délégué
 	"""
-	block_align = 8
+	# block_align = 8
 	
 	def __init__(self, name, sizeof) :
 		self._m = collections.OrderedDict() # chemin complet séparé par des points -> truc
@@ -53,11 +53,11 @@ class MetaGeneric(ABC) :
 			if not value[0].startswith('P') :
 				yield key
 
-	@property
-	def block_len(self) :
-		if self.sizeof % 8 :
-			return (((self.meta.sizeof // 8) + 1) * 8)
-		return self.sizeof
+	# @property
+	# def block_len(self) :
+	# 	if self.sizeof % 8 :
+	# 		return (((self.meta.sizeof // 8) + 1) * 8)
+	# 	return self.sizeof
 
 	def _proc_name_compact(self) :
 		""" iterateur instancié au début et appelé avec .send() pour avoir les valeurs suivantes

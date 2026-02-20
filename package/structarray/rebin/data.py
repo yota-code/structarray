@@ -65,7 +65,7 @@ class DataRebin(DataGeneric) :
 
 		# taille du fichier lui-même
 		self.data_len = self.data_pth.stat().st_size
-		# taille d'un bloc
+		# taille d'un bloc, ajusté au block_boundary le plus proche, en général 8
 		self.block_len = (((self.meta.sizeof // self.block_boundary) + 1) * self.block_boundary) if (self.meta.sizeof % self.block_boundary) != 0 else self.meta.sizeof
 		# nombre de blocs
 		self.block_nbr = self.data_len // self.meta.sizeof

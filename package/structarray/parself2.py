@@ -68,7 +68,6 @@ class Variable() :
 	oid: int
 	name: str
 
-
 class PointerDo(enum.Enum):
     HIDE = -1
     DISPLAY = 0
