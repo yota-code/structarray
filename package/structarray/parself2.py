@@ -116,12 +116,18 @@ class ElfParser() :
 		# 	w_lst.append(self.expand_struct(m_lst))
 		# Path("walk.tsv").save(w_lst)
 
-	def get_meta(self, name, cleanup=(lambda x: x)) :
+	def get_meta(self, name, model=None) :
 
+		# model name, helps to cleanup scade structures from generic suffixes
+		def cleanup(s) :
+			if model is not None and ( s.startswith('_L') or s.startswith('_M') ) :
+				return s.replace('_' + model, '')
+			return s
+	
 		oid = self.get_root(name)
 
-		def as_array(shape) :
-			return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
+		# def as_array(shape) :
+		# 	return ''.join(f'[{s}]' for s in shape) if isinstance(shape, tuple) else ''
 
 		from structarray.rebin.meta import MetaRebin
 
@@ -130,8 +136,6 @@ class ElfParser() :
 		for m_lst in self.walk(oid) :
 			p_lst = [cleanup(obj.name) for oid, t_lst, obj, offset in m_lst if isinstance(obj, Member)]
 			key = '.'.join(p_lst)
-			# if remove is not None :
-			# 	key = remove(key)
 			u[key] = (f"{m_lst[-1][2].letter}{m_lst[-1][2].sizeof}", m_lst[-1][3])
 
 		return u
