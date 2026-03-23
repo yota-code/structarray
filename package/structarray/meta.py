@@ -91,12 +91,12 @@ class MetaGeneric(ABC) :
 				r = yield r
 			p_lst = n_lst
 
-	def search(self, pattern, mode='globex') :
+	def search(self, pattern, mode="globex", prefix="") :
 		# print(f"StructArray.search({pattern}, {mode})")
 		if mode == 'globex':
 			pattern = globex_to_regex(pattern)
 		elif mode == 'regexp' :
 			pass
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
-		return [var for var in self.iter_nop() if rec.search(var) is not None]
+		return [(prefix + var) for var in self.iter_nop() if rec.search(prefix + var) is not None]
 
