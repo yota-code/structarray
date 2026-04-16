@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import ast
 import argparse
 import json
 import math
@@ -59,7 +60,34 @@ class PlotSA() :
 		self.mapping_dir = mapping_dir
 		self.bookmark_dir = bookmark_dir
 
-		self.d_map = dict()
+		self.d_map = dict() # 'X' -> structarray object
+		self.s_map = dict() # 'X' -> slice or int
+			
+	def setup_slice(self, s) :
+		if ':' in s :
+			s = slice(* [ast.literal_eval(s.split(":"))])
+		else :
+			s = ast.literal_eval(s)
+
+		def nearest(arr, t) :
+			return np.abs(arr - t).argmin()
+		
+		for k in self.d_map :
+			u = self.d_map[k]
+
+			if isinstance(s, int) :
+				self.s_map[k] = nearest(u.t, s)
+			elif isinstance(s, slice) :
+				b_lst = [s.start, s.end, s.step]
+				for i, b in enumerate(b_lst) :
+					if b is not None :
+						b_lst[i] = nearest(u.t, b)
+				self.s_map[k] = slice(* b_lst)
+			else :
+				raise ValueError
+			
+		for k in self.s_map :
+			print(k, self.d_map[k].t[self.s_map[k]], self.s_map[k], sep='\t')
 
 	def load(self, * d_lst) :
 		for data_pth in d_lst :
@@ -81,14 +109,22 @@ class PlotSA() :
 
 			print(f'{sa._time}: {sa.t[0]} .. {sa.t[-1]}')
 
-			self.d_map[self.shortcut_map[d_struct]] = sa
+			k = self.shortcut_map[d_struct]
+			self.d_map[k] = sa
+			self.s_map[k] = 0
 
 		return self
 	
-	def result(self, r_lst) :
-		for k, v in self.d_map.items() :
-			print(f"& {self.text_slice.start} [{v.t[self.text_slice.start]}, {v.t[self.text_slice.stop]}]")			
-		print('\n'.join(f'{n_lst[i]}. {var} = {self[var][1][self.text_slice]}' for i, var in enumerate(r_lst[:32])))
+	def print_result(self, r_lst) :
+		for k in self.s_map :
+			print(k, self.d_map[k].t[self.s_map[k]], self.s_map[k], sep='\t')
+		print("-" * 16)
+
+		# for k, v in self.d_map.items() :
+		# 	print(f"& {self.text_slice.start} [{v.t[self.text_slice.start]}, {v.t[self.text_slice.stop]}]")
+
+		print('\n'.join(f'{n_lst[i]}. {var} = {self[var][1][self.s_map[var[0]]]}' for i, var in enumerate(r_lst[:32])))
+
 		if len(r_lst) >= 32 :
 			print('...')
 
@@ -129,30 +165,9 @@ class PlotSA() :
 						print('\n'.join(sorted("@"+p.fname for p in bookmark_dir)))
 
 				elif ans.startswith('&') :
-					# interval is expected in ms, always ?
-					if ans == '&' :
-						ans = '&0'
-					try :
-						if '.' in ans[1:] :
-							print("time")
-							n = np.where(self.sa.t == float(ans[1:]))[0]
-						else :
-							print("index")
-							n = int(ans[1:])
-					except ValueError :
-						return
-					print(n)
+					# interval is expected in ms, always !
+					self.setup_slice(ans[1:])
 					
-					for name in r_lst :
-						y_val = self.sa[name][n]
-						if ispi(name) :
-							if self.sa.meta[name][0] == 'Z4' :
-								y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-							y_val = (y_val + 360.0) % 360.0
-							y_val = np.where(y_val > 180.0, y_val - 360.0, y_val)
-
-						print(f"{name} = {y_val}")
-
 				elif ans.startswith('#') :
 					if ans == '#' :
 						ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
@@ -170,10 +185,10 @@ class PlotSA() :
 					self.plot(p_lst)
 				elif ans.startswith('?') :
 					r_lst = self.search(ans[1:], mode='regexp')
-					self.result(r_lst)
+					self.print_result(r_lst)
 				else : # default to blob research mode
 					r_lst = self.search(ans)
-					self.result(r_lst)
+					self.print_result(r_lst)
 
 			except EOFError :
 				break
