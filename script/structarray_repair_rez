@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import sys
+
+from cc_pathlib import Path
+
+import brotli
+import h5py
+
+import numpy as np
+
+from structarray.rezip.data import DataRezip
+
+pth = Path(sys.argv[1]).resolve()
+assert pth.suffix == '.rez'
+
+def repair_rez(u) :
+
+	n_lst = list()
+	with h5py.File(u.data_pth, 'r', libver="latest") as obj :
+		meta_zip = obj.attrs['%meta%']
+		meta_bin = brotli.decompress(meta_zip)
+		meta_txt = meta_bin.decode('ascii')
+		meta_lst = meta_txt.splitlines()
+
+		for k in obj :
+			n_lst.append(obj[k].shape[-1])
+
+	n_arr = np.array(n_lst)
+	
+	assert (n_arr[0] == n_arr).all()
+
+	if int(meta_lst[0]) != n_arr[0] :
+		print(f"correct size :: {int(meta_lst[0])} -> {n_arr[0]}")
+
+		meta_lst[0] = str(n_arr[0])
+		with h5py.File(u.data_pth, 'a', libver="latest") as obj :
+			meta_zip = brotli.compress('\n'.join(meta_lst).encode('ascii'), mode=brotli.MODE_TEXT)
+			obj.attrs['%meta%'] = np.void(meta_zip) # https://docs.h5py.org/en/stable/strings.html
+
+u = DataRezip(pth)
+repair_rez(u)
