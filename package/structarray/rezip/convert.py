@@ -17,7 +17,9 @@ def to_rez(data, meta=None) :
 
 	match data :
 		case Path() | str() :
-			data = structarray.rebin.data.DataRebin(Path(data).resolve(strict=True), meta)
+			pth = Path(data).resolve(strict=True)
+			assert pth.suffix == ".reb"
+			data = structarray.open(pth, meta)
 		case structarray.data.DataHandler() :
 			data = data
 
@@ -76,7 +78,7 @@ def to_rez(data, meta=None) :
 					print(f"{p}{c} {len(i_lst):7d} / {len(i_lst)} => {w.shape[0]} rows")
 					obj.create_dataset('/' + c, data=w, ** h5py_opt)
 
-	f_lst = [str(data.vector_len),] # on doit garder vector_len dans les méta données parce qu'il se peut que TOUS les vecteurs soient constants
+	f_lst = [str(data.block_nbr),] # on doit garder block_nbr dans les méta données parce qu'il se pourrait que TOUS les vecteurs soient constants
 
 	compact = meta._proc_name_compact()
 	next(compact)

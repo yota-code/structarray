@@ -17,7 +17,7 @@ class MetaRezip(MetaGeneric) :
 		meta_bin = brotli.decompress(meta_zip)
 		meta_txt = meta_bin.decode('ascii')
 		meta_lst = meta_txt.splitlines()
-
+		
 		self.array_len = int(meta_lst.pop(0))
 
 		exp = self._proc_name_expand()

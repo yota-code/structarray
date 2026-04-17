@@ -51,3 +51,8 @@ ok, mais comment on gère la recherche multi agent
 - rafraichir le contenu des fenêtre si on change le trigger ou les données
 - trigger !
 - synchro inter modèle
+
+# plotm
+
+`structarray_plotm` permet de tracer les courbes à partir de fichiers de données enregistrées concommitemment
+
