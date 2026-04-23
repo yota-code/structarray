@@ -94,7 +94,7 @@ class DataRebin(DataGeneric) :
 		stop_clock = time.perf_counter_ns()
 		self.load_time = stop_clock - start_clock
 
-		print(f" => file of {self.data_len} bytes" + (f"truncated to {self.data_len}" if self.data_len != file_len else "") + f" -> {self.block_nbr} blocks of {self.block_len} bytes")
+		print(f" => file of {self.data_len} bytes" + (f" truncated to {self.data_len}" if self.data_len != file_len else "") + f" or {self.block_nbr} blocks of {self.block_len} bytes")
 
 		return self
 
@@ -123,8 +123,7 @@ class DataRebin(DataGeneric) :
 				v_lst.append(v)
 				pos += self.block_len
 			v_arr = np.array(v_lst)
-			assert(len(v_arr) == self.block_nbr)
-			return v_arr
+			return v_arr[:self.block_nbr]
 
 	def __getitem__(self, name) :
 		# print(f"__getitem__({name}) use_cache={self.use_cache}")
