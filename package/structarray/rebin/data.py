@@ -64,18 +64,16 @@ class DataRebin(DataGeneric) :
 		assert self.data_pth.suffix == '.reb'
 
 		# taille du fichier lui-même
-		self.data_len = self.data_pth.stat().st_size
+		file_len = self.data_pth.stat().st_size
 		# taille d'un bloc, ajusté au block_boundary le plus proche, en général 8
 		self.block_len = (((self.meta.sizeof // self.block_boundary) + 1) * self.block_boundary) if (self.meta.sizeof % self.block_boundary) != 0 else self.meta.sizeof
+		# truncated size (if truncation needed, else trunc_size = data_len)
+		self.data_len = (file_len // self.block_nbr) * self.block_nbr if (file_len % self.block_len) != 0 else file_len
 		# nombre de blocs
-		self.block_nbr = self.data_len // self.meta.sizeof
+		self.block_nbr = self.data_len // self.block_len
 
 		print(f"LOADING data :: {self.data_pth}")
 		
-		trunc_size = (self.data_len // self.block_nbr) * self.block_nbr if (self.data_len % self.block_len) != 0 else 0
-					
-		# assert self.data_len % self.block_len == 0
-
 		start_clock = time.perf_counter_ns()
 
 		if self.use_cache :
@@ -88,7 +86,7 @@ class DataRebin(DataGeneric) :
 
 		with self.data_pth.open('rb') as fid :
 			if self.use_mmap :
-				self.data = mmap.mmap(fid.fileno(), trunc_size, prot=mmap.PROT_READ)
+				self.data = mmap.mmap(fid.fileno(), self.data_len, prot=mmap.PROT_READ)
 			else :
 				# in all cases, self.data shall expose a buffer-like interface
 				raise NotImplementedError("really ? use mmap !")
@@ -96,7 +94,7 @@ class DataRebin(DataGeneric) :
 		stop_clock = time.perf_counter_ns()
 		self.load_time = stop_clock - start_clock
 
-		print(f" => {self.data_len} bytes or {self.block_nbr} blocks of {self.block_len} bytes")
+		print(f" => file of {self.data_len} bytes" + (f"truncated to {self.data_len}" if self.data_len != file_len else "") + f" -> {self.block_nbr} blocks of {self.block_len} bytes")
 
 		return self
 
@@ -107,14 +105,14 @@ class DataRebin(DataGeneric) :
 
 		ctype, offset = self.meta[name]
 
-		width = self.data_len // self.block_len
+		width = self.block_nbr
 		height = self.data_len // (width * sizeof_map[ctype])
 
 		if self.meta.is_aligned(name) :
 			# les données sont alignées, on peut utiliser l'astuce ultime !
 			arr = np.frombuffer(self.data, dtype=ntype_map[ctype])
 			arr.shape = (width, height)
-			return arr[:, int(offset) // sizeof_map[ctype]]
+			return arr[:,int(offset) // sizeof_map[ctype]]
 		else :
 			# sinon il faut les ramasser une par une à la petite cuillère
 			# print(f"{name} is not properly aligned ! offset={int(offset)} {int(offset) % sizeof_map[ctype]}")
@@ -124,10 +122,12 @@ class DataRebin(DataGeneric) :
 				v = struct.unpack_from(stype_map[ctype], self.data, pos)[0]
 				v_lst.append(v)
 				pos += self.block_len
-			return np.array(v_lst)
+			v_arr = np.array(v_lst)
+			assert(len(v_arr) == self.block_nbr)
+			return v_arr
 
 	def __getitem__(self, name) :
-		# print(f"__getitem__({name})")
+		# print(f"__getitem__({name}) use_cache={self.use_cache}")
 		if self.use_cache :
 			if name not in self.cache :
 				self.cache[name] = self._read_buffer(name)

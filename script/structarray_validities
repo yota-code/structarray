@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import sys
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from cc_pathlib import Path
+
+import structarray
+
+data_pth = Path(sys.argv[1])
+
+u = structarray.open(data_pth)
+
+z = {0, 1}
+def test(name, a) :
+	s = set(a)
+	if s == z :
+		print(name)
+		plt.figure()
+		plt.title(name)
+		plt.plot(a)
+		plt.grid()
+		plt.show()
+
+for name, (ztype, offset) in u.meta :
+	if ztype == "Z4" and name.split('.')[-1].startswith('I_') :
+		v = u[name][500:]
+		for i in range(32) :
+			w = v.astype(np.uint32) & (1 << i)
+			test(name, w)
+	elif ztype in ['Z1', 'Z4', 'N4', 'N1'] :
+		test(name, u[name][500:])
+	
