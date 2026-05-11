@@ -7,9 +7,9 @@ import csv
 import numpy as np
 
 test_files = [
-	#"dummy_data/rec_from_agent.hdf5",
-	"dummy_data/rec_from_agent.reb", #need context_map
-	"dummy_data/rec_from_agent.rez",
+	#"dummy_data/rec_from_record.hdf5",
+	"dummy_data/rec_from_record.reb", #need context_map
+	"dummy_data/rec_from_record.rez",
 	"dummy_data/rec_from_mirror.csv",
 	"dummy_data/rec_from_rise.csv"
 ]
