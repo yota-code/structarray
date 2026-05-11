@@ -319,7 +319,7 @@ class PlotSA() :
 
 				t_arr, y_arr = self[name]
 				if format is None :
-					plt.plot(t_arr, gn*y_arr+ofs,"+-", ** m)
+					plt.plot(t_arr, gn*y_arr+ofs, ** m)
 				else :
 					plt.plot(t_arr, gn*y_arr+ofs, format, ** m)
 				if min_lim_y is not None:

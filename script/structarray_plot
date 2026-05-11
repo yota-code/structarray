@@ -247,8 +247,8 @@ class PlotSA() :
 						print(f"can not find var {name}")
 				elif name.startswith('?') :
 					name = self.sa.meta.search(name[1:], mode='regexp')[0]
-				if name.replace("S/","") in self.sa.meta:
-					name = name.replace("S/","")
+				if name.replace("S/","").replace("B/","").replace("P/","") in self.sa.meta:
+					name = name.replace("S/","").replace("B/","").replace("P/","")
 				if name in self.sa.meta:
 					y_arr = self.sa[name]
 					if ispi(name) :
@@ -258,7 +258,7 @@ class PlotSA() :
 						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 					if format is None :
 						#t_arr = np.arange(len(self.sa.t))
-						plt.plot(self.sa.t, gn*y_arr+ofs, '+-', ** m)
+						plt.plot(self.sa.t, gn*y_arr+ofs, ** m)
 					else :
 						plt.plot(self.sa.t, gn*y_arr+ofs, format, ** m)
 					if min_lim_y is not None:
