@@ -1,0 +1,57 @@
+[
+	
+	{
+	"col":2,
+	"size":[12,8],
+	"clean":true
+	},
+	[
+		{
+		"title":"Altitude",
+		"ylabel" : "Altitude (m)"
+		},
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc1.R_Zbp"
+		],
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc2.R_Zbp"
+		]
+	],
+	[
+		{
+		"title":"Vertical Velocity",
+		"ylabel" : "Vel (m/s)"
+		},
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc1.R_VvBan"
+		],
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc2.R_VvBan"
+		]
+	],
+	[
+		{
+		"title":"Idicated Air Speed",
+		"ylabel" : "Speed (kt)"
+		},
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc1.R_Ias"
+		],
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc2.R_Ias"
+		]
+	],
+	[
+		{
+		"title":"Air temperature",
+		"xlabel":"time (s)",
+		"ylabel" : "Temp (°)"
+		},
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc1.R_AirTemp"
+		],
+		[
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB.S_AcqAdc2.R_AirTemp"
+		]
+	]
+]

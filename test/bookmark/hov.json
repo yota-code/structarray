@@ -10,7 +10,7 @@
 		"title":"Position"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_X"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_X"
 		]
 	],
 	[
@@ -18,10 +18,10 @@
 		"title":"Velocity"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Vx"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Vx"
 		]
 	],
 	[
@@ -29,10 +29,10 @@
 		"title":"Acceleration"
 		},
 		[
-			"_L302_MfcAfcs.S_UpmToStb.S_UpmToGspdStb.S_UpmToGspdPit.R_GxCom"
+			"S/_C_1_UpmS._O7_S_UpmToStb.S_UpmToGspdStb.S_UpmToGspdPit.R_GxCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Gx"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Gx"
 		]
 	],
 	[
@@ -40,7 +40,7 @@
 		"title":"Position"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Y"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Y"
 		]
 	],
 	[
@@ -48,10 +48,10 @@
 		"title":"Velocity"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Vy"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Vy"
 		]
 	],
 	[
@@ -59,10 +59,10 @@
 		"title":"Acceleration"
 		},
 		[
-			"_L302_MfcAfcs.S_UpmToStb.S_UpmToGspdStb.S_UpmToGspdRol.R_GyCom"
+			"S/_C_1_UpmS._O7_S_UpmToStb.S_UpmToGspdStb.S_UpmToGspdRol.R_GyCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Gy"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Gy"
 		]
 	],
 	[
@@ -70,10 +70,10 @@
 		"title":"Position"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ZCom"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ZCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS._O3_S_UpmCdt.R_ZhC"
+			"S/_C_1_UpmS._C_2_UpmCdtS._O3_S_UpmCdt.R_ZhC"
 		]
 	],
 	[
@@ -81,10 +81,10 @@
 		"title":"Velocity"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_UpmTraj.R_VzCom"
+			"S/_C_1_UpmS.S_UpmTraj.R_VzCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Vz"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Vz"
 		]
 	],
 	[
@@ -92,10 +92,10 @@
 		"title":"Acceleration"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_UpmTraj.R_GzCom"
+			"S/_C_1_UpmS.S_UpmTraj.R_GzCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS.S_CdtTdnGspd.R_Gz"
+			"S/_C_1_UpmS.S_CdtTdnGspd.R_Gz"
 		]
 	]
 ]

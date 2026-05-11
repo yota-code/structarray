@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 
+import ast
 import argparse
 import json
 import math
 import os
-import re
 import readline
 import sys
+import traceback
+import re
 
 from cc_pathlib import Path
 
 import structarray
+
+from structarray.common import *
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,181 +37,364 @@ def clean_label(k_map) :
 	except :
 		return s_map
 
+def ispi(line) :
+	name = line.split('.')[-1]
+	return ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name or 'drift' in name) and 'psidot' not in name and 'psiddot' not in name
+
+def find_delay(signal1, signal2):
+    """
+    Finds the delay between two signals by finding the peak
+    of their first derivative (the rising edge).
+    """
+
+    deriv1 = np.diff(signal1)
+    deriv2 = np.diff(signal2)
+    
+    edge_index1 = np.argmax(deriv1)
+    edge_index2 = np.argmax(deriv2)
+    
+    t_offset = -(edge_index2 - edge_index1)
+    
+    return t_offset
+
+n_lst = '0123456789abcdefijklmnpqrstuvxyz'
+
 class PlotSA() :
-	def __init__(self, * path_lst, bookmark_dir) :
 
-		self.path_lst = path_lst
+	clock_mode = "external"
 
+	shortcut_map = {
+		"MfcAfcsBasic" : "B",
+		"MfcAfcsSlow" : "S",
+		"MfcPflight" : "P"
+	}
+
+	text_slice = slice(0, 1)
+
+	def __init__(self, mapping_dir:Path, bookmark_dir:Path) :
+
+		self.mapping_dir = mapping_dir
 		self.bookmark_dir = bookmark_dir
 
-		self.load()
-		self.run()
+		self.d_map = dict() # 'X' -> structarray object
+		self.s_map = dict() # 'X' -> slice or int
+			
+	def setup_slice(self, s) :
+		if ':' in s :
+			s = slice(* [ast.literal_eval(s.split(":"))])
+		else :
+			s = ast.literal_eval(s)
 
-	def load(self) :
-		self.reb_lst = [structarray.StructArray(meta_pth=path.parent / "mapping.tsv", data_pth=path) for path in self.path_lst]
+		def nearest(arr, t) :
+			return np.abs(arr - t).argmin()
+		
+		for k in self.d_map :
+			u = self.d_map[k]
 
+			if isinstance(s, int) :
+				self.s_map[k] = nearest(u.t, s)
+			elif isinstance(s, slice) :
+				b_lst = [s.start, s.end, s.step]
+				for i, b in enumerate(b_lst) :
+					if b is not None :
+						b_lst[i] = nearest(u.t, b)
+				self.s_map[k] = slice(* b_lst)
+			else :
+				raise ValueError
+			
+		for k in self.s_map :
+			print(k, self.d_map[k].t[self.s_map[k]], self.s_map[k], sep='\t')
+
+	def load(self,  path_lst, meta_pth=None, trigger = None, delay = None)  :
+		
+		self.path_lst= path_lst
+		self.reb_lst = []
+		self.trigger = trigger
+		self.delay = delay
+		self.t_offset_lst = []
+		self.shortcut_lst= []
 		self.time_lst = list()
-		self.name_set = set()
-		for reb in self.reb_lst :
-			time_lst = sorted((len(var), var) for var in self.search('.time'))
-			time_arr = reb[time_lst[0][1]] if time_lst else np.arange(reb.length)
-			self.time_lst.append(time_arr)
-			print(f'time: {time_arr[0]} .. {time_arr[-1]}')
-			self.name_set |= set(reb.var_lst)
+		for data_pth in path_lst :
+			print(data_pth)
+			"""automatic mapping resolution """
+			p_lst = data_pth.resolve().parts
 
-	def search(self, pattern, mode='blob') :
-		# print(f"StructArray.search({pattern}, {mode})")
-		if mode == 'blob':
-			pattern = pattern.replace('.', '\\.').replace('*', '.*')
-		elif mode == 'regexp' :
-			pass
+			d_ident = p_lst[-2]
+			d_struct = p_lst[-3]
+			if self.mapping_dir is not None:
+				meta_pth = self.mapping_dir / d_struct / f"context_map.{d_ident}.tsv"
+			else:
+				meta_pth=None
+			reb = structarray.open(data_pth, meta_pth)
+			self.reb_lst.append(reb)
+
+			t_offset = 0
+			if (self.trigger is  not None):
+				t_offset = find_delay(self.reb_lst[0][self.trigger],reb[self.trigger])
+			if (self.delay is not None):
+				if(self.reb_lst[0]!=reb): t_offset = -self.delay
+
+
+			time_lst = sorted([var for var in reb.meta.search(f'clock.{self.clock_mode}_time_ms')], key=len)
+			# print(time_lst)
+			if time_lst :
+				reb._time = time_lst[0]
+			print(f'{reb._time}: {reb.t[0]} .. {reb.t[-1]}')
+			self.t_arr = np.arange(len(reb.t)) + t_offset
+			print(f'index: {self.t_arr[0]} .. {self.t_arr[-1]}')
+			self.time_lst.append(self.t_arr)
+
+			#k = self.shortcut_map[d_struct]
+			if "MfcAfcsSlow" in p_lst:
+				k="S"
+			elif "MfcAfcsBasic" in p_lst:
+				k="B"
+			elif "MfcPflight" in p_lst:
+				k="P"
+
+			self.d_map[k] = reb
+			self.s_map[k] = 0
+			self.shortcut_lst.append(k)
+
+		return self
+	
+	def print_result(self, r_lst) :
+		for k in self.s_map :
+			print(k, self.d_map[k].t[self.s_map[k]], self.s_map[k], sep='\t')
+		print("-" * 16)
+
+		# for k, v in self.d_map.items() :
+		# 	print(f"& {self.text_slice.start} [{v.t[self.text_slice.start]}, {v.t[self.text_slice.stop]}]")
+
+		print('\n'.join(f'{n_lst[i]}. {var} = {self[var][1][self.s_map[var[0]]]}' for i, var in enumerate(r_lst[:32])))
+
+		if len(r_lst) >= 32 :
+			print('...')
+
+	def search(self, pattern, globex=True) :
+		if globex :
+			pattern = globex_to_regex(pattern)
 		rec = re.compile(pattern, re.IGNORECASE | re.ASCII)
-		return [var for var in self.name_set if rec.search(var) is not None]
+
+		r_lst = list()
+		for k, v in self.d_map.items() :
+			prefix = f"{k.upper()}/"
+			r_lst += [(prefix + var) for var in v.meta.iter_nop() if rec.search(prefix + var) is not None]
+
+		return r_lst
+	
+	def __getitem__(self, key) :
+		return self.d_map[key[0]].t, self.d_map[key[0]][key[2:]]
 
 	def run(self) :
+		r_lst = list()
 		while True :
-			ans = input(">>> ").strip()
-			if not ans :
-				continue
-			if ans.startswith('!') :
-				if ans.startswith('!q') :
-					sys.exit(0)
-				if ans.startswith('!r') :
-					self.load()
-			elif ans.startswith("@") :
-				bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
-				if bookmark_pth.is_file() :
-					p_lst = bookmark_pth.load()
-					self.plot(p_lst, ans[1:])
-				else :
-					print(f"file not found: {bookmark_pth}")
-					print('\t'.join(p.name for p in bookmark_dir))
+			try:
+				ans = input(">>> ").strip()
+				if not ans :
+					continue
+				if ans.startswith('!') :
+					if ans.startswith('!q') :
+						sys.exit(0)
+					if ans.startswith('!r') :
+						self.load(* self._reload_arg)
+				elif ans.startswith("@") :
+					bookmark_pth = bookmark_dir / f"{ans[1:]}.json"
+					if bookmark_pth.is_file() :
+						p_lst = bookmark_pth.load()
+						self.plot(p_lst, ans[1:].replace("_", " ").title().strip())
+					else :
+						print(f"file not found: {bookmark_pth}")
+						print('\n'.join(sorted("@"+p.fname for p in bookmark_dir)))
 
-			elif ans.startswith('&') :
-				if ans == '&' :
-					ans = '&0'
-				try :
-					n = int(ans[1:])
-				except ValueError :
-					return
-
-				for reb in self.reb_lst :
-					n = min(reb.length - 1, n)
+				elif ans.startswith('&') :
+					# interval is expected in ms, always !
+					self.setup_slice(ans[1:])
 					
-					for name in r_lst :
-						y_val = reb[name][n]
-						if reb.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-							y_val = 360.0 * y_val.astype(np.double) / 0x100000000
-							# y_arr = np.unwrap(360.0 * y_arr.astype(np.double) / 0x100000000, 360.0)
-							
-						print(f"{name} = {y_val}")
+				elif ans.startswith('#') :
+					if ans == '#' :
+						ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
+					print(ans)
+					p_lst = list()
+					for p in ans[1:].split(';') :
+						g_lst = list()
+						for g in p.split() :
+							try :
+								g_lst.append([r_lst[n_lst.index(g)]])
+							except :
+								print(g, n_lst)
+								raise
+						p_lst.append(g_lst)
+					self.plot(p_lst)
+				elif ans.startswith('?') :
+					r_lst = self.sa.meta.search(ans[1:], mode='regexp')
+					print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
+					if len(r_lst) >= 32 :
+						print('...')
+				else : # default to blob research mode
+					reb = self.reb_lst[0]
+					r_lst = reb.meta.search(ans)
+					print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
+					if len(r_lst) >= 32 :
+						print('...')
 
-			elif ans.startswith('#') :
-				if ans == '#' :
-					ans = '#' + ';'.join(n_lst[i] for i in range(min(20, len(r_lst))))
-				print(ans)
-				p_lst = list()
-				for p in ans[1:].split(';') :
-					g_lst = list()
-					for g in p.split() :
-						try :
-							g_lst.append([r_lst[n_lst.index(g)], None, None, None, None])
-						except :
-							print(g, n_lst)
-							raise
-					p_lst.append(g_lst)
-				self.plot(p_lst)
-			elif ans.startswith('?') :
-				r_lst = self.search(ans[1:], mode='regexp')
-				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
-				if len(r_lst) >= 32 :
-					print('...')
-			else : # default to blob research mode
-				r_lst = self.search(ans)
-				print('\n'.join(f'{n_lst[i]}. {var}' for i, var in enumerate(r_lst[:32])))
-				if len(r_lst) >= 32 :
-					print('...')
+			except EOFError :
+				break
+			except Exception as e: 
+				print("FATAL error occured \n ",e)
+				print(traceback.format_exc())
+				print("--------------------------------------")
 
 	def plot(self, p_lst, title=None) :
 
 		print(json.dumps(p_lst, indent='\t'))
-
-		if title is not None :
-			fig = plt.figure(title)
-			fig.suptitle(title)
-		else :
-			fig = plt.figure()
-
+		
+		#get figure meta
 		if isinstance(p_lst[0], dict) :
 			meta = p_lst.pop(0)
 		else :
 			meta = dict()
+		cleanlbl = False
 
 		if 'col' in meta :
 			n_col = meta['col']
 			n_row = int(math.ceil(len(p_lst) / n_col))
 		else :
 			n_col, n_row = 1, len(p_lst)
+		if 'size' in meta :
+			size = tuple(meta['size'])
+		if 'clean' in meta:
+			cleanlbl = meta['clean']
+		if 'title' in meta:
+			title = meta['title']
+		else :
+			size = (8,6)
+			
+		#create figure
+		if title is not None :
+			fig = plt.figure(title, figsize = size)
+			fig.suptitle(title)
+		else :
+			fig = plt.figure(figsize = size)
 
 		k_map = dict()
 		for g_lst in p_lst :
-			for name, color, opacity, width, format in g_lst :
-				k_map[name] = name.split('.')
+			if isinstance(g_lst[0], dict) :
+				g_lst = g_lst[1:]
+			for g in g_lst :
+				if(len(g)==1):
+					name = g[0]
+				else:
+					name, sig_param = g
+				name = name.replace("S/","").replace("B/","").replace("P/","")
+				#k_map[name] = name.split('.')
+				if(cleanlbl):
+					k_map[name] = [name.split('.')[-1]]
+				else:
+					k_map[name] = name.split('.')
+
 		k_map = clean_label(k_map)
 
 		for i, g_lst in enumerate(p_lst) :
 			if i == 0 :
 				z = plt.subplot(n_row, n_col, i+1)
 				q = z
-				if len(p_lst) > 1 :
-					plt.setp(z.get_xticklabels(), visible=False)
+				#if len(p_lst) > 1 :
+				#	plt.setp(z.get_xticklabels(), visible=False)
 			else :
 				q = plt.subplot(n_row, n_col, i+1, sharex=z)
-				if i+1 < len(p_lst) :
-					plt.setp(q.get_xticklabels(), visible=False)
-
+				#if i+1 < len(p_lst) :
+				#	plt.setp(q.get_xticklabels(), visible=False)
 			y_lst = list()
+			
+			# get figure parameters
+			if isinstance(g_lst[0], dict) :
+				fig_param = g_lst.pop(0)
+			else :
+				fig_param = dict()
+			q.update(fig_param)
 
-			for name, color, opacity, width, format in g_lst :
+			for g in g_lst :
 				m = dict()
-				if color is not None :
-					m['color'] = color
-				if width is not None :
-					m['linewidth'] = width
-				if opacity is not None :
-					m['alpha'] = opacity
+				gn = 1.0
+				ofs = 0.0
+				format = None
+				max_lim_y = None
+				min_lim_y = None
+				
+				if(len(g)==1):
+					name = g[0]
+					name = name.replace("S/","").replace("B/","").replace("P/","")
+					m['label'] = k_map[name]
+				else:
+					name, sig_param = g
+					name = name.replace("S/","").replace("B/","").replace("P/","")
+					m['label'] = k_map[name]
+					if isinstance(sig_param, dict) :
+						if 'color' in sig_param :
+							m['color'] = sig_param['color']
+						if 'width' in sig_param :
+							m['linewidth'] = sig_param['width']
+						if 'opacity' in sig_param :
+							m['alpha'] = sig_param['opacity']
+						"""if 'gain' in sig_param :
+							gn = sig_param['gain']
+						if 'offset' in sig_param :
+							ofs = sig_param['offset']
+							if isinstance(ofs,str):
+								ofs = self.sa[ofs]	
+						if 'format' in sig_param :
+							format = sig_param['format']
+						if 'maxy' in sig_param :
+							max_lim_y = sig_param['maxy']
+							if isinstance(max_lim_y,str):
+								max_lim_y = self.sa[max_lim_y]	
+						if 'miny' in sig_param :
+							min_lim_y = sig_param['miny']
+							if isinstance(min_lim_y,str):
+								min_lim_y = self.sa[min_lim_y]"""								
 				if name.startswith('*') :
 					try :
-						name = self.search(name[1:], mode='blob')[0]
+						reb = self.reb_lst[0]
+						name = reb.meta.search(name[1:], mode='blob')[0]
 					except :
 						print(f"can not find var {name}")
 				elif name.startswith('?') :
-					name = self.search(name[1:], mode='regexp')[0]
-				if name in self.name_set :
-					for j, (time, reb) in enumerate(zip(self.time_lst, self.reb_lst)) :
-						m['label'] = f"{j}) " + k_map[name]
+					name = reb.meta.search(name[1:], mode='regexp')[0]
+				for i,reb in enumerate(self.reb_lst):	
+					name = name.replace(f"{self.shortcut_lst[i]}/","")
+					if name in reb.meta :
+						if(i!=0): m['label'] = k_map[name]+str(i)
 						y_arr = reb[name]
-						print(reb.meta[name][0] == 'Z4')
-						if reb.meta[name][0] == 'Z4' and ('psi' in name or 'trk' in name or 'argument' in name or 'dir' in name) :
-							y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
-							y_arr = (y_arr + 360.0) % 360.0
+						t_arr = self.time_lst[i]
+						if ispi(name) :
+							if reb.meta[name][0] == 'Z4' :
+								y_arr = 360.0 * y_arr.astype(np.double) / 0x100000000
+							y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
+							y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 						if format is None :
-							# plt.plot(time, y_arr, ** m)
-							plt.plot(y_arr, ** m)
+							plt.plot(t_arr, gn*y_arr+ofs, ** m)
 						else :
-							# plt.plot(time, y_arr, format, ** m)
-							plt.plot(y_arr, format, ** m)
-						y_lst.append(y_arr)
-				else :
-					print(f"{name} not found")
-					print('\n'.join(self.search(name)))
+							plt.plot(t_arr, gn*y_arr+ofs, format, ** m)
+						if min_lim_y is not None:
+							plt.plot(t_arr, gn*y_arr+ofs+min_lim_y,'k--',label="min")
+						if max_lim_y is not None:
+							plt.plot(t_arr, gn*y_arr+ofs+max_lim_y,'k--',label="max")
+						
+						
+						y_lst.append(gn*y_arr+ofs)
+						#mplcursors.cursor()
+					else :
+						print(reb.meta)
+						print(f"{name} not found")
+						print('\n'.join(reb.meta.search(name)))
 				print(m)
 
 			try :
 				y_max = max(np.max(y) for y in y_lst)
 				y_min = min(np.min(y) for y in y_lst)
 
-				if 0 <= y_min and y_max <= 1 :
+				if 0 <= y_min and y_max <= 1 and ( 0.5 <= abs(y_max - y_min) or abs(y_max - y_min) == 0.0 ) :
 					q.set_ylim([-0.5, +1.5])
 				# elif y_max <= 12.0 :
 				# 	y_min = min(0.0, y_min)
@@ -214,18 +402,16 @@ class PlotSA() :
 			except ValueError :
 				pass
 
-		
 			plt.grid()
 			plt.legend()
 
-		# fig.tight_layout()
+		fig.tight_layout()
 		plt.show(block=False)
 
 
 if __name__ == '__main__' :
 
-	bookmark_dir = Path(os.environ["STRUCTARRAY_bookmark_DIR"]).resolve()
-
+	bookmark_dir = Path(os.environ.get("STRUCTARRAY_bookmark_DIR", "")).resolve()
 	print(bookmark_dir)
 
 	n_lst = '0123456789abcdefijklmnpqrstuvxyz'
@@ -233,9 +419,15 @@ if __name__ == '__main__' :
 	parser = argparse.ArgumentParser(description='Convert a meta (*.sam.tsv) and data (*.sad.bin) file into a tsv file')
 
 	parser.add_argument('data', metavar='DATA', nargs='+', type=Path, help='the data (*.reb) file')
-
+	parser.add_argument('--trigger', '-t', metavar='TRIG', type=str, default=None, help='the trigger signal')
+	parser.add_argument('--delay', '-d', metavar='DEL', type=float, default=None, help='the delay signal1-signal2')
 	p = parser.parse_args()
 
-	PlotSA(* p.data, bookmark_dir=bookmark_dir).run()
+	print("data: ",p.data)
+	print("trigger: ",p.trigger)
+	print("delay: ",p.delay)
+	
+	
+	PlotSA(None, bookmark_dir).load(p.data, None, p.trigger, p.delay).run()
 
 

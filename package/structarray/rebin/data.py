@@ -41,7 +41,7 @@ class DataRebin(DataGeneric) :
 		"""
 
 		self.data_pth = Path(data_pth).resolve(strict=True)
-
+		print("debug meta : ",meta)
 		match meta :
 			case Path() | str() :
 				self.meta = structarray.rebin.meta._cached_meta[Path(meta).resolve(strict=True)]
@@ -56,7 +56,7 @@ class DataRebin(DataGeneric) :
 						break
 			case _ :
 				raise ValueError("meta can't be loaded")
-				
+		print("debug meta : ",self.meta)		
 		self._load()
 		
 	def _load(self) :
@@ -65,9 +65,9 @@ class DataRebin(DataGeneric) :
 
 		# taille du fichier lui-même
 		file_len = self.data_pth.stat().st_size
+		self.data_len = self.data_pth.stat().st_size
 		# taille d'un bloc, ajusté au block_boundary le plus proche, en général 8
 		self.block_len = (((self.meta.sizeof // self.block_boundary) + 1) * self.block_boundary) if (self.meta.sizeof % self.block_boundary) != 0 else self.meta.sizeof
-
 		# nombre de blocs
 		self.block_nbr = file_len // self.block_len
 
@@ -75,6 +75,10 @@ class DataRebin(DataGeneric) :
 		if (file_len % self.block_len) != 0 :
 			print("\x1b[33mFile was truncated !\x1b[0m")
 		self.data_len = self.block_nbr * self.block_len
+
+		# truncated size (if truncation needed, else trunc_size = data_len)
+		self.data_len = (file_len // self.block_nbr) * self.block_nbr if (file_len % self.block_len) != 0 else file_len
+		
 
 		print(f"LOADING data :: {self.data_pth}")
 		

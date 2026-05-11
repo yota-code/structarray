@@ -1,0 +1,32 @@
+[
+	
+	{
+		"title":"Vertical Speed",
+		"col":1,
+		"size":[12,8],
+		"clean":true
+	},
+	[
+		{
+		"ylabel" : "Velocity (ft/min)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_VvFpaRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VzCom",
+            {"gain":196.85}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_VvBan"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._C_1_UpmTrajBaroFpaS.R_VzbComNoLim",
+            {"gain":196.85}
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._C_1_UpmTrajBaroFpaS._I4_R_VzBiC",
+            {"gain":196.85}
+		]
+	]
+]

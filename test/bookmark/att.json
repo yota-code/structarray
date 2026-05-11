@@ -12,14 +12,14 @@
 		"ylabel" : "Alt (m)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr",
+			"S/_C_1_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr",
 			{
 				"miny":-2,
 				"maxy":2
 			}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.S_UpmCdtBaroRh.R_ZbpM"
+			"S/_C_1_UpmS._C_2_UpmCdtS.S_UpmCdtBaroRh.R_ZbpM"
 		]
 	],
 	[
@@ -28,17 +28,17 @@
 		"ylabel" : "IAS (kt)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefIasS._O2_R_IasRef",
+			"S/_C_1_UpmS._C_2_UpmTrajS.R_IasRef",
 			{
 				"miny":-5,
 				"maxy":5
 			}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS._O3_S_UpmCdt.R_ViC"
+			"S/_C_1_UpmS._C_2_UpmCdtS._O3_S_UpmCdt.R_ViC"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_Ias"
+			"S/_C_1_UpmS._C_2_UpmCdtS.R_Ias"
 		]
 	],
 	[
@@ -47,17 +47,17 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef",
+			"S/_C_1_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef",
 			{
 				"miny":-5,
 				"maxy":5
 			}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_PsiC"
+			"S/_C_1_UpmS._C_2_UpmRefS.R_PsiC"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_TkMag"
+			"S/_C_1_UpmS._C_2_UpmRefS.R_TkMag"
 		]
 	],
 	[
@@ -66,10 +66,10 @@
 		"ylabel" : "Velocity (ft/min)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_VvFpaRef"
+			"S/_C_1_UpmS._C_2_UpmRefS.R_VvFpaRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_VvBan"
+			"S/_C_1_UpmS._C_2_UpmCdtS.R_VvBan"
 		]
 	],
 	[
@@ -78,10 +78,10 @@
 		"ylabel" : "Percent (%)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefPct_"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefPct_"
 		],
 		[
-			"_C_2_MfcEmiB._C3_MfcEmiVisB.R_FpaCurr"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS.R_HcCurrFpa"
 		]
 	],
 	[
@@ -90,22 +90,22 @@
 		"ylabel" : "Velocity (kt)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vx"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vx"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vy"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vy"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_VsRefms"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_VsRefms"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vs"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vs"
 		]
 	],
 	[
@@ -115,13 +115,13 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Att.R_The"
+			"S/S_MonStbSen.S_Att.R_The"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Att.R_Phi"
+			"S/S_MonStbSen.S_Att.R_Phi"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Hdg.R_Psi"
+			"S/S_MonStbSen.S_Hdg.R_Psi"
 		]
 	],
 	[
@@ -131,13 +131,13 @@
 		"ylabel" : "Degree per sec (°/s)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_PitRate"
+			"S/S_MonStbSen.S_AttRate.R_PitRate"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_RolRate"
+			"S/S_MonStbSen.S_AttRate.R_RolRate"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_YawRate"
+			"S/S_MonStbSen.S_AttRate.R_YawRate"
 		]
 	],
 	[
@@ -147,13 +147,13 @@
 		"ylabel" : "(m/s^2)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamax"
+			"S/S_MonStbSen.S_Gama.R_Gamax"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamay"
+			"S/S_MonStbSen.S_Gama.R_Gamay"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamaz",
+			"S/S_MonStbSen.S_Gama.R_Gamaz",
 			{"offset":1}
 		]
 	]
