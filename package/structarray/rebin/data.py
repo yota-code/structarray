@@ -65,15 +65,13 @@ class DataRebin(DataGeneric) :
 
 		# taille du fichier lui-même
 		file_len = self.data_pth.stat().st_size
-		# taille d'un bloc, ajusté au block_boundary le plus proche, en général 8
+
+		# taille d'un bloc, ajusté au block_boundary le plus proche, en général 8, il faut être raccord avec le calcul fait dans le code C
 		self.block_len = (((self.meta.sizeof // self.block_boundary) + 1) * self.block_boundary) if (self.meta.sizeof % self.block_boundary) != 0 else self.meta.sizeof
 
 		# nombre de blocs
 		self.block_nbr = file_len // self.block_len
 
-		# truncated size (if truncation needed, else trunc_size = data_len)
-		if (file_len % self.block_len) != 0 :
-			print("\x1b[33mFile was truncated !\x1b[0m")
 		self.data_len = self.block_nbr * self.block_len
 
 		print(f"LOADING data :: {self.data_pth}")
@@ -98,7 +96,7 @@ class DataRebin(DataGeneric) :
 		stop_clock = time.perf_counter_ns()
 		self.load_time = stop_clock - start_clock
 
-		print(f" => file of {self.data_len} bytes" + (f" truncated to {self.data_len}" if self.data_len != file_len else "") + f" or {self.block_nbr} blocks of {self.block_len} bytes")
+		print(f" => file of {self.data_len} bytes" + (f" \x1b[33mtruncated\x1b[0m to {self.data_len}" if self.data_len != file_len else "") + f" or {self.block_nbr} blocks of {self.block_len} bytes")
 
 		return self
 

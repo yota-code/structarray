@@ -47,7 +47,7 @@ class PlotSA() :
 		self.sa = structarray.open(data_pth, meta)
 
 		if self.sa._time is None :
-			time_lst = sorted([var for var in self.sa.meta.search('time_ms')], key=len)
+			time_lst = sorted([var for var in self.sa.meta.search('internal_time_ms')], key=len)
 			if time_lst :
 				self.sa._time = time_lst[0]
 			

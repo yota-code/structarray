@@ -5,7 +5,6 @@ import os
 from cc_pathlib import Path
 
 def open(data:Path|str, meta:Path=None) :
-
 	data = Path(data).resolve()
 
 	match data.suffix :
