@@ -8,8 +8,12 @@
 		},
 	[
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.B_AuthHta"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS._O0_S_HtaToRef.B_AuthHta"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS._O0_S_HtaToRef.B_AuthHtaIas"
 		]
+		
 	],
 	[
 		{
@@ -17,7 +21,7 @@
 		"xlabel":"time (s)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.I_ModeHta"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS._O0_S_HtaToRef.I_HtaAlrtLvl"
 		]
 	],
 	[
@@ -27,22 +31,22 @@
 		"ylabel":null
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_ReqALTAHta"
+			"S/_C_1_UpmS._C_2_UpmRefS.S_HtaToRef.B_ReqALTAHta"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_ReqALTA"
+			"S/_C_1_UpmS._C_2_UpmMgmS.B_ReqALTA"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_ALTA"
+			"S/_C_1_UpmS._C_2_UpmMgmS.B_ALTA"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_FPA"
+			"S/_C_1_UpmS._C_2_UpmMgmS.B_FPA"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_VS"
+			"S/_C_1_UpmS._C_2_UpmMgmS.B_VS"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.B_ALT"
+			"S/_C_1_UpmS._C_2_UpmMgmS.B_ALT"
 		]
 	],
 	[
@@ -52,13 +56,13 @@
 		"ylabel":"altitude (m)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaAltaRef"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaAltaRef"
 		],
 		[
-			"_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstAlt"
+			"B/S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstAlt"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.R_ZBiC_P"
+			"S/_C_1_UpmS._C_2_UpmMgmS.R_ZBiC_P"
 		]
 		
 	],
@@ -69,16 +73,16 @@
 		"ylabel":"Vz (m/S)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaVzRef"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaVzRef"
 		],
 		[
-			"_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstVz"
+			"B/S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstVz"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS.R_VzBiC_P"
+			"S/_C_1_UpmS._C_2_UpmMgmS.R_VzBiC_P"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_VvRefHiLim"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_VvRefHiLim"
 		]
 	],
 	[
@@ -88,16 +92,16 @@
 		"ylabel":"Fpa (%)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaFpaRef"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS._O0_S_HtaToRef.R_HtaFpaRef"
 		],
 		[
-			"_L222_MfcAfcs.S_AcqB1ToS.S_AcqObst.R_ObstFpa"
+			"B/S_AcqB.S_AcqB1ToS.S_AcqObst.R_ObstFpa"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmMgmS._C_1_UpmMgmTerrainS.R_HcCurrFpa"
+			"S/_C_1_UpmS._C_2_UpmMgmS._C_3_UpmMgmTerrainS.R_HcCurrFpa"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefHiLim"
+			"S/_C_1_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefHiLim"
 		]
 	]
 ]

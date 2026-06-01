@@ -109,7 +109,14 @@ class PlotSA() :
 
 			print(f'{sa._time}: {sa.t[0]} .. {sa.t[-1]}')
 
-			k = self.shortcut_map[d_struct]
+			#k = self.shortcut_map[d_struct]
+			if "MfcAfcsSlow" in p_lst:
+				k="S"
+			elif "MfcAfcsBasic" in p_lst:
+				k="B"
+			elif "MfcPflight" in p_lst:
+				k="P"
+
 			self.d_map[k] = sa
 			self.s_map[k] = 0
 
@@ -291,24 +298,24 @@ class PlotSA() :
 						if 'offset' in sig_param :
 							ofs = sig_param['offset']
 							if isinstance(ofs,str):
-								ofs = self.sa[ofs]	
+								ofs = self[ofs][0]	
 						if 'format' in sig_param :
 							format = sig_param['format']
 						if 'maxy' in sig_param :
 							max_lim_y = sig_param['maxy']
 							if isinstance(ofs,str):
-								max_lim_y = self.sa[max_lim_y]	
+								max_lim_y = self[max_lim_y][0]	
 						if 'miny' in sig_param :
 							min_lim_y = sig_param['miny']
 							if isinstance(ofs,str):
-								min_lim_y = self.sa[min_lim_y]								
+								min_lim_y = self[min_lim_y][0]								
 				if name.startswith('*') :
 					try :
-						name = self.sa.meta.search(name[1:], mode='blob')[0]
+						name = self.search(name[1:], mode='blob')[0]
 					except :
 						print(f"can not find var {name}")
 				elif name.startswith('?') :
-					name = self.sa.meta.search(name[1:], mode='regexp')[0]
+					name = self.search(name[1:], mode='regexp')[0]
 
 				t_arr, y_arr = self[name]
 				if format is None :

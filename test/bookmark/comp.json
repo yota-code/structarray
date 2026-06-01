@@ -1,0 +1,130 @@
+[
+	
+	{
+		"title":"Attitude",
+		"col":3,
+		"size":[12,8],
+		"clean":true
+	},
+	[
+		{
+		"title":"Altitude",
+		"ylabel" : "Alt (m)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.S_UpmCdtBaroRh.R_ZbpM"
+		]
+	],
+	[
+		{
+		"title":"Reference",
+		"ylabel" : "IAS (kt)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS.R_IasRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_Ias"
+		]
+	],
+	[
+		{
+		"title":"Heading",
+		"ylabel" : "Degree (°)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_PsiC"
+		]
+	],
+	[
+		{
+		"title":"Vertical Speed",
+		"ylabel" : "Velocity (ft/min)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_VvFpaRef"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_VvBan"
+		]
+	],
+	[
+		{
+		"title":"Flight Path Angle",
+		"ylabel" : "Percent (%)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_1_UpmRefVvFpaS.R_FpaRefPct_"
+		],
+		[
+			"_C_2_MfcEmiB._C3_MfcEmiVisB.R_FpaCurr"
+		]
+	],
+	[
+		{
+		"title":"Ground Speed",
+		"ylabel" : "Velocity (kt)"
+		},
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_VsRefms"
+		],
+		[
+			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vs"
+		]
+	],
+	[
+		{
+		"title":"Angle",
+		"xlabel":"time (s)",
+		"ylabel" : "Degree (°)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Att.R_The"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Att.R_Phi"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Hdg.R_Psi"
+		]
+	],
+	[
+		{
+		"title":"Angle Rates",
+		"xlabel":"time (s)",
+		"ylabel" : "Degree per sec (°/s)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_PitRate"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_RolRate"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_AttRate.R_YawRate"
+		]
+	],
+	[
+		{
+		"title":"Acceleration",
+		"xlabel":"time (s)",
+		"ylabel" : "(m/s^2)"
+		},
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamax"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamay"
+		],
+		[
+			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamaz",
+			{"offset":1}
+		]
+	]
+]

@@ -11,10 +11,10 @@
 		"ylabel" : "Accel (m/s^2)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Gamax"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Gamax"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Gamax"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Gamax"
 		]
 	],
 	[
@@ -23,10 +23,10 @@
 		"ylabel" : "Accel (m/s^2)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Gamay"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Gamay"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Gamay"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Gamay"
 		]
 	],
 	[
@@ -35,10 +35,10 @@
 		"ylabel" : "Accel (m/s^2)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Gamaz"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Gamaz"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Gamaz"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Gamaz"
 		]
 	],
 	[
@@ -48,10 +48,10 @@
 		"ylabel" : "Degree per sec (°/s)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_PitRate"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_PitRate"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_PitRate"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_PitRate"
 		]
 	],
 	[
@@ -61,10 +61,10 @@
 		"ylabel" : "Degree per sec (°/s)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_RolRate"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_RolRate"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_RolRate"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_RolRate"
 		]
 	],
 	[
@@ -74,10 +74,10 @@
 		"ylabel" : "Degree per sec (°/s)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_YawRate"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_YawRate"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_YawRate"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_YawRate"
 		]
 	],
 	[
@@ -86,10 +86,10 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_The"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_The"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_The"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_The"
 		]
 	],
 	[
@@ -98,10 +98,10 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Phi"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Phi"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Phi"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Phi"
 		]
 	],
 	[
@@ -110,10 +110,10 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Psi"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS1.R_Psi"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Psi",
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB.S_AcqAhrsAHRS2.R_Psi",
 			{"format":"-"}
 		]
 	]

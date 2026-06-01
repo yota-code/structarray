@@ -8,40 +8,17 @@
 	},
 	[
 		{
-		"title":"Altitude",
-		"ylabel" : "Alt (m)"
-		},
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr",
-			{
-				"miny":-2,
-				"maxy":2
-			}
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ZCom"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.S_UpmCdtBaroRh.R_ZbpM"
-		]
-	],
-	[
-		{
 		"title":"Reference",
 		"ylabel" : "IAS (kt)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefIasS._O2_R_IasRef",
-			{
-				"miny":-5,
-				"maxy":5
-			}
+			"S/_C_1_UpmS._C_2_UpmRefS._C_2_UpmRefIasS._O2_R_IasRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ViCom"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ViCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_Ias"
+			"S/_C_1_UpmS._C_2_UpmCdtS.R_Ias"
 		]
 	],
 	[
@@ -50,17 +27,67 @@
 		"ylabel" : "Degree (°)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef",
-			{
-				"miny":-5,
-				"maxy":5
-			}
+			"S/_C_1_UpmS._C_2_UpmRefS._C_2_UpmRefHdgTrkS.R_HdgTrkRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_TkCom"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_TkCom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_PsiC"
+			"S/_C_1_UpmS._C_2_UpmRefS.R_PsiC"
+		]
+	],
+	[
+		{
+		"title":"Altitude",
+		"ylabel" : "Alt (m)"
+		},
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._O2_S_UpmRef.R_AltRefMCorr"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_ZCom"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmCdtS.S_UpmCdtBaroRh.R_ZbpM"
+		]
+	],
+	[
+		{
+		"title":"Ground Speed",
+		"ylabel" : "Velocity (m/s)"
+		},
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VxCom3Hov"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vx"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_VsRefms"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VsCom"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vs"
+		]
+	],
+	[
+		{
+		"title":"Ground Speed",
+		"ylabel" : "Velocity (m/s)"
+		},
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VyCom3Hov"
+		],
+		[
+			"S/_C_1_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vy"
 		]
 	],
 	[
@@ -69,53 +96,14 @@
 		"ylabel" : "Velocity (ft/min)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS.R_VvFpaRef"
+			"S/_C_1_UpmS._C_2_UpmRefS.R_VvFpaRef"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VzCom",
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VzCom",
             {"gain":196.85}
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_1_UpmCdtS.R_VvBan"
-		]
-	],
-	[
-		{
-		"title":"Ground Speed",
-		"ylabel" : "Velocity (kt)"
-		},
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VxRef"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VxCom3Hov"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vx"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS._O0_S_UpmRefHov.R_VyRef"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VyCom3Hov"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vy"
-		]
-	],
-	[
-		{
-		"title":"Ground Speed",
-		"ylabel" : "Velocity (kt)"
-		},
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_VsRefms"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_VsCom"
-		],
-		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmRefS._C_3_UpmRefHovS.R_Vs"
+			"S/_C_1_UpmS._C_2_UpmCdtS.R_VvBan"
 		]
 	],
 	[
@@ -125,13 +113,13 @@
 		"ylabel" : "(m/s^2)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GxComGstcNom"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GxComGstcNom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GxCom3Hov"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GxCom3Hov"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamax"
+			"S/_C_1_UpmS.S_UpmCdt.R_GamaxC"
 		]
 	],
 	[
@@ -141,13 +129,14 @@
 		"ylabel" : "(m/s^2)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GyComGstcNom"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GyComGstcNom"
 		],
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GyCom3Hov"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GyCom3Hov"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamay"
+			"S_MonStbSen.S_Gama.R_Gamay",
+            {"gain":9.80665}
 		]
 	],
 	[
@@ -157,11 +146,11 @@
 		"ylabel" : "(m/s^2)"
 		},
 		[
-			"_C_1_RtmSchNomFctS._C_7_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GzCom"
+			"S/_C_1_UpmS._C_2_UpmTrajS._O1_S_TrajToRef.R_GzCom"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_1_MonSenDisB._C_1_MonSenInrtB._O0_S_MonStbSenAhrs.S_Gama.R_Gamaz",
-			{"offset":1}
+			"S/_C_1_UpmS.S_UpmCdt.R_GamazC"
+			
 		]
 	]
 ]

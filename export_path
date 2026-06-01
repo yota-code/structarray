@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 STRUCTARRAY_root_DIR=$(dirname $(realpath ${BASH_SOURCE[0]:-$0}))
-export STRUCTARRAY_bookmark_DIR=${source_DIR}/data/upmv
+if [ -z "${STRUCTARRAY_bookmark_DIR}" ]; then
+	export STRUCTARRAY_bookmark_DIR=${source_DIR}/data/upmv
+fi
 
 export PATH=$STRUCTARRAY_root_DIR/script:$PATH
 export PYTHONPATH=$STRUCTARRAY_root_DIR/package:$PYTHONPATH

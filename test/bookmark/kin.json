@@ -11,11 +11,11 @@
 		"title":"Override"
 		},
 		[
-			"_C_2_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnYaw301",
+			"B/_C_1_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnYaw301",
 			null
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefYawTrim",
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefYawTrim",
 			null
 		]
 	],
@@ -24,13 +24,13 @@
 		"title":"Trim Position (degTr)"
 		},
 		[
-			"S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosYaw"
+			"B/S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosYaw"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_8_StbHumsB.R_MonPosYaw"
+			"B/_C_1_RtmSchNomFctB._C_8_StbHumsB.R_MonPosYaw"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosYaw"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosYaw"
 		]
 	],
 	[
@@ -38,15 +38,15 @@
 		"title":"SEMA Position (mmEma)"
 		},
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdYawEma",
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdYawEma",
 			null
 		],
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdYawEma",
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdYawEma",
 			null
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_YawEma1Mm"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_YawEma1Mm"
 		]
 	],
 	[
@@ -54,126 +54,126 @@
 		"title":"Total Pos (degBl)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_YawTotalPos",
+			"B/_C_1_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_YawTotalPos",
 			{
 				"gain" : 0.590,
 				"offset" : 6.952229304
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbDclB._C_1_StbDclInCmdB._I3_R_YOutCmd_P",
+			"B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbDclB._C_1_StbDclInCmdB._I3_R_YOutCmd_P",
 			{
-				"offset" : "_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB.R_YPdlDegBl_"
+				"offset" : "B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB.R_YPdlDegBl_"
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_YawDegBl"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_YawDegBl"
 		]
 	],
 	[
 
 		[
-			"_C_2_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnPit301",
+			"B/_C_1_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnPit301",
 			null
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefPitTrim",
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefPitTrim",
 			null
 		]
 	],
 	[
 		[
-			"S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosPit"
+			"B/S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosPit"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_8_StbHumsB.R_MonPosPit"
+			"B/_C_1_RtmSchNomFctB._C_8_StbHumsB.R_MonPosPit"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosPit"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosPit"
 		]
 	],
 	[
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdPitEma",
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdPitEma",
 			null
 		],
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdPitEma",
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdPitEma",
 			null
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PitEma1Mm"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PitEma1Mm"
 		]
 	],
 	[
 		[
-			"_C_2_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_PitTotalPos",
+			"B/_C_1_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_PitTotalPos",
 			{
 				"gain" : 0.283,
 				"offset" : 1.3427007165
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbDclB._C_1_StbDclInCmdB._I1_R_POutCmd_P",
+			"B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbDclB._C_1_StbDclInCmdB._I1_R_POutCmd_P",
 			{
-				"offset" : "_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB.R_PStkDegBl_"
+				"offset" : "B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB.R_PStkDegBl_"
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_PitDegBl"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_PitDegBl"
 		]
 	],
 	[
 
 		[
-			"_C_2_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnRol301",
+			"B/_C_1_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnRol301",
 			null
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefRolTrim",
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefRolTrim",
 			null
 		]
 	],
 	[
 		[
-			"S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosRol"
+			"B/S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosRol"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_8_StbHumsB.R_MonPosRol"
+			"B/_C_1_RtmSchNomFctB._C_8_StbHumsB.R_MonPosRol"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosRol"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosRol"
 		]
 	],
 	[
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdRolEma",
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdRolEma",
 			null
 		],
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdRolEma",
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdRolEma",
 			null
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_RolEma1Mm"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_RolEma1Mm"
 		]
 	],
 	[
 		[
-			"_C_2_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_RolTotalPos",
+			"B/_C_1_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_RolTotalPos",
 			{
 				"gain" : 0.155,
 				"offset" : 0.2612359553
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbDclB._C_1_StbDclInCmdB._I2_R_ROutCmd_P",
+			"B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbDclB._C_1_StbDclInCmdB._I2_R_ROutCmd_P",
 			{
-				"offset" : "_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB.R_RStkDegBl_"
+				"offset" : "B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB.R_RStkDegBl_"
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_RolDegBl"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_RolDegBl"
 		]
 	],
 	[
@@ -181,10 +181,10 @@
 		"xlabel":"time (s)"
 		},
 		[
-			"_C_2_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnCol301"
+			"B/_C_1_MfcAcqB._C_1_AcqAriDaisyB.B_HandsOnCol301"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefColTrim"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonActB._O1_S_DefAct.B_DefColTrim"
 		]
 	],
 	[
@@ -192,13 +192,13 @@
 		"xlabel":"time (s)"
 		},
 		[
-			"S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosCol"
+			"B/S_AcqB.S_ActFdb.S_ActivTrimFdb.S_AcqTrimActA.R_TrimShaftPosCol"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_8_StbHumsB.R_PosCol"
+			"B/_C_1_RtmSchNomFctB._C_8_StbHumsB.R_PosCol"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosCol"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_PosCol"
 		]
 	],
 	[
@@ -206,13 +206,13 @@
 		"xlabel":"time (s)"
 		},
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdColEma"
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma1.R_CmdColEma"
 		],
 		[
-			"S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdColEma"
+			"B/S_AcqB.S_ExcCpuDataCalB_M.S_CmdAct.S_CmdEma2.R_CmdColEma"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_ColEma1Mm"
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_ColEma1Mm"
 		]
 	],
 	[
@@ -220,19 +220,19 @@
 		"xlabel":"time (s)"
 		},
 		[
-			"_C_2_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_ColTotalPos",
+			"B/_C_1_RtmSchNomFctB._O4_S_StbVis.S_StbHums.R_ColTotalPos",
 			{
 				"gain" : 0.181,
 				"offset" : 0
 			}
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB._O9_R_Dg"
+			"B/_C_1_RtmSchNomFctB._C_2_StbB._C_1_StbCdtB._C_1_StbCdtPosB._O9_R_Dg"
 		],
 		[
-			"_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_ColDegBl",
+			"B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB._C_1_MonSenBanVimiB.R_ColDegBl",
 			{
-				"offset" : "_C_2_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_ColSemaDegBl"
+				"offset" : "B/_C_1_RtmSchNomFctB._C_1_MonB._C_1_MonSenB._C_2_MonSenBanB.R_ColSemaDegBl"
 			}
 		]
 		

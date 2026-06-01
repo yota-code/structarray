@@ -138,7 +138,6 @@ class PlotSA() :
 	def plot(self, p_lst, title=None) :
 
 		print(json.dumps(p_lst, indent='\t'))
-		print(json.dumps(p_lst, indent='\t'))
 		
 		#get figure meta
 		if isinstance(p_lst[0], dict) :
@@ -248,7 +247,9 @@ class PlotSA() :
 						print(f"can not find var {name}")
 				elif name.startswith('?') :
 					name = self.sa.meta.search(name[1:], mode='regexp')[0]
-				if name in self.sa.meta :
+				if name.replace("S/","").replace("B/","").replace("P/","") in self.sa.meta:
+					name = name.replace("S/","").replace("B/","").replace("P/","")
+				if name in self.sa.meta:
 					y_arr = self.sa[name]
 					if ispi(name) :
 						if self.sa.meta[name][0] == 'Z4' :
@@ -256,6 +257,7 @@ class PlotSA() :
 						y_arr = np.unwrap((y_arr + 360.0) % 360.0, 360.0)
 						y_arr = np.where(y_arr > 180.0, y_arr - 360.0, y_arr)
 					if format is None :
+						#t_arr = np.arange(len(self.sa.t))
 						plt.plot(self.sa.t, gn*y_arr+ofs, ** m)
 					else :
 						plt.plot(self.sa.t, gn*y_arr+ofs, format, ** m)

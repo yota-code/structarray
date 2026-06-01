@@ -27,8 +27,8 @@ if __name__ == '__main__' :
 	print("meta: ",meta_pth)
 
 	#load data
-	u = structarray.RebHandler().load(data_pth, meta_pth)
-	
+	#u = structarray.RebHandler().load(data_pth, meta_pth)
+	u = structarray.open(data_pth, meta)
 	t = u["_L33_MfcPflight.timestamp"]
 	
 	plt.plot(t[1:] - t[:-1])
